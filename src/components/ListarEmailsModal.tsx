@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import type { EmailRecord, TFiltro } from '../types/email';
+import { IconeFechar } from './Icons';
 import { FILTROS, filtrarPorStatusMultiplo, ordenar } from './utils/emailData';
 
 type TModoExibicao = 'nome' | 'email';
@@ -131,7 +132,7 @@ export function ListarEmailsModal({ onFechar, registros }: Props) {
         <div className="modal-header">
           <h2>Listar E-mails</h2>
           <button type="button" className="modal-fechar" onClick={fechar} aria-label="Fechar">
-            ×
+            <IconeFechar />
           </button>
         </div>
 

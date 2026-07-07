@@ -3,10 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import type { EmailRecord, TStatusManual } from '../types/email';
 import { STATUS_MANUAIS } from '../types/email';
 import { copiarTexto } from './utils/clipboard';
-import { IconeCopiar } from './IconeCopiar';
-import { IconeEditarStatus } from './IconeEditarStatus';
-import { IconeLixeira } from './IconeLixeira';
-import { IconeRestaurar } from './IconeRestaurar';
+import {
+  IconeCopiar,
+  IconeEditarStatus,
+  IconeLixeira,
+  IconeRestaurar,
+} from './Icons';
 
 /** Colunas copiáveis via botão no cabeçalho (seção 7). */
 type TColunaCopiavel = 'nome' | 'email';
@@ -88,6 +90,7 @@ export function EmailTable({
   // Qual coluna mostrou "Copiado!" por último (null = nenhuma, ou o feedback já expirou).
   const [colunaCopiada, setColunaCopiada] = useState<TColunaCopiavel | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const selectMassaRef = useRef<HTMLSelectElement | null>(null);
 
   // Controla a exibição do select de atualização em massa, aberto pelo
   // ícone de edição ao lado do cabeçalho da coluna Status (seção 5.2).
@@ -100,6 +103,22 @@ export function EmailTable({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!selectMassaAberto) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const select = selectMassaRef.current;
+      if (!select) return;
+
+      select.focus();
+      if ('showPicker' in select && typeof select.showPicker === 'function') {
+        select.showPicker();
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [selectMassaAberto]);
 
   /**
    * Copia a coluna indicada (nome ou e-mail) dos registros atualmente
@@ -192,6 +211,7 @@ export function EmailTable({
 
   // "Selecionar todos" considera apenas os registros exibidos (após busca/filtro).
   const todosSelecionados = registros.every((r) => selecionados.has(r.id));
+  const temSelecao = selecionados.size > 0;
 
   return (
     <table className="email-table">
@@ -209,40 +229,51 @@ export function EmailTable({
           <th>
             <span className="th-com-copia">
               Nome
-              <button
-                type="button"
-                className={`botao-copiar-coluna ${colunaCopiada === 'nome' ? 'copiado' : ''}`}
-                onClick={() => void copiarColuna('nome')}
-                title="Copiar nomes exibidos"
-                aria-label="Copiar nomes exibidos"
-              >
-                <IconeCopiar />
-              </button>
+              {temSelecao && (
+                <button
+                  type="button"
+                  className={`botao-copiar-coluna ${colunaCopiada === 'nome' ? 'copiado' : ''}`}
+                  onClick={() => void copiarColuna('nome')}
+                  title="Copiar nomes exibidos"
+                  aria-label="Copiar nomes exibidos"
+                >
+                  <IconeCopiar />
+                </button>
+              )}
             </span>
           </th>
           <th>
             <span className="th-com-copia">
               E-mail
-              <button
-                type="button"
-                className={`botao-copiar-coluna ${colunaCopiada === 'email' ? 'copiado' : ''}`}
-                onClick={() => void copiarColuna('email')}
-                title="Copiar e-mails exibidos"
-                aria-label="Copiar e-mails exibidos"
-              >
-                <IconeCopiar />
-              </button>
+              {temSelecao && (
+                <button
+                  type="button"
+                  className={`botao-copiar-coluna ${colunaCopiada === 'email' ? 'copiado' : ''}`}
+                  onClick={() => void copiarColuna('email')}
+                  title="Copiar e-mails exibidos"
+                  aria-label="Copiar e-mails exibidos"
+                >
+                  <IconeCopiar />
+                </button>
+              )}
             </span>
           </th>
           <th>
             <span className="th-com-copia">
               Status
-              {onAtualizarStatusEmMassa && (
+              {temSelecao && onAtualizarStatusEmMassa && (
                 <span className="th-status-massa">
                   <button
                     type="button"
                     className="botao-icone botao-editar-status"
-                    onClick={() => setSelectMassaAberto((atual) => !atual)}
+                    onClick={() => {
+                      if (selectMassaAberto) {
+                        setSelectMassaAberto(false);
+                        return;
+                      }
+
+                      setSelectMassaAberto(true);
+                    }}
                     title="Atualizar status dos selecionados"
                     aria-label="Atualizar status dos registros selecionados"
                     aria-expanded={selectMassaAberto}
@@ -251,11 +282,11 @@ export function EmailTable({
                   </button>
                   {selectMassaAberto && (
                     <select
+                      ref={selectMassaRef}
                       className="select-atualizar-status-massa"
                       value=""
                       onChange={handleSelecionarStatusEmMassa}
                       onBlur={() => setSelectMassaAberto(false)}
-                      autoFocus
                       aria-label="Novo status para os registros selecionados"
                     >
                       <option value="" disabled>
@@ -273,10 +304,10 @@ export function EmailTable({
             </span>
           </th>
           <th className="th-acoes">
-            {onDeletar && selecionados.size > 0 && !todosSelecionadosDeletados && (
+            {onDeletar && temSelecao && !todosSelecionadosDeletados && (
               <button
                 type="button"
-                className="botao-icone botao-icone-deletar"
+                className="botao-icone botao-editar-status botao-icone-deletar"
                 onClick={onDeletar}
                 title="Deletar"
                 aria-label="Deletar registros selecionados"
@@ -284,7 +315,7 @@ export function EmailTable({
                 <IconeLixeira />
               </button>
             )}
-            {onRestaurar && selecionados.size > 0 && todosSelecionadosDeletados && (
+            {onRestaurar && temSelecao && todosSelecionadosDeletados && (
               <button
                 type="button"
                 className="botao-icone botao-icone-restaurar"

@@ -3,6 +3,7 @@ import { FILTROS, TODOS_OS_STATUS, type TOrdenacao } from './utils/emailData';
 import type { PaginaInfo } from './utils/paginacao';
 import { OrdenacaoPrioridade } from './OrdenacaoPrioridade';
 import { QuantidadeInput } from './QuantidadeInput';
+import { IconeBuscarPagina, IconePaginaAnterior, IconePaginaProxima } from './Icons';
 
 interface Props {
   termoBusca: string;
@@ -95,7 +96,7 @@ export function EmailToolbar({
               disabled={paginacao.paginaAtual <= 1}
               aria-label="Página anterior"
             >
-              ←
+              <IconePaginaAnterior />
             </button>
             <button type="button" className="paginacao-btn" onClick={() => onPaginaChange(1)}>
               1
@@ -111,16 +112,21 @@ export function EmailToolbar({
               disabled={paginacao.paginaAtual >= paginacao.totalPaginas}
               aria-label="Próxima página"
             >
-              →
+              <IconePaginaProxima />
             </button>
-            <button type="button" className="paginacao-btn" aria-label="Buscar página" onClick={() => {
-              const valor = window.prompt('Digite o número da página desejada');
-              const numero = Number.parseInt(valor ?? '', 10);
-              if (Number.isFinite(numero) && numero >= 1 && numero <= paginacao.totalPaginas) {
-                onPaginaChange(numero);
-              }
-            }}>
-              🔍
+            <button
+              type="button"
+              className="paginacao-btn"
+              aria-label="Buscar página"
+              onClick={() => {
+                const valor = window.prompt('Digite o número da página desejada');
+                const numero = Number.parseInt(valor ?? '', 10);
+                if (Number.isFinite(numero) && numero >= 1 && numero <= paginacao.totalPaginas) {
+                  onPaginaChange(numero);
+                }
+              }}
+            >
+              <IconeBuscarPagina />
             </button>
           </div>
         </div>

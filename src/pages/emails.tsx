@@ -169,14 +169,19 @@ export function Emails() {
    * reverte a UI para o estado anterior — não faz sentido manter um estado
    * que não foi de fato salvo em disco.
    */
-  async function persistirRegistros(registrosAtualizados: EmailRecord[]) {
+  async function persistirRegistros(
+    registrosAtualizados: EmailRecord[],
+    options?: { preservarSelecao?: boolean }
+  ) {
     const registrosAnteriores = registros;
     setRegistros(registrosAtualizados);
     setErroSalvamento(null);
 
     try {
       await salvarEmails(registrosAtualizados);
-      setSelecionados(new Set());
+      if (!options?.preservarSelecao) {
+        setSelecionados(new Set());
+      }
     } catch {
       setRegistros(registrosAnteriores);
       setErroSalvamento('Não foi possível salvar a alteração. Tente novamente.');
@@ -200,7 +205,7 @@ export function Emails() {
         ? { ...registro, status: novoStatus, status_alterado: true, last_updated: agora }
         : registro
     );
-    await persistirRegistros(registrosAtualizados);
+    await persistirRegistros(registrosAtualizados, { preservarSelecao: true });
   }
 
   /**

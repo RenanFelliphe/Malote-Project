@@ -1,4 +1,4 @@
-import { IconeRestaurar } from './IconeRestaurar';
+import { IconeRestaurar } from './Icons';
 
 type TStatusManual = 'válido' | 'inválido' | 'enviado';
 

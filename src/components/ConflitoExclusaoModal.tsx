@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import type { EmailRecord } from '../types/email';
+import { IconeFechar } from './Icons';
 
 interface Props {
   /** Registros com status "enviado" presentes na seleção — não podem ser deletados (seção 7). */
@@ -66,7 +67,7 @@ export function ConflitoExclusaoModal({ enviados, aDeletar, onCancelar, onConfir
         <div className="modal-header">
           <h2>Não é possível deletar registros enviados</h2>
           <button type="button" className="modal-fechar" onClick={cancelar} aria-label="Fechar">
-            ×
+            <IconeFechar />
           </button>
         </div>
 

@@ -1,4 +1,5 @@
 import type { EmailRecord } from '../types/email';
+import { IconeFechar } from './Icons';
 
 interface Props {
   /** Registros que compartilham o mesmo e-mail (grupo de duplicados). */
@@ -27,7 +28,7 @@ export function DuplicadosModal({ registros, onFechar }: Props) {
         <div className="modal-header">
           <h2>Registros com o mesmo e-mail</h2>
           <button type="button" className="modal-fechar" onClick={onFechar} aria-label="Fechar">
-            ×
+            <IconeFechar />
           </button>
         </div>
 
