@@ -1,0 +1,90 @@
+Leia e interprete o projeto anexado.
+
+Depois de entender as demandas, leia as intruções abaixo e divida-as em etapas de refatoração.
+
+Alteração da Interface de Gerenciamento de Registros Atualmente, quando um ou mais registros são selecionados, é exibida a seguinte seção abaixo da tabela: `N selecionado(s) | Atualizar para [SELECT] | [Ícone de Deletar]` O problema é que essa seção só aparece quando existe pelo menos um registro selecionado, fazendo com que a interface mude de tamanho e desloque os elementos da página. O objetivo desta alteração é eliminar essa seção e distribuir suas funcionalidades diretamente na tabela, deixando a interface mais estável e intuitiva.
+
+1. Alteração individual de status Atualmente, apenas o status "Duplicado" é clicável. Ao clicar nele, é aberto um modal exibindo todos os registros que possuem o mesmo e-mail. A partir de agora, todos os status deverão ser clicáveis. Funcionamento
+
+* Ao clicar em qualquer status (exceto Duplicado), deverá ser aberto um SELECT permitindo alterar o status daquele registro individualmente.
+* Ao selecionar uma opção, o status do registro deverá ser atualizado imediatamente. Exceção O status Duplicado continuará funcionando exatamente como hoje. Ou seja:
+* ao clicar nele, não deverá abrir o SELECT;
+* deverá continuar abrindo o modal com os registros que possuem o mesmo e-mail;
+* esse status não poderá ser alterado manualmente.
+
+1. Alteração em massa Quando o usuário desejar alterar o status de vários registros ao mesmo tempo, o fluxo continuará baseado na seleção de registros. Porém, o controle deixará de ficar naquela seção acima da tabela. Novo comportamento Ao lado do título da coluna Status, deverá existir um ícone (por exemplo, um lápis ou outro ícone apropriado). Ao clicar nesse ícone:
+
+* abrir um SELECT;
+* ao escolher um status, todos os registros atualmente selecionados deverão ser atualizados para esse novo status. Regra importante Se entre os registros selecionados existirem registros com status Duplicado, eles não deverão ser modificados. Exemplo:
+* 20 registros selecionados;
+* 3 deles possuem status Duplicado. Ao alterar o status em massa:
+* apenas os outros 17 registros deverão ser atualizados;
+* os 3 registros duplicados deverão permanecer inalterados.
+
+1. Botão de exclusão O comportamento da exclusão não será alterado. A única mudança será sua posição. Novo local O ícone da lixeira deverá ficar no extremo direito do cabeçalho da tabela.
+2. Contador de registros selecionados Depois das alterações acima, restará apenas a informação: `N selecionado(s)` Essa informação não precisa mais ficar acima da tabela. Escolha um local da interface que fique visualmente agradável e que não comprometa o layout. Regras
+
+* O contador deverá permanecer sempre visível.
+* Quando nenhum registro estiver selecionado, deverá exibir: `0 selecionado(s)`
+* Conforme o usuário selecionar registros, o número deverá ser atualizado automaticamente.
+Visibilidade Todos os botões que ficam no cabeçalho:
+
+* Copiar nome
+* Copiar email
+* Atualizar status
+* Deletar registro Deverão aparecer somente quando existir pelo menos um registro selecionado.
+Objetivo final Eliminar a seção que aparece apenas durante a seleção de registros, redistribuindo suas funcionalidades diretamente na tabela:
+
+* alteração individual clicando no próprio status;
+* alteração em massa através de um ícone no cabeçalho da coluna Status;
+* botão de exclusão movido para o cabeçalho da tabela;
+* contador de registros selecionados sempre visível. O resultado esperado é uma interface mais limpa, estável e intuitiva, sem mudanças de layout durante a seleção de registros.
+
+Essa divisão é importante para que vocÊ consiga gerar a resposta da implementação completa. Nas últimas vezes, você não conseguiu chegar até o final pelo projeto ter crescido damais.
+
+Arquivos ocultos:
+
+eslint.config.js
+index.html
+package-lock-json
+tsconfig.ap.json
+tsconfig.json
+tsconfig.node.json
+tsconfig.scripts.json
+vite.config.ts
+.gitignore
+/public
+/data
+
+Me avise se precisar deles para alguma implementação
+/node_modules
+
+Divisão em etapas de refatoração
+
+Etapa 0 — Limpeza
+Remover AtualizarStatusBar.tsx e DeletarRestaurarBar.tsx (código morto, serão substituídos pelo novo comportamento).
+Etapa 1 — Status individual clicável na tabela
+Em EmailTable.tsx, transformar a célula de status: se status === 'duplicado' mantém o botão que abre DuplicadosModal (sem alteração); para os demais, o badge vira um <select> inline que dispara atualização imediata daquele único registro. Nova função em emails.tsx: handleAtualizarStatusIndividual(id, status).
+Etapa 2 — Ícone de edição em massa no cabeçalho da coluna Status
+Usar IconeEditarStatus já existente ao lado do <th>Status</th>. Clique abre um <select>; ao escolher, aplica a selecionados, excluindo os que estiverem com status === 'duplicado' (filtro extra em handleAtualizarStatus).
+Etapa 3 — Lixeira no cabeçalho da tabela
+Mover o botão de deletar (hoje em SelecaoAcoesBar) para o extremo direito do <thead>, visível só com seleção ativa.
+Etapa 4 — Contador "N selecionado(s)" sempre visível
+Novo elemento fixo (fora do fluxo condicional), atualizado a cada mudança de selecionados.size, mostrando 0 selecionado(s) quando vazio.
+Etapa 5 — Remover a seção antiga
+Apagar SelecaoAcoesBar.tsx, remover seu uso em EmailToolbar.tsx (e a prop quantidadeSelecionada/callbacks que só existiam pra ela), limpar CSS relacionado (.selecao-acoes*, .botao-icone* reaproveitando o que fizer sentido).
+Etapa 6 — CSS final e ajustes visuais
+Estilizar o select inline de status, o ícone no cabeçalho, a lixeira e o contador no novo local, garantindo altura estável da página com/sem seleção.
+
+Questões
+
+Q: Registro com status "deletado": ao clicar nele individualmente, o SELECT deve permitir voltar direto para válido/inválido/enviado (vira um "restaurar individual")?
+A: Não, o status de "deletado" só pode ser alterado pelo botão de "restaurar"
+
+Q: Registro com status "enviado": hoje só pode ser deletado via modal de conflito. Ao tornar o status clicável, o que deve acontecer se o usuário tentar mudar um "enviado" para outro status pelo SELECT individual (ou incluí-lo numa edição em massa que resulte em deletado)?
+A: Permitir mudar para válido/inválido, mas exclusão continua exigindo o modal de conflito
+
+Q: Onde prefere fixar o contador "N selecionado(s)" para que fique sempre visível sem deslocar o layout?
+A: Coloca ele com uma fonte menor entre a tabela e o SELECT de SORT
+
+As Etapas 0-5 já foram implementadas completamente e a 6 parcialmente. Finalize a implementação da Etapa 6.
