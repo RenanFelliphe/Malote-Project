@@ -1,0 +1,1 @@
+- Modal para guardar o conteúdo e o título do email na página
