@@ -19,12 +19,19 @@ interface Props {
  * empatados no(s) critério(s) anterior(es). Reordenação por arrastar-e-
  * soltar (HTML5 Drag and Drop nativo) ou pelos botões ▲/▼, sem depender de
  * bibliotecas externas.
+ *
+ * Nota: o drag-and-drop nativo (HTML5) não tem suporte em telas touch por
+ * padrão — nesses ambientes os botões ▲/▼ são o fallback universal para
+ * reordenar.
  */
 export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
   const [aberto, setAberto] = useState(false);
   const [indiceArrastado, setIndiceArrastado] = useState<number | null>(null);
   const [indiceSobrevoado, setIndiceSobrevoado] = useState<number | null>(null);
+  const [indiceDraggableAtivo, setIndiceDraggableAtivo] = useState<number | null>(null);
+  const [anuncio, setAnuncio] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!aberto) return;
@@ -39,12 +46,28 @@ export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
     return () => document.removeEventListener('mousedown', aoClicarFora);
   }, [aberto]);
 
+  // Escape fecha o dropdown e devolve o foco ao botão gatilho.
+  useEffect(() => {
+    if (!aberto) return;
+
+    function aoPressionarTecla(evento: KeyboardEvent) {
+      if (evento.key === 'Escape') {
+        setAberto(false);
+        triggerRef.current?.focus();
+      }
+    }
+
+    document.addEventListener('keydown', aoPressionarTecla);
+    return () => document.removeEventListener('keydown', aoPressionarTecla);
+  }, [aberto]);
+
   function mover(origem: number, destino: number) {
     if (origem === destino) return;
     const nova = [...ordenacao];
     const [criterio] = nova.splice(origem, 1);
     nova.splice(destino, 0, criterio);
     onOrdenacaoChange(nova);
+    setAnuncio(`${CRITERIO_ORDENACAO_LABELS[criterio]} agora é o critério ${destino === 0 ? 'principal' : `de prioridade ${destino + 1}`} de ordenação.`);
   }
 
   function moverComBotao(index: number, direcao: -1 | 1) {
@@ -59,17 +82,19 @@ export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
     }
     setIndiceArrastado(null);
     setIndiceSobrevoado(null);
+    setIndiceDraggableAtivo(null);
   }
 
-  const principal = CRITERIO_ORDENACAO_LABELS[ordenacao[0]];
+  const principal = ordenacao.length > 0 ? CRITERIO_ORDENACAO_LABELS[ordenacao[0]] : 'Selecionar critério';
 
   return (
     <div className="ordenacao-select" ref={containerRef}>
       <button
         type="button"
+        ref={triggerRef}
         className="ordenacao-trigger"
         onClick={() => setAberto((atual) => !atual)}
-        aria-haspopup="true"
+        aria-haspopup="menu"
         aria-expanded={aberto}
       >
         <span className="ordenacao-trigger-texto">{principal}</span>
@@ -80,10 +105,11 @@ export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
 
       {aberto && (
         <div className="ordenacao-dropdown">
-          <ol className="ordenacao-lista">
+          <ol className="ordenacao-lista" role="menu">
             {ordenacao.map((criterio, index) => (
               <li
                 key={criterio}
+                role="menuitem"
                 className={[
                   'ordenacao-item',
                   indiceArrastado === index ? 'arrastando' : '',
@@ -93,7 +119,8 @@ export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
                 ]
                   .filter(Boolean)
                   .join(' ')}
-                draggable
+                draggable={indiceDraggableAtivo === index}
+                onMouseUp={() => setIndiceDraggableAtivo(null)}
                 onDragStart={() => setIndiceArrastado(index)}
                 onDragEnter={() => setIndiceSobrevoado(index)}
                 onDragOver={(e) => e.preventDefault()}
@@ -104,9 +131,14 @@ export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
                 onDragEnd={() => {
                   setIndiceArrastado(null);
                   setIndiceSobrevoado(null);
+                  setIndiceDraggableAtivo(null);
                 }}
               >
-                <span className="ordenacao-alca" aria-hidden="true">
+                <span
+                  className="ordenacao-alca"
+                  aria-hidden="true"
+                  onMouseDown={() => setIndiceDraggableAtivo(index)}
+                >
                   ⠿
                 </span>
                 <span className="ordenacao-label">{CRITERIO_ORDENACAO_LABELS[criterio]}</span>
@@ -133,6 +165,10 @@ export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
           </ol>
         </div>
       )}
+
+      <span className="sr-only" role="status" aria-live="polite">
+        {anuncio}
+      </span>
     </div>
   );
 }

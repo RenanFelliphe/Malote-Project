@@ -425,7 +425,6 @@ select {
 }
 
 /* --- Ordenação --- */
-
 .ordenacao {
   display: flex;
   align-items: center;
@@ -523,6 +522,7 @@ select {
 
 .ordenacao-item.arrastando {
   opacity: 0.5;
+  cursor: grabbing;
 }
 
 .ordenacao-item.sobrevoado {
@@ -533,6 +533,7 @@ select {
   color: var(--color-text-tertiary);
   font-size: 0.95rem;
   line-height: 1;
+  cursor: grab;
 }
 
 .ordenacao-label {
@@ -563,6 +564,22 @@ select {
 .ordenacao-botoes button:disabled {
   color: var(--color-border-strong);
   cursor: default;
+}
+
+/* Utilitário de acessibilidade: some visualmente mas continua legível por
+   leitores de tela. Usado pelo aria-live do OrdenacaoPrioridade. Se seu
+   design system já tiver uma classe global equivalente, pode remover esta
+   e usar a existente. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* --- Quantidade exibida (stepper) --- */
@@ -651,6 +668,38 @@ select {
 
 .quantidade-seta-baixo::before {
   transform: translate(-50%, -30%);
+  border-top-color: currentColor;
+}
+
+/* Setas duplas: mesmo visual do grupo simples, com dois "V" empilhados
+   para indicar "ir direto ao extremo" (máximo/mínimo). */
+.quantidade-seta-dupla-cima::before {
+  transform: translate(-50%, -95%);
+  border-bottom-color: currentColor;
+}
+
+.quantidade-seta-dupla-cima::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 3px solid transparent;
+  transform: translate(-50%, -45%);
+  border-bottom-color: currentColor;
+}
+
+.quantidade-seta-dupla-baixo::before {
+  transform: translate(-50%, -55%);
+  border-top-color: currentColor;
+}
+
+.quantidade-seta-dupla-baixo::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 3px solid transparent;
+  transform: translate(-50%, -5%);
   border-top-color: currentColor;
 }
 
@@ -763,6 +812,7 @@ select {
 }
 
 .email-table th {
+  height: 4rem;
   background: var(--color-bg-subtle);
   font-weight: 600;
   color: var(--color-text-secondary);
@@ -797,34 +847,63 @@ select {
 }
 
 .th-com-copia {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.4rem;
+  justify-content: flex-start;
+  gap: .7rem;
 }
 
-.botao-copiar-coluna {
+/* --- Botões de ícone do cabeçalho (copiar, editar status em massa,
+   deletar/restaurar) ---
+   Todos seguem o mesmo padrão visual: fundo transparente e cor neutra em
+   repouso, fundo suave + cor de destaque no hover. Tamanho de bloco, raio,
+   transição e posicionamento são idênticos entre eles — só a cor muda,
+   via modificador (padrão = accent, -perigo = vermelho, -info = azul).
+
+   São SEMPRE renderizados no DOM (mesmo sem seleção) e apenas ficam
+   `visibility: hidden` quando não há seleção — isso reserva o espaço no
+   cabeçalho permanentemente e evita que os títulos das colunas se
+   desloquem quando a seleção muda (ver `.botao-icone-th-invisivel`). */
+
+.botao-icone-th {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.7rem;
+  height: 1.7rem;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-text-tertiary);
   cursor: pointer;
   padding: 0;
-  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
-.botao-copiar-coluna:hover {
+.botao-icone-th:hover {
   background: var(--color-accent-soft);
   color: var(--color-accent);
 }
 
-.botao-copiar-coluna.copiado {
+.botao-icone-th.botao-icone-th-perigo:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.botao-icone-th.botao-icone-th-info:hover {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.botao-icone-th.copiado {
   color: var(--color-success);
   background: var(--color-success-bg);
+}
+
+.botao-icone-th-invisivel {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 /* --- Badges e selects de status --- */
@@ -932,26 +1011,6 @@ button.status-badge-clicavel:hover {
   align-items: center;
 }
 
-.botao-editar-status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  padding: 0;
-  transition: all var(--transition-fast);
-}
-
-.botao-editar-status:hover {
-  background: var(--color-accent-soft);
-  color: var(--color-accent);
-}
-
 .select-atualizar-status-massa {
   position: absolute;
   top: calc(100% + 0.3rem);
@@ -976,38 +1035,6 @@ button.status-badge-clicavel:hover {
 .td-acoes {
   width: 2.2rem;
   text-align: right;
-}
-
-.botao-icone {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-  transition: filter var(--transition-fast), transform var(--transition-fast);
-}
-
-.botao-icone:hover {
-  filter: brightness(0.95);
-}
-
-[data-theme='dark'] .botao-icone:hover {
-  filter: brightness(1.2);
-}
-
-.botao-icone-deletar {
-  background: var(--color-danger-bg);
-  color: var(--color-danger);
-}
-
-.botao-icone-restaurar {
-  background: var(--color-info-bg);
-  color: var(--color-info);
 }
 
 .tabela-vazia {

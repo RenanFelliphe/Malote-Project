@@ -233,50 +233,44 @@ export function EmailTable({
           <th>
             <span className="th-com-copia">
               Nome
-              {temSelecao && (
-                <button
-                  type="button"
-                  className={`botao-copiar-coluna ${colunaCopiada === 'nome' ? 'copiado' : ''}`}
-                  onClick={() => void copiarColuna('nome')}
-                  title="Copiar nomes exibidos"
-                  aria-label="Copiar nomes exibidos"
-                >
-                  <IconeCopiar />
-                </button>
-              )}
+              <button
+                type="button"
+                className={`botao-icone-th ${colunaCopiada === 'nome' ? 'copiado' : ''} ${temSelecao ? '' : 'botao-icone-th-invisivel'
+                  }`}
+                onClick={() => void copiarColuna('nome')}
+                title="Copiar nomes exibidos"
+                aria-label="Copiar nomes exibidos"
+              >
+                <IconeCopiar />
+              </button>
             </span>
           </th>
           <th>
             <span className="th-com-copia">
               E-mail
-              {temSelecao && (
-                <button
-                  type="button"
-                  className={`botao-copiar-coluna ${colunaCopiada === 'email' ? 'copiado' : ''}`}
-                  onClick={() => void copiarColuna('email')}
-                  title="Copiar e-mails exibidos"
-                  aria-label="Copiar e-mails exibidos"
-                >
-                  <IconeCopiar />
-                </button>
-              )}
+              <button
+                type="button"
+                className={`botao-icone-th ${colunaCopiada === 'email' ? 'copiado' : ''} ${temSelecao ? '' : 'botao-icone-th-invisivel'
+                  }`}
+                onClick={() => void copiarColuna('email')}
+                title="Copiar e-mails exibidos"
+                aria-label="Copiar e-mails exibidos"
+              >
+                <IconeCopiar />
+              </button>
             </span>
           </th>
           <th>
             <span className="th-com-copia">
               Status
-              {temSelecao && onAtualizarStatusEmMassa && (
+              {onAtualizarStatusEmMassa && (
                 <span className="th-status-massa">
                   <button
                     type="button"
-                    className="botao-icone botao-editar-status"
+                    className={`botao-icone-th ${temSelecao ? '' : 'botao-icone-th-invisivel'}`}
                     onClick={() => {
-                      if (selectMassaAberto) {
-                        setSelectMassaAberto(false);
-                        return;
-                      }
-
-                      setSelectMassaAberto(true);
+                      if (!temSelecao) return;
+                      setSelectMassaAberto((aberto) => !aberto);
                     }}
                     title="Atualizar status dos selecionados"
                     aria-label="Atualizar status dos registros selecionados"
@@ -308,28 +302,30 @@ export function EmailTable({
             </span>
           </th>
           <th className="th-acoes">
-            {onDeletar && temSelecao && !todosSelecionadosDeletados && (
-              <button
-                type="button"
-                className="botao-icone botao-icone-deletar"
-                onClick={onDeletar}
-                title="Deletar"
-                aria-label="Deletar registros selecionados"
-              >
-                <IconeLixeira />
-              </button>
-            )}
-            {onRestaurar && temSelecao && todosSelecionadosDeletados && (
-              <button
-                type="button"
-                className="botao-icone botao-icone-restaurar"
-                onClick={onRestaurar}
-                title="Restaurar"
-                aria-label="Restaurar registros selecionados"
-              >
-                <IconeRestaurar />
-              </button>
-            )}
+            {(onDeletar || onRestaurar) &&
+              (todosSelecionadosDeletados ? (
+                <button
+                  type="button"
+                  className={`botao-icone-th botao-icone-th-info ${temSelecao && onRestaurar ? '' : 'botao-icone-th-invisivel'
+                    }`}
+                  onClick={() => onRestaurar?.()}
+                  title="Restaurar"
+                  aria-label="Restaurar registros selecionados"
+                >
+                  <IconeRestaurar />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className={`botao-icone-th botao-icone-th-perigo ${temSelecao && onDeletar ? '' : 'botao-icone-th-invisivel'
+                    }`}
+                  onClick={() => onDeletar?.()}
+                  title="Deletar"
+                  aria-label="Deletar registros selecionados"
+                >
+                  <IconeLixeira />
+                </button>
+              ))}
           </th>
         </tr>
       </thead>
