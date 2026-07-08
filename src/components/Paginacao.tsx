@@ -44,7 +44,6 @@ export function Paginacao({ paginacao, onPaginaChange }: Props) {
   }
 
   const larguraInput = `${Math.max(2, String(paginacao.totalPaginas).length) + 1.5}ch`;
-  const exibirBotaoUltima = paginacao.totalPaginas > 1;
 
   return (
     <div className="paginacao" aria-label="Navegação entre páginas">
@@ -93,16 +92,14 @@ export function Paginacao({ paginacao, onPaginaChange }: Props) {
         }}
         aria-label="Página atual"
       />
-      {exibirBotaoUltima && (
-        <button
-          type="button"
-          className={`paginacao-btn${paginacao.paginaAtual === paginacao.totalPaginas ? ' ativo' : ''}`}
-          onClick={() => onPaginaChange(paginacao.totalPaginas)}
-          disabled={paginacao.paginaAtual === paginacao.totalPaginas}
-        >
-          {paginacao.totalPaginas}
-        </button>
-      )}
+      <button
+        type="button"
+        className={`paginacao-btn${paginacao.paginaAtual === paginacao.totalPaginas ? ' ativo' : ''}`}
+        onClick={() => onPaginaChange(paginacao.totalPaginas)}
+        disabled={paginacao.paginaAtual === paginacao.totalPaginas}
+      >
+        {paginacao.totalPaginas}
+      </button>
       <button
         type="button"
         className="paginacao-btn"

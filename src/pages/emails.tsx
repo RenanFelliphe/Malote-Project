@@ -321,24 +321,32 @@ export function Emails() {
         onOrdenacaoChange={setOrdenacao}
       />
 
-      <div className="linha-selecao-paginacao">
-        <p className="contador-selecionados">{selecionados.size} selecionado(s)</p>
-        <Paginacao paginacao={paginacao} onPaginaChange={setPaginaAtual} />
-      </div>
+      {registrosProcessados.length === 0 ? (
+        <p className="sem-resultados">
+          Nenhum e-mail encontrado{termoBusca ? ` para "${termoBusca}"` : ''}.
+        </p>
+      ) : (
+        <>
+          <div className="linha-selecao-paginacao">
+            <p className="contador-selecionados">{selecionados.size} selecionado(s)</p>
+            <Paginacao paginacao={paginacao} onPaginaChange={setPaginaAtual} />
+          </div>
 
-      <EmailTable
-        registros={registrosExibidos}
-        selecionados={selecionados}
-        onAlternarSelecao={alternarSelecao}
-        onAlternarSelecaoTodos={alternarSelecaoTodos}
-        selecionavel={selecionavel}
-        onClicarDuplicado={handleClicarDuplicado}
-        onAtualizarStatusIndividual={(id, status) => void handleAtualizarStatusIndividual(id, status)}
-        onAtualizarStatusEmMassa={(status) => void handleAtualizarStatus(status)}
-        todosSelecionadosDeletados={todosSelecionadosDeletados}
-        onDeletar={handleDeletarClick}
-        onRestaurar={() => void handleRestaurar()}
-      />
+          <EmailTable
+            registros={registrosExibidos}
+            selecionados={selecionados}
+            onAlternarSelecao={alternarSelecao}
+            onAlternarSelecaoTodos={alternarSelecaoTodos}
+            selecionavel={selecionavel}
+            onClicarDuplicado={handleClicarDuplicado}
+            onAtualizarStatusIndividual={(id, status) => void handleAtualizarStatusIndividual(id, status)}
+            onAtualizarStatusEmMassa={(status) => void handleAtualizarStatus(status)}
+            todosSelecionadosDeletados={todosSelecionadosDeletados}
+            onDeletar={handleDeletarClick}
+            onRestaurar={() => void handleRestaurar()}
+          />
+        </>
+      )}
 
       {conflitoExclusao && (
         <ConflitoExclusaoModal

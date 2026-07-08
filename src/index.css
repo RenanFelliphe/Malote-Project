@@ -367,10 +367,25 @@ select {
 .toolbar-linha-2 {
   justify-content: space-between;
 }
+.search-input-wrapper {
+  position: relative;
+  flex: 1 1 240px;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-icone {
+  position: absolute;
+  left: 0.75rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
 
 .search-input {
-  flex: 1 1 240px;
-  padding: 0.6rem 0.9rem;
+  width: 100%;
+  padding: 0.6rem 2.2rem 0.6rem 2.4rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-size: 0.9rem;
@@ -393,6 +408,35 @@ select {
   box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
+.search-input-limpar {
+  position: absolute;
+  right: 0.5rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.search-input-limpar:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+.sem-resultados {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
 /* --- Filtros (pílulas) --- */
 
 .filtros {
