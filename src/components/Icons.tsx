@@ -3,11 +3,13 @@ import {
   FiChevronRight,
   FiCopy,
   FiEdit3,
+  FiFileText,
   FiMoon,
   FiRotateCcw,
   FiSearch,
   FiSun,
   FiTrash2,
+  FiUpload,
   FiX,
 } from 'react-icons/fi';
 
@@ -49,4 +51,12 @@ export function IconePaginaProxima() {
 
 export function IconeBuscarPagina() {
   return <FiSearch size={14} aria-hidden="true" />;
+}
+
+export function IconeImportar() {
+  return <FiUpload size={16} aria-hidden="true" />;
+}
+
+export function IconePlanilha() {
+  return <FiFileText size={18} aria-hidden="true" />;
 }

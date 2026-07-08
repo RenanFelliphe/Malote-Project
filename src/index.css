@@ -188,6 +188,128 @@ select {
 }
 
 /* =========================================================================
+   Home / Dashboard de planilhas
+   -------------------------------------------------------------------------
+   Tela inicial (rota "/"): ponto de entrada antes de acessar qualquer
+   planilha. Reaproveita a mesma largura/paddings de `.emails-page` para
+   manter as duas telas visualmente alinhadas.
+   ========================================================================= */
+
+.home-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 2.5rem 1.75rem 5rem;
+}
+
+.home-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.home-page-header-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.home-page h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.home-page-header-subtitulo {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.home-page-acoes {
+  display: flex;
+  margin-bottom: 2rem;
+}
+
+.botao-importar-planilha {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: filter var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.botao-importar-planilha:hover {
+  filter: brightness(0.94);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.botao-importar-planilha svg {
+  flex-shrink: 0;
+}
+
+.grid-cards-paginas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.1rem;
+}
+
+.card-pagina {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1.25rem 1.35rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.card-pagina:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-pagina-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.card-pagina-titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.card-pagina-descricao {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* =========================================================================
    Theme Toggle
    ========================================================================= */
 
@@ -1524,11 +1646,13 @@ button.status-badge-clicavel:hover {
    ========================================================================= */
 
 @media (max-width: 720px) {
-  .emails-page {
+  .emails-page,
+  .home-page {
     padding: 1.5rem 1rem 3.5rem;
   }
 
-  .emails-page-header {
+  .emails-page-header,
+  .home-page-header {
     flex-direction: row;
     align-items: center;
   }
