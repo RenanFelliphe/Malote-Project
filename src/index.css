@@ -298,23 +298,53 @@ select {
   font-weight: 600;
 }
 
-.counter-total { border-left-color: var(--color-accent); }
-.counter-total .counter-value { color: var(--color-accent); }
+.counter-total {
+  border-left-color: var(--color-accent);
+}
 
-.counter-válido { border-left-color: var(--color-success); }
-.counter-válido .counter-value { color: var(--color-success); }
+.counter-total .counter-value {
+  color: var(--color-accent);
+}
 
-.counter-inválido { border-left-color: var(--color-danger); }
-.counter-inválido .counter-value { color: var(--color-danger); }
+.counter-válido {
+  border-left-color: var(--color-success);
+}
 
-.counter-duplicado { border-left-color: var(--color-warning); }
-.counter-duplicado .counter-value { color: var(--color-warning); }
+.counter-válido .counter-value {
+  color: var(--color-success);
+}
 
-.counter-deletado { border-left-color: var(--color-neutral); }
-.counter-deletado .counter-value { color: var(--color-text-secondary); }
+.counter-inválido {
+  border-left-color: var(--color-danger);
+}
 
-.counter-enviado { border-left-color: var(--color-info); }
-.counter-enviado .counter-value { color: var(--color-info); }
+.counter-inválido .counter-value {
+  color: var(--color-danger);
+}
+
+.counter-duplicado {
+  border-left-color: var(--color-warning);
+}
+
+.counter-duplicado .counter-value {
+  color: var(--color-warning);
+}
+
+.counter-deletado {
+  border-left-color: var(--color-neutral);
+}
+
+.counter-deletado .counter-value {
+  color: var(--color-text-secondary);
+}
+
+.counter-enviado {
+  border-left-color: var(--color-info);
+}
+
+.counter-enviado .counter-value {
+  color: var(--color-info);
+}
 
 /* =========================================================================
    Toolbar
@@ -402,6 +432,7 @@ select {
   gap: 0.5rem;
   font-size: 0.85rem;
   color: var(--color-text-secondary);
+  padding-left: .5rem;
 }
 
 .ordenacao-rotulo {
@@ -420,7 +451,8 @@ select {
   align-items: center;
   gap: 0.6rem;
   min-width: 150px;
-  padding: 0.4rem 0.7rem;
+  padding: 0 0.7rem;
+  height: 1.95rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
@@ -557,7 +589,7 @@ select {
 .quantidade-input-campo {
   width: 3.2rem;
   border: none;
-  padding: 0.5rem 0.6rem;
+  padding: 0rem 0.6rem;
   font-family: var(--font-mono);
   font-size: 0.85rem;
   font-weight: 600;
@@ -565,6 +597,7 @@ select {
   background: transparent;
   color: var(--color-text);
   -moz-appearance: textfield;
+  height: 1.95rem;
 }
 
 .quantidade-input-campo:focus {
@@ -622,6 +655,7 @@ select {
 }
 
 /* --- Paginação --- */
+/* --- Paginação --- */
 
 .paginacao {
   display: flex;
@@ -657,12 +691,30 @@ select {
   cursor: not-allowed;
 }
 
+.paginacao-btn.ativo:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
 .paginacao-atual {
-  min-width: 2rem;
+  border-radius: 6px;
+  min-width: 48px;
+  height: 36px;
   text-align: center;
   font-weight: 700;
   font-family: var(--font-mono);
   color: var(--color-accent);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-subtle);
+  outline: none;
+  cursor: text;
+  transition: all var(--transition-fast);
+}
+
+.paginacao-atual:focus {
+  border-color: var(--color-accent);
+  background-color: var(--color-surface);
 }
 
 /* =========================================================================
@@ -675,13 +727,15 @@ select {
  * paginação ficavam juntos antes — a paginação foi movida para cá para
  * ficar ao lado do contador, ver `pages/emails.tsx`).
  */
+ 
 .linha-selecao-paginacao {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 0.85rem;
+  padding-left: .5rem;
 }
 
 .contador-selecionados {
@@ -785,11 +839,30 @@ select {
   text-transform: capitalize;
 }
 
-.status-válido { background: var(--color-success-bg); color: var(--color-success); }
-.status-inválido { background: var(--color-danger-bg); color: var(--color-danger); }
-.status-duplicado { background: var(--color-warning-bg); color: var(--color-warning); }
-.status-deletado { background: var(--color-neutral-bg); color: var(--color-text-secondary); }
-.status-enviado { background: var(--color-info-bg); color: var(--color-info); }
+.status-válido {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.status-inválido {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.status-duplicado {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.status-deletado {
+  background: var(--color-neutral-bg);
+  color: var(--color-text-secondary);
+}
+
+.status-enviado {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
 
 /*
  * Select inline de status individual. Reaproveita as cores dos badges
@@ -1401,6 +1474,7 @@ button.status-badge-clicavel:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

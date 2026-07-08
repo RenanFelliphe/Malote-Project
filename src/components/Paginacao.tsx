@@ -1,5 +1,6 @@
-import { IconeBuscarPagina, IconePaginaAnterior, IconePaginaProxima } from './Icons';
+import { IconePaginaAnterior, IconePaginaProxima } from './Icons';
 import type { PaginaInfo } from './utils/paginacao';
+import { useEffect, useRef, useState } from 'react';
 
 interface Props {
   paginacao: PaginaInfo;
@@ -13,6 +14,38 @@ interface Props {
  * tabela (ver `pages/emails.tsx`).
  */
 export function Paginacao({ paginacao, onPaginaChange }: Props) {
+  const [valor, setValor] = useState(String(paginacao.paginaAtual));
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const confirmandoRef = useRef(false);
+
+  useEffect(() => {
+    setValor(String(paginacao.paginaAtual));
+  }, [paginacao.paginaAtual]);
+
+  function confirmarPagina() {
+    confirmandoRef.current = true;
+
+    let numero = Number.parseInt(valor, 10);
+
+    if (Number.isNaN(numero)) {
+      setValor(String(paginacao.paginaAtual));
+      return;
+    }
+
+    numero = Math.max(1, Math.min(numero, paginacao.totalPaginas));
+
+    onPaginaChange(numero);
+    setValor(String(numero));
+  }
+
+  if (paginacao.totalPaginas <= 0) {
+    return null;
+  }
+
+  const larguraInput = `${Math.max(2, String(paginacao.totalPaginas).length) + 1.5}ch`;
+  const exibirBotaoUltima = paginacao.totalPaginas > 1;
+
   return (
     <div className="paginacao" aria-label="Navegação entre páginas">
       <button
@@ -24,13 +57,52 @@ export function Paginacao({ paginacao, onPaginaChange }: Props) {
       >
         <IconePaginaAnterior />
       </button>
-      <button type="button" className="paginacao-btn" onClick={() => onPaginaChange(1)}>
+      <button
+        type="button"
+        className={`paginacao-btn${paginacao.paginaAtual === 1 ? ' ativo' : ''}`}
+        onClick={() => onPaginaChange(1)}
+        disabled={paginacao.paginaAtual === 1}
+      >
         1
       </button>
-      <span className="paginacao-atual">{paginacao.paginaAtual}</span>
-      <button type="button" className="paginacao-btn" onClick={() => onPaginaChange(paginacao.totalPaginas)}>
-        {paginacao.totalPaginas}
-      </button>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        ref={inputRef}
+        className="paginacao-atual"
+        style={{ width: larguraInput }}
+        value={valor}
+        onChange={(e) => setValor(e.target.value.replace(/\D/g, ''))}
+        onFocus={(e) => e.target.select()}
+        onWheel={(e) => e.currentTarget.blur()}
+        onBlur={() => {
+          if (!confirmandoRef.current) confirmarPagina();
+          confirmandoRef.current = false;
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            confirmarPagina();
+            inputRef.current?.blur();
+          }
+          if (e.key === 'Escape') {
+            confirmandoRef.current = true;
+            setValor(String(paginacao.paginaAtual));
+            inputRef.current?.blur();
+          }
+        }}
+        aria-label="Página atual"
+      />
+      {exibirBotaoUltima && (
+        <button
+          type="button"
+          className={`paginacao-btn${paginacao.paginaAtual === paginacao.totalPaginas ? ' ativo' : ''}`}
+          onClick={() => onPaginaChange(paginacao.totalPaginas)}
+          disabled={paginacao.paginaAtual === paginacao.totalPaginas}
+        >
+          {paginacao.totalPaginas}
+        </button>
+      )}
       <button
         type="button"
         className="paginacao-btn"
@@ -39,20 +111,6 @@ export function Paginacao({ paginacao, onPaginaChange }: Props) {
         aria-label="Próxima página"
       >
         <IconePaginaProxima />
-      </button>
-      <button
-        type="button"
-        className="paginacao-btn"
-        aria-label="Buscar página"
-        onClick={() => {
-          const valor = window.prompt('Digite o número da página desejada');
-          const numero = Number.parseInt(valor ?? '', 10);
-          if (Number.isFinite(numero) && numero >= 1 && numero <= paginacao.totalPaginas) {
-            onPaginaChange(numero);
-          }
-        }}
-      >
-        <IconeBuscarPagina />
       </button>
     </div>
   );
