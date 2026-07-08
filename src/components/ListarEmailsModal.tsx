@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 
 import type { EmailRecord, TFiltro } from '../types/email';
-import { IconeFechar } from './Icons';
 import { FILTROS, filtrarPorStatusMultiplo, ordenar } from './utils/emailData';
+import { IconeFechar } from './Icons';
 
 type TModoExibicao = 'nome' | 'email';
 

@@ -7,8 +7,10 @@ import { recalcularStatusAutomatico, normalizeEmail } from '../components/EmailS
 import { EmailCounters } from '../components/EmailCounters';
 import { EmailToolbar } from '../components/EmailToolbar';
 import { EmailTable } from '../components/EmailTable';
+import { Paginacao } from '../components/Paginacao';
 import { ConflitoExclusaoModal } from '../components/ConflitoExclusaoModal';
 import { DuplicadosModal } from '../components/DuplicadosModal';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { salvarEmails } from '../services/emailsApi';
 
 import emailsJson from '../../data/emails.json';
@@ -291,7 +293,13 @@ export function Emails() {
   return (
     <div className="emails-page">
       <div className="emails-page-header">
-        <h1>Sistema de E-mails</h1>
+        <div className="emails-page-header-titulo">
+          <h1>Sistema de E-mails</h1>
+          <p className="emails-page-header-subtitulo">
+            Organize, valide e envie sua base de contatos.
+          </p>
+        </div>
+        <ThemeToggle />
       </div>
 
       {erroSalvamento && <p className="erro-salvamento">{erroSalvamento}</p>}
@@ -310,11 +318,12 @@ export function Emails() {
         onAlternarFiltro={alternarFiltro}
         ordenacao={ordenacao}
         onOrdenacaoChange={setOrdenacao}
-        paginacao={paginacao}
-        onPaginaChange={setPaginaAtual}
       />
 
-      <p className="contador-selecionados">{selecionados.size} selecionado(s)</p>
+      <div className="linha-selecao-paginacao">
+        <p className="contador-selecionados">{selecionados.size} selecionado(s)</p>
+        <Paginacao paginacao={paginacao} onPaginaChange={setPaginaAtual} />
+      </div>
 
       <EmailTable
         registros={registrosExibidos}

@@ -90,11 +90,11 @@ export function EmailTable({
   // Qual coluna mostrou "Copiado!" por último (null = nenhuma, ou o feedback já expirou).
   const [colunaCopiada, setColunaCopiada] = useState<TColunaCopiavel | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const selectMassaRef = useRef<HTMLSelectElement | null>(null);
 
   // Controla a exibição do select de atualização em massa, aberto pelo
   // ícone de edição ao lado do cabeçalho da coluna Status (seção 5.2).
   const [selectMassaAberto, setSelectMassaAberto] = useState(false);
+  const selectMassaRef = useRef<HTMLSelectElement | null>(null);
 
   // Limpa o timer pendente ao desmontar, para não chamar setState em um
   // componente já desmontado.
@@ -104,6 +104,10 @@ export function EmailTable({
     };
   }, []);
 
+  // Ao abrir o select de atualização em massa, leva o foco a ele e já
+  // dispara o dropdown nativo (`showPicker`, quando suportado) — evita um
+  // clique extra do usuário para ver as opções. `requestAnimationFrame`
+  // garante que o `<select>` já esteja montado no DOM antes de focar.
   useEffect(() => {
     if (!selectMassaAberto) return;
 
@@ -307,7 +311,7 @@ export function EmailTable({
             {onDeletar && temSelecao && !todosSelecionadosDeletados && (
               <button
                 type="button"
-                className="botao-icone botao-editar-status botao-icone-deletar"
+                className="botao-icone botao-icone-deletar"
                 onClick={onDeletar}
                 title="Deletar"
                 aria-label="Deletar registros selecionados"

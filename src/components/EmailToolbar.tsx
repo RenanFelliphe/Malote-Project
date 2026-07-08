@@ -1,9 +1,7 @@
 import type { TFiltro, TStatus } from '../types/email';
 import { FILTROS, TODOS_OS_STATUS, type TOrdenacao } from './utils/emailData';
-import type { PaginaInfo } from './utils/paginacao';
 import { OrdenacaoPrioridade } from './OrdenacaoPrioridade';
 import { QuantidadeInput } from './QuantidadeInput';
-import { IconeBuscarPagina, IconePaginaAnterior, IconePaginaProxima } from './Icons';
 
 interface Props {
   termoBusca: string;
@@ -14,8 +12,6 @@ interface Props {
   onAlternarFiltro: (filtro: TFiltro) => void;
   ordenacao: TOrdenacao;
   onOrdenacaoChange: (ordenacao: TOrdenacao) => void;
-  paginacao: PaginaInfo;
-  onPaginaChange: (pagina: number) => void;
 }
 
 /**
@@ -26,6 +22,8 @@ interface Props {
  * seleção (alterar status, deletar/restaurar, contador) saíram daqui na
  * Etapa 5 e agora vivem distribuídas na própria tabela (`EmailTable`) e no
  * contador fixo entre a toolbar e a tabela (`Emails`, em `pages/emails.tsx`).
+ * A paginação também vive nessa mesma linha fixa, ao lado do contador
+ * (ver `Paginacao`, renderizado por `pages/emails.tsx`).
  *
  * Os filtros funcionam como um grupo de switches independentes: cada botão
  * marca/desmarca seu status na seleção, permitindo combinações como
@@ -42,8 +40,6 @@ export function EmailToolbar({
   onAlternarFiltro,
   ordenacao,
   onOrdenacaoChange,
-  paginacao,
-  onPaginaChange,
 }: Props) {
   const todosMarcados = TODOS_OS_STATUS.every((status) => statusFiltrados.has(status));
 
@@ -82,54 +78,10 @@ export function EmailToolbar({
           <OrdenacaoPrioridade ordenacao={ordenacao} onOrdenacaoChange={onOrdenacaoChange} />
         </div>
 
-        <div className="toolbar-quantidade-e-paginacao">
-          <label className="exibir-registros">
-            Exibir Registros
-            <QuantidadeInput valor={quantidade} onChange={onQuantidadeChange} />
-          </label>
-
-          <div className="paginacao" aria-label="Navegação entre páginas">
-            <button
-              type="button"
-              className="paginacao-btn"
-              onClick={() => onPaginaChange(Math.max(1, paginacao.paginaAtual - 1))}
-              disabled={paginacao.paginaAtual <= 1}
-              aria-label="Página anterior"
-            >
-              <IconePaginaAnterior />
-            </button>
-            <button type="button" className="paginacao-btn" onClick={() => onPaginaChange(1)}>
-              1
-            </button>
-            <span className="paginacao-atual">{paginacao.paginaAtual}</span>
-            <button type="button" className="paginacao-btn" onClick={() => onPaginaChange(paginacao.totalPaginas)}>
-              {paginacao.totalPaginas}
-            </button>
-            <button
-              type="button"
-              className="paginacao-btn"
-              onClick={() => onPaginaChange(Math.min(paginacao.totalPaginas, paginacao.paginaAtual + 1))}
-              disabled={paginacao.paginaAtual >= paginacao.totalPaginas}
-              aria-label="Próxima página"
-            >
-              <IconePaginaProxima />
-            </button>
-            <button
-              type="button"
-              className="paginacao-btn"
-              aria-label="Buscar página"
-              onClick={() => {
-                const valor = window.prompt('Digite o número da página desejada');
-                const numero = Number.parseInt(valor ?? '', 10);
-                if (Number.isFinite(numero) && numero >= 1 && numero <= paginacao.totalPaginas) {
-                  onPaginaChange(numero);
-                }
-              }}
-            >
-              <IconeBuscarPagina />
-            </button>
-          </div>
-        </div>
+        <label className="exibir-registros">
+          Exibir Registros
+          <QuantidadeInput valor={quantidade} onChange={onQuantidadeChange} />
+        </label>
       </div>
     </div>
   );
