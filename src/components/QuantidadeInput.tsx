@@ -20,7 +20,8 @@ const INTERVALO_REPETICAO = 20;
  *
  * Aceita apenas números naturais (dígitos, sem sinal nem decimais) e conta
  * com duas setas ao lado para incrementar/decrementar por clique (ou
- * pressionamento contínuo, repetindo o incremento). Não usa `type="number"`
+ * pressionamento contínuo, repetindo o incremento), além de mais duas setas
+ * duplas para ir direto ao valor máximo ou mínimo. Não usa `type="number"`
  * nativo porque isso traria as setas padrão do navegador, inconsistentes
  * entre navegadores e sem controle de estilo; em vez disso, o campo é
  * `text` com filtragem manual de dígitos e as setas são botões próprios.
@@ -73,6 +74,17 @@ export function QuantidadeInput({ valor, onChange, min = 1, max }: Props) {
 
   function decrementar() {
     onChange(limitar(valorRef.current - 1));
+  }
+
+  /** Vai direto para o maior valor permitido (`max`). */
+  function irParaMaximo() {
+    if (max === undefined) return;
+    onChange(limitar(max));
+  }
+
+  /** Vai direto para o menor valor permitido (`min`). */
+  function irParaMinimo() {
+    onChange(limitar(min));
   }
 
   function pararRepeticao() {
@@ -146,6 +158,22 @@ export function QuantidadeInput({ valor, onChange, min = 1, max }: Props) {
           onTouchEnd={pararRepeticao}
           disabled={!podeDecrementar}
           aria-label="Diminuir quantidade"
+        />
+      </div>
+      <div className="quantidade-setas quantidade-setas-duplas">
+        <button
+          type="button"
+          className="quantidade-seta quantidade-seta-dupla-cima"
+          onClick={irParaMaximo}
+          disabled={!podeIncrementar || max === undefined}
+          aria-label="Ir para o máximo de registros"
+        />
+        <button
+          type="button"
+          className="quantidade-seta quantidade-seta-dupla-baixo"
+          onClick={irParaMinimo}
+          disabled={!podeDecrementar}
+          aria-label="Ir para o mínimo de registros"
         />
       </div>
     </div>

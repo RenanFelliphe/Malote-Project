@@ -30,7 +30,7 @@ export function Emails() {
   const [selecionados, setSelecionados] = useState<Set<number>>(new Set());
   // Quantidade de registros renderizados por página, usada como tamanho da
   // seção exibida na tabela.
-  const [quantidade, setQuantidade] = useState<number>(() => Math.max(1, Math.min(20, registrosIniciais.length)));
+  const [quantidade, setQuantidade] = useState<number>(() => Math.max(1, Math.min(100, registrosIniciais.length)));
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [grupoDuplicadoAberto, setGrupoDuplicadoAberto] = useState<EmailRecord[] | null>(null);
   const [conflitoExclusao, setConflitoExclusao] = useState<{
@@ -314,6 +314,7 @@ export function Emails() {
           setQuantidade(valor);
           setPaginaAtual(1);
         }}
+        quantidadeMax={registrosProcessados.length}
         statusFiltrados={statusFiltrados}
         onAlternarFiltro={alternarFiltro}
         ordenacao={ordenacao}

@@ -8,6 +8,8 @@ interface Props {
   onTermoBuscaChange: (termo: string) => void;
   quantidade: number;
   onQuantidadeChange: (quantidade: number) => void;
+  /** Maior valor aceito no input de quantidade (total de registros após filtro/busca). */
+  quantidadeMax: number;
   statusFiltrados: Set<TStatus>;
   onAlternarFiltro: (filtro: TFiltro) => void;
   ordenacao: TOrdenacao;
@@ -36,6 +38,7 @@ export function EmailToolbar({
   onTermoBuscaChange,
   quantidade,
   onQuantidadeChange,
+  quantidadeMax,
   statusFiltrados,
   onAlternarFiltro,
   ordenacao,
@@ -80,7 +83,7 @@ export function EmailToolbar({
 
         <label className="exibir-registros">
           Exibir Registros
-          <QuantidadeInput valor={quantidade} onChange={onQuantidadeChange} />
+          <QuantidadeInput valor={quantidade} onChange={onQuantidadeChange} max={quantidadeMax} />
         </label>
       </div>
     </div>
