@@ -1,12 +1,20 @@
 import {
+  FiAlertTriangle,
+  FiCheck,
+  FiChevronDown,
   FiChevronLeft,
   FiChevronRight,
+  FiChevronUp,
   FiCopy,
+  FiDownload,
   FiEdit3,
   FiFileText,
   FiMoon,
+  FiMoreVertical,
+  FiRefreshCw,
   FiRotateCcw,
   FiSearch,
+  FiSettings,
   FiSun,
   FiTrash2,
   FiUpload,
@@ -59,4 +67,36 @@ export function IconeImportar() {
 
 export function IconePlanilha() {
   return <FiFileText size={18} aria-hidden="true" />;
+}
+
+export function IconeConfiguracoes() {
+  return <FiSettings size={16} aria-hidden="true" />;
+}
+
+export function IconeExportar() {
+  return <FiDownload size={15} aria-hidden="true" />;
+}
+
+export function IconeAtualizarPlanilha() {
+  return <FiRefreshCw size={15} aria-hidden="true" />;
+}
+
+export function IconeAlerta() {
+  return <FiAlertTriangle size={20} aria-hidden="true" />;
+}
+
+export function IconeCheck() {
+  return <FiCheck size={13} aria-hidden="true" />;
+}
+
+export function IconeArrastar() {
+  return <FiMoreVertical size={15} aria-hidden="true" />;
+}
+
+export function IconeSetaCima() {
+  return <FiChevronUp size={13} aria-hidden="true" />;
+}
+
+export function IconeSetaBaixo() {
+  return <FiChevronDown size={13} aria-hidden="true" />;
 }

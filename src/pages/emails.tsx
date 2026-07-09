@@ -10,7 +10,7 @@ import { EmailTable } from '../components/EmailTable';
 import { Paginacao } from '../components/Paginacao';
 import { ConflitoExclusaoModal } from '../components/ConflitoExclusaoModal';
 import { DuplicadosModal } from '../components/DuplicadosModal';
-import { ThemeToggle } from '../components/ThemeToggle';
+import { Header } from '../components/Header';
 import { salvarEmails } from '../services/emailsApi';
 
 import emailsJson from '../../data/emails.json';
@@ -291,78 +291,81 @@ export function Emails() {
   }
 
   return (
-    <div className="emails-page">
-      <div className="emails-page-header">
-        <div className="emails-page-header-titulo">
-          <h1>Sistema de E-mails</h1>
-          <p className="emails-page-header-subtitulo">
-            Organize, valide e envie sua base de contatos.
-          </p>
-        </div>
-        <ThemeToggle />
-      </div>
+    <>
+      <Header registros={registros} />
 
-      {erroSalvamento && <p className="erro-salvamento">{erroSalvamento}</p>}
-
-      <EmailCounters contadores={contadores} />
-
-      <EmailToolbar
-        termoBusca={termoBusca}
-        onTermoBuscaChange={setTermoBusca}
-        quantidade={quantidade}
-        onQuantidadeChange={(valor) => {
-          setQuantidade(valor);
-          setPaginaAtual(1);
-        }}
-        quantidadeMax={registrosProcessados.length}
-        statusFiltrados={statusFiltrados}
-        onAlternarFiltro={alternarFiltro}
-        ordenacao={ordenacao}
-        onOrdenacaoChange={setOrdenacao}
-      />
-
-      {registrosProcessados.length === 0 ? (
-        <p className="sem-resultados">
-          Nenhum e-mail encontrado{termoBusca ? ` para "${termoBusca}"` : ''}.
-        </p>
-      ) : (
-        <>
-          <div className="linha-selecao-paginacao">
-            <p className="contador-selecionados">{selecionados.size} selecionado(s)</p>
-            <Paginacao paginacao={paginacao} onPaginaChange={setPaginaAtual} />
+      <div className="emails-page">
+        <div className="emails-page-header">
+          <div className="emails-page-header-titulo">
+            <h1>Sistema de E-mails</h1>
+            <p className="emails-page-header-subtitulo">
+              Organize, valide e envie sua base de contatos.
+            </p>
           </div>
+        </div>
 
-          <EmailTable
-            registros={registrosExibidos}
-            selecionados={selecionados}
-            onAlternarSelecao={alternarSelecao}
-            onAlternarSelecaoTodos={alternarSelecaoTodos}
-            selecionavel={selecionavel}
-            onClicarDuplicado={handleClicarDuplicado}
-            onAtualizarStatusIndividual={(id, status) => void handleAtualizarStatusIndividual(id, status)}
-            onAtualizarStatusEmMassa={(status) => void handleAtualizarStatus(status)}
-            todosSelecionadosDeletados={todosSelecionadosDeletados}
-            onDeletar={handleDeletarClick}
-            onRestaurar={() => void handleRestaurar()}
+        {erroSalvamento && <p className="erro-salvamento">{erroSalvamento}</p>}
+
+        <EmailCounters contadores={contadores} />
+
+        <EmailToolbar
+          termoBusca={termoBusca}
+          onTermoBuscaChange={setTermoBusca}
+          quantidade={quantidade}
+          onQuantidadeChange={(valor) => {
+            setQuantidade(valor);
+            setPaginaAtual(1);
+          }}
+          quantidadeMax={registrosProcessados.length}
+          statusFiltrados={statusFiltrados}
+          onAlternarFiltro={alternarFiltro}
+          ordenacao={ordenacao}
+          onOrdenacaoChange={setOrdenacao}
+        />
+
+        {registrosProcessados.length === 0 ? (
+          <p className="sem-resultados">
+            Nenhum e-mail encontrado{termoBusca ? ` para "${termoBusca}"` : ''}.
+          </p>
+        ) : (
+          <>
+            <div className="linha-selecao-paginacao">
+              <p className="contador-selecionados">{selecionados.size} selecionado(s)</p>
+              <Paginacao paginacao={paginacao} onPaginaChange={setPaginaAtual} />
+            </div>
+
+            <EmailTable
+              registros={registrosExibidos}
+              selecionados={selecionados}
+              onAlternarSelecao={alternarSelecao}
+              onAlternarSelecaoTodos={alternarSelecaoTodos}
+              selecionavel={selecionavel}
+              onClicarDuplicado={handleClicarDuplicado}
+              onAtualizarStatusIndividual={(id, status) => void handleAtualizarStatusIndividual(id, status)}
+              onAtualizarStatusEmMassa={(status) => void handleAtualizarStatus(status)}
+              todosSelecionadosDeletados={todosSelecionadosDeletados}
+              onDeletar={handleDeletarClick}
+              onRestaurar={() => void handleRestaurar()}
+            />
+          </>
+        )}
+
+        {conflitoExclusao && (
+          <ConflitoExclusaoModal
+            enviados={conflitoExclusao.enviados}
+            aDeletar={conflitoExclusao.aDeletar}
+            onCancelar={handleCancelarConflito}
+            onConfirmar={(ids) => void handleConfirmarConflito(ids)}
           />
-        </>
-      )}
+        )}
 
-      {conflitoExclusao && (
-        <ConflitoExclusaoModal
-          enviados={conflitoExclusao.enviados}
-          aDeletar={conflitoExclusao.aDeletar}
-          onCancelar={handleCancelarConflito}
-          onConfirmar={(ids) => void handleConfirmarConflito(ids)}
-        />
-      )}
-
-      {grupoDuplicadoAberto && (
-        <DuplicadosModal
-          registros={grupoDuplicadoAberto}
-          onFechar={() => setGrupoDuplicadoAberto(null)}
-        />
-      )}
-    </div>
+        {grupoDuplicadoAberto && (
+          <DuplicadosModal
+            registros={grupoDuplicadoAberto}
+            onFechar={() => setGrupoDuplicadoAberto(null)}
+          />
+        )}
+      </div>
+    </>
   );
 }
