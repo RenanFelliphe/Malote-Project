@@ -8,14 +8,15 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "sync": "TS_NODE_PROJECT=tsconfig.scripts.json node --loader ts-node/esm src/scripts/sync.ts"
+    "sync": "cross-env TS_NODE_PROJECT=tsconfig.scripts.json node --loader ts-node/esm src/scripts/sync.ts"
   },
   "dependencies": {
+    "cross-env": "^10.1.0",
+    "jspdf": "^2.5.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-icons": "^5.7.0",
     "react-router-dom": "^7.13.0",
-    "jspdf": "^2.5.2",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
