@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 
 import type { EmailRecord, TStatusManual } from '../types/email';
-import { STATUS_MANUAIS } from '../types/email';
+import { STATUS_SELECIONAVEIS } from '../types/email';
 import { copiarTexto } from './utils/clipboard';
 import {
+  IconeArrastar,
+  IconeConfirmarEnvio,
   IconeCopiar,
   IconeEditarStatus,
   IconeLixeira,
@@ -47,6 +49,8 @@ interface Props {
    * novo status a todos os registros atualmente selecionados — a exclusão
    * dos registros com status "duplicado" dentre os selecionados é feita no
    * handler (seção 7, regra importante da alteração em massa), não aqui.
+   * Desde a Etapa 3, "enviado" não é mais uma opção deste select: passou a
+   * ser exclusivo do botão "Confirmar envio" no cabeçalho da tabela.
    */
   onAtualizarStatusEmMassa?: (status: TStatusManual) => void;
   /**
@@ -64,11 +68,21 @@ interface Props {
    */
   onDeletar?: () => void;
   /**
-   * Chamada ao clicar no ícone de restaurar, exibido no mesmo lugar da
-   * lixeira quando TODOS os selecionados já estão com status "deletado"
-   * (Etapa 5 — funcionalidade que antes vivia na `SelecaoAcoesBar`, agora
-   * removida). Zera `status_alterado` dos selecionados e deixa o sistema
-   * recalcular o status normalmente.
+   * Chamada ao clicar no ícone "Confirmar envio" no cabeçalho da tabela
+   * (Etapa 3), posicionado à esquerda do botão de deletar. Segue o mesmo
+   * padrão do botão de deletar: aplica o status "enviado" a todos os
+   * registros atualmente selecionados. Fica oculto quando o grupo
+   * selecionado é o de registros "deletado" (mesma condição que troca
+   * Deletar por Restaurar), já que não faz sentido confirmar o envio de
+   * registros já deletados.
+   */
+  onConfirmarEnvio?: () => void;
+  /**
+   * Chamada ao clicar em "Restaurar" no dropdown de ações do cabeçalho.
+   * Disponível para qualquer grupo selecionado (deletado, válido, inválido
+   * ou enviado) — não depende de `todosSelecionadosDeletados`. Zera
+   * `status_alterado` dos selecionados e deixa o sistema recalcular o
+   * status normalmente a partir da regra automática (seção 5.2).
    */
   onRestaurar?: () => void;
 }
@@ -85,16 +99,26 @@ export function EmailTable({
   onAtualizarStatusEmMassa,
   todosSelecionadosDeletados,
   onDeletar,
+  onConfirmarEnvio,
   onRestaurar,
 }: Props) {
   // Qual coluna mostrou "Copiado!" por último (null = nenhuma, ou o feedback já expirou).
   const [colunaCopiada, setColunaCopiada] = useState<TColunaCopiavel | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Há registros selecionados no momento (usado tanto pelos hooks abaixo
+  // quanto na renderização) — precisa vir antes dos hooks que dependem dela.
+  const temSelecao = selecionados.size > 0;
+
   // Controla a exibição do select de atualização em massa, aberto pelo
   // ícone de edição ao lado do cabeçalho da coluna Status (seção 5.2).
   const [selectMassaAberto, setSelectMassaAberto] = useState(false);
   const selectMassaRef = useRef<HTMLSelectElement | null>(null);
+
+  // Controla o dropdown compacto de ações do cabeçalho da tabela.
+  const [menuAcoesAberto, setMenuAcoesAberto] = useState(false);
+  const menuAcoesRef = useRef<HTMLDivElement | null>(null);
+  const botaoAcoesRef = useRef<HTMLButtonElement | null>(null);
 
   // Limpa o timer pendente ao desmontar, para não chamar setState em um
   // componente já desmontado.
@@ -124,6 +148,43 @@ export function EmailTable({
     return () => window.cancelAnimationFrame(frame);
   }, [selectMassaAberto]);
 
+  // Fecha o dropdown de ações se a seleção for zerada enquanto ele está
+  // aberto — o botão que o abre fica invisível (não removido) nesse caso,
+  // então o menu não pode continuar exibido sem seleção correspondente.
+  useEffect(() => {
+    if (!temSelecao) setMenuAcoesAberto(false);
+  }, [temSelecao]);
+
+  // Fecha o dropdown compacto de ações ao clicar fora dele ou pressionar Escape.
+  useEffect(() => {
+    if (!menuAcoesAberto) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const alvo = event.target as Node | null;
+      if (!alvo) return;
+
+      const clicouDentro =
+        menuAcoesRef.current?.contains(alvo) || botaoAcoesRef.current?.contains(alvo);
+      if (!clicouDentro) {
+        setMenuAcoesAberto(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuAcoesAberto(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuAcoesAberto]);
+
   /**
    * Copia a coluna indicada (nome ou e-mail) dos registros atualmente
    * renderizados que também estão selecionados — ou seja, a interseção entre
@@ -152,11 +213,15 @@ export function EmailTable({
    *   o modal de duplicados (nunca um select: é calculado automaticamente).
    * - "deletado": badge não editável e não clicável — só pode ser revertido
    *   pelo botão de restaurar (seleção em massa), nunca por este select.
-   * - demais status (válido/inválido/enviado): badge vira um select inline
-   *   com as três opções manuais; ao escolher uma, atualiza imediatamente
-   *   apenas este registro. Para "enviado", isso permite mudar para
-   *   válido/inválido — mas excluir continua exigindo o modal de conflito,
-   *   já que "deletado" nunca é uma opção deste select.
+   * - demais status (válido/inválido/enviado): badge vira um select inline.
+   *   As opções exibidas são sempre "válido"/"inválido" (Etapa 3: "enviado"
+   *   deixou de ser uma opção deste select, pois agora só é alcançável pelo
+   *   botão "Confirmar envio" no cabeçalho). Quando o registro já está
+   *   "enviado", sua opção atual é mantida no select (como último item, na
+   *   mesma posição que ocupava antes) só para que o valor selecionado
+   *   continue correspondendo a uma opção existente — escolhê-la de novo
+   *   não tem efeito, mas o usuário pode trocar para válido/inválido
+   *   normalmente.
    */
   function renderStatus(registro: EmailRecord) {
     if (registro.status === 'duplicado') {
@@ -178,6 +243,9 @@ export function EmailTable({
       return <span className={`status-badge status-${registro.status}`}>{registro.status}</span>;
     }
 
+    const opcoes: TStatusManual[] =
+      registro.status === 'enviado' ? [...STATUS_SELECIONAVEIS, 'enviado'] : STATUS_SELECIONAVEIS;
+
     return (
       <select
         className={`status-select status-${registro.status}`}
@@ -187,7 +255,7 @@ export function EmailTable({
         }
         aria-label={`Alterar status do registro ${registro.id}`}
       >
-        {STATUS_MANUAIS.map((status) => (
+        {opcoes.map((status) => (
           <option key={status} value={status}>
             {status}
           </option>
@@ -215,7 +283,6 @@ export function EmailTable({
 
   // "Selecionar todos" considera apenas os registros exibidos (após busca/filtro).
   const todosSelecionados = registros.every((r) => selecionados.has(r.id));
-  const temSelecao = selecionados.size > 0;
 
   return (
     <table className="email-table">
@@ -290,7 +357,7 @@ export function EmailTable({
                       <option value="" disabled>
                         Selecione...
                       </option>
-                      {STATUS_MANUAIS.map((status) => (
+                      {STATUS_SELECIONAVEIS.map((status) => (
                         <option key={status} value={status}>
                           {status}
                         </option>
@@ -302,30 +369,72 @@ export function EmailTable({
             </span>
           </th>
           <th className="th-acoes">
-            {(onDeletar || onRestaurar) &&
-              (todosSelecionadosDeletados ? (
+            {(onConfirmarEnvio || onDeletar || onRestaurar) && (
+              <div className="th-acoes-menu" ref={menuAcoesRef}>
                 <button
+                  ref={botaoAcoesRef}
                   type="button"
-                  className={`botao-icone-th botao-icone-th-info ${temSelecao && onRestaurar ? '' : 'botao-icone-th-invisivel'
+                  className={`botao-icone-th botao-icone-th-menu ${menuAcoesAberto ? 'botao-icone-th-menu-aberto' : ''} ${temSelecao ? '' : 'botao-icone-th-invisivel'
                     }`}
-                  onClick={() => onRestaurar?.()}
-                  title="Restaurar"
-                  aria-label="Restaurar registros selecionados"
+                  onClick={() => setMenuAcoesAberto((aberto) => !aberto)}
+                  title="Mais ações"
+                  aria-label="Abrir mais ações para os registros selecionados"
+                  aria-haspopup="menu"
+                  aria-expanded={menuAcoesAberto}
                 >
-                  <IconeRestaurar />
+                  <IconeArrastar />
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  className={`botao-icone-th botao-icone-th-perigo ${temSelecao && onDeletar ? '' : 'botao-icone-th-invisivel'
-                    }`}
-                  onClick={() => onDeletar?.()}
-                  title="Deletar"
-                  aria-label="Deletar registros selecionados"
-                >
-                  <IconeLixeira />
-                </button>
-              ))}
+
+                {menuAcoesAberto && (
+                  <div className="acoes-dropdown" role="menu">
+                    {onConfirmarEnvio && !todosSelecionadosDeletados && (
+                      <button
+                        type="button"
+                        className="acoes-dropdown-item acoes-dropdown-item-sucesso"
+                        onClick={() => {
+                          setMenuAcoesAberto(false);
+                          onConfirmarEnvio();
+                        }}
+                        role="menuitem"
+                      >
+                        <span>Confirmar Envio</span>
+                        <IconeConfirmarEnvio />
+                      </button>
+                    )}
+
+                    {onRestaurar && (
+                      <button
+                        type="button"
+                        className="acoes-dropdown-item acoes-dropdown-item-info"
+                        onClick={() => {
+                          setMenuAcoesAberto(false);
+                          onRestaurar();
+                        }}
+                        role="menuitem"
+                      >
+                        <span>Restaurar</span>
+                        <IconeRestaurar />
+                      </button>
+                    )}
+
+                    {!todosSelecionadosDeletados && onDeletar && (
+                      <button
+                        type="button"
+                        className="acoes-dropdown-item acoes-dropdown-item-perigo"
+                        onClick={() => {
+                          setMenuAcoesAberto(false);
+                          onDeletar();
+                        }}
+                        role="menuitem"
+                      >
+                        <span>Deletar</span>
+                        <IconeLixeira />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </th>
         </tr>
       </thead>

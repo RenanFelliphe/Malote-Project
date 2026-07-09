@@ -14,6 +14,7 @@ import {
   FiRefreshCw,
   FiRotateCcw,
   FiSearch,
+  FiSend,
   FiSettings,
   FiSun,
   FiTrash2,
@@ -35,6 +36,11 @@ export function IconeEditarStatus() {
 
 export function IconeRestaurar() {
   return <FiRotateCcw size={15} aria-hidden="true" />;
+}
+
+/** Ícone do botão "Confirmar envio" no cabeçalho da tabela (mesmo tamanho dos demais botões de ação do cabeçalho: Deletar/Restaurar). */
+export function IconeConfirmarEnvio() {
+  return <FiSend size={15} aria-hidden="true" />;
 }
 
 export function IconeFechar() {

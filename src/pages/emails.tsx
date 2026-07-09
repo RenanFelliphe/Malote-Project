@@ -247,6 +247,20 @@ export function Emails() {
   }
 
   /**
+   * Clique em "Confirmar envio" (Etapa 4): aplica o status "enviado" a
+   * todos os registros selecionados. Reaproveita a mesma
+   * `handleAtualizarStatus` já usada pelo select em massa do cabeçalho da
+   * coluna Status — que já ignora registros "duplicado" dentre os
+   * selecionados e já sabia lidar com "enviado" com segurança, mesmo antes
+   * de "enviado" deixar de ser uma opção dos selects (Etapa 3). Não há
+   * nenhuma restrição adicional aqui: ao contrário da exclusão, marcar como
+   * "enviado" não exige modal de conflito.
+   */
+  function handleConfirmarEnvioClick() {
+    void handleAtualizarStatus('enviado');
+  }
+
+  /**
    * Clique em "Deletar": registros "enviado" nunca podem ser deletados
    * (seção 7 — "Restrição para enviados"). Se a seleção contiver algum,
    * abre o modal de resolução de conflito; caso contrário, deleta direto.
@@ -345,6 +359,7 @@ export function Emails() {
               onAtualizarStatusEmMassa={(status) => void handleAtualizarStatus(status)}
               todosSelecionadosDeletados={todosSelecionadosDeletados}
               onDeletar={handleDeletarClick}
+              onConfirmarEnvio={handleConfirmarEnvioClick}
               onRestaurar={() => void handleRestaurar()}
             />
           </>

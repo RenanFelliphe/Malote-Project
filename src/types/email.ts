@@ -22,16 +22,36 @@ export type TFiltro = 'todos' | 'válido' | 'inválido' | 'duplicado' | 'deletad
 /**
  * Subconjunto de status que podem ser definidos manualmente pelo usuário,
  * seja individualmente (clicando no badge de um registro) ou em massa
- * (ícone no cabeçalho da coluna Status). "duplicado" nunca aparece aqui: é
- * calculado automaticamente pelo sistema (seção 5.1) e não é um destino
- * manual válido. "deletado" também não aparece aqui: só é alcançável pelo
- * botão de exclusão (que, para registros "enviado", exige o modal de
- * conflito) — nunca por este select manual.
+ * (ícone no cabeçalho da coluna Status), OU pelo botão "Confirmar envio"
+ * (cabeçalho da tabela). "duplicado" nunca aparece aqui: é calculado
+ * automaticamente pelo sistema (seção 5.1) e não é um destino manual válido.
+ * "deletado" também não aparece aqui: só é alcançável pelo botão de exclusão
+ * (que, para registros "enviado", exige o modal de conflito) — nunca por
+ * este select manual.
+ *
+ * Esse tipo continua aceitando "enviado", pois é usado pela lógica de
+ * atualização de status (individual e em massa), que precisa lidar com
+ * "enviado" tanto quando ele chega via o botão "Confirmar envio" quanto
+ * por outras origens já existentes no fluxo. Para as opções exibidas nos
+ * SELECTs de status (que não devem mais incluir "enviado"), ver
+ * `TStatusSelecionavel` / `STATUS_SELECIONAVEIS` abaixo.
  */
 export type TStatusManual = 'válido' | 'inválido' | 'enviado';
 
-/** Lista dos status manuais, na ordem em que aparecem nos selects de status. */
+/**
+ * Subconjunto de `TStatusManual` que pode ser escolhido diretamente pelo
+ * usuário nos SELECTs de status (individual e em massa). Não inclui
+ * "enviado": esse status passou a ser definido exclusivamente pelo botão
+ * "Confirmar envio" no cabeçalho da tabela, seguindo o mesmo padrão do
+ * botão de exclusão para "deletado".
+ */
+export type TStatusSelecionavel = 'válido' | 'inválido';
+
+/** Lista dos status manuais aceitos pela lógica de atualização (individual e em massa). */
 export const STATUS_MANUAIS: TStatusManual[] = ['válido', 'inválido', 'enviado'];
+
+/** Lista dos status exibidos nos SELECTs de status (sem "enviado"). */
+export const STATUS_SELECIONAVEIS: TStatusSelecionavel[] = ['válido', 'inválido'];
 
 /**
  * Registro de e-mail — a unidade central do sistema.

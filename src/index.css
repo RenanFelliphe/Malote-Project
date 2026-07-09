@@ -1329,8 +1329,87 @@ button.status-badge-clicavel:hover {
 
 .th-acoes,
 .td-acoes {
-  width: 2.2rem;
+  width: 2.6rem;
   text-align: right;
+}
+
+.th-acoes-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.botao-icone-th-menu {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.botao-icone-th-menu:hover,
+.botao-icone-th-menu-aberto {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.acoes-dropdown {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 10.8rem;
+  padding: 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.acoes-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.62rem 0.72rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.acoes-dropdown-item:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  transform: translateX(1px);
+}
+
+.acoes-dropdown-item-perigo:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.acoes-dropdown-item-info:hover {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.acoes-dropdown-item-sucesso:hover {
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .tabela-vazia {
