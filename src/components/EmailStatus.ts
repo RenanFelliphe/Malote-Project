@@ -44,13 +44,30 @@ export function normalizeEmail(email: string): string {
 export function recalcularStatusAutomatico(records: EmailRecord[]): EmailRecord[] {
   const now = new Date().toISOString();
 
-  // Agrupa por e-mail normalizado, considerando TODOS os registros com
-  // e-mail sintaticamente válido — independentemente de status_alterado —
-  // pois pertencer a um grupo duplicado é um fato sobre os dados, e não
-  // depende de o registro em si poder ou não ser recalculado.
+  // Agrupa por e-mail normalizado, considerando os registros com e-mail
+  // sintaticamente válido — independentemente de status_alterado, pois
+  // pertencer a um grupo duplicado é um fato sobre os dados, e não depende
+  // de o registro em si poder ou não ser recalculado. Registros
+  // "deletado" ficam de fora da contagem: um registro deletado não deve
+  // continuar "segurando" o(s) irmão(s) restante(s) como duplicado — ao
+  // sobrar apenas 1 registro ativo no grupo, ele deixa de ser duplicado.
+  //
+  // IMPORTANTE: só é considerado "deletado" para fins de contagem o
+  // registro que *permanecerá* deletado após este recálculo, isto é,
+  // aquele com `status === 'deletado' && status_alterado === true`.
+  // "deletado" é um status manual (só existe via ação explícita, sempre
+  // acompanhado de status_alterado = true). Quando a ação "Restaurar" zera
+  // `status_alterado` de um registro, ela não altera o campo `status`
+  // (que continua "deletado" até este recálculo decidir o novo valor); se
+  // a contagem do grupo usasse apenas `r.status === 'deletado'`, o próprio
+  // registro restaurado seria excluído da contagem de duplicados — mesmo
+  // estando prestes a voltar a ficar ativo — subestimando o tamanho real
+  // do grupo e permitindo que vários registros com o mesmo e-mail
+  // voltassem todos como "válido" simultaneamente.
   const groupSizeByEmail = new Map<string, number>();
   for (const r of records) {
     if (!r.email || !isValidEmail(r.email)) continue;
+    if (r.status === 'deletado' && r.status_alterado) continue;
     const key = normalizeEmail(r.email);
     groupSizeByEmail.set(key, (groupSizeByEmail.get(key) ?? 0) + 1);
   }

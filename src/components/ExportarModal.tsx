@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 
 import type { EmailRecord, TStatus } from '../types/email';
-import { IconeFechar } from './Icons';
+import { Dialog } from './Dialog';
 import { exportarRegistros, type TFormatoExportacao } from './utils/exportarPlanilha';
 
 interface Props {
@@ -92,71 +92,67 @@ export function ExportarModal({ registros, onFechar }: Props) {
   }
 
   return (
-    <div className="modal-overlay" onClick={fechar}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Exportar registros</h2>
-          <button type="button" className="modal-fechar" onClick={fechar} aria-label="Fechar">
-            <IconeFechar />
-          </button>
-        </div>
-
-        <section className="exportar-secao">
-          <p className="modal-campo-label">Quais registros deseja exportar?</p>
-
-          <label className="modal-selecionar-todos">
-            <input type="checkbox" checked={todosMarcados} onChange={alternarTodos} />
-            Selecionar todos
-          </label>
-
-          <ul className="modal-lista">
-            {STATUS_EXPORTAVEIS.map(({ value, label }) => (
-              <li key={value}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={statusSelecionados.has(value)}
-                    onChange={() => alternarStatus(value)}
-                  />
-                  <span className="modal-lista-texto">{label}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="exportar-secao">
-          <p className="modal-campo-label">Formato do arquivo</p>
-          <div className="modal-modo-botoes" role="radiogroup" aria-label="Formato do arquivo">
-            {FORMATOS.map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={formato === value}
-                className={formato === value ? 'ativo' : ''}
-                onClick={() => setFormato(value)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {erro && <p className="erro-salvamento">{erro}</p>}
-
-        <div className="modal-rodape">
+    <Dialog
+      isOpen
+      onClose={fechar}
+      title="Exportar registros"
+      footer={
+        <>
           <p className="modal-contagem-selecionados">{registrosFiltrados.length} registro(s) selecionado(s)</p>
           <button
             type="button"
-            className="modal-botao-copiar"
+            className="dialog-botao-copiar"
             onClick={() => void handleExportar()}
             disabled={registrosFiltrados.length === 0 || exportando}
           >
             {exportando ? 'Exportando…' : 'Exportar'}
           </button>
+        </>
+      }
+    >
+      <section className="exportar-secao">
+        <p className="modal-campo-label">Quais registros deseja exportar?</p>
+
+        <label className="modal-selecionar-todos">
+          <input type="checkbox" checked={todosMarcados} onChange={alternarTodos} />
+          Selecionar todos
+        </label>
+
+        <ul className="modal-lista">
+          {STATUS_EXPORTAVEIS.map(({ value, label }) => (
+            <li key={value}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={statusSelecionados.has(value)}
+                  onChange={() => alternarStatus(value)}
+                />
+                <span className="modal-lista-texto">{label}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="exportar-secao">
+        <p className="modal-campo-label">Formato do arquivo</p>
+        <div className="modal-modo-botoes" role="radiogroup" aria-label="Formato do arquivo">
+          {FORMATOS.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={formato === value}
+              className={formato === value ? 'ativo' : ''}
+              onClick={() => setFormato(value)}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-      </div>
-    </div>
+      </section>
+
+      {erro && <p className="erro-salvamento">{erro}</p>}
+    </Dialog>
   );
 }

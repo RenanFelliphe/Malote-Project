@@ -9,7 +9,7 @@ import { EmailToolbar } from '../components/EmailToolbar';
 import { EmailTable } from '../components/EmailTable';
 import { Paginacao } from '../components/Paginacao';
 import { ConflitoExclusaoModal } from '../components/ConflitoExclusaoModal';
-import { DuplicadosModal } from '../components/DuplicadosModal';
+import { DuplicadosConflitoModal } from '../components/DuplicadosConflitoModal';
 import { Header } from '../components/Header';
 import { salvarEmails } from '../services/emailsApi';
 
@@ -234,15 +234,26 @@ export function Emails() {
     await persistirRegistros(registrosAtualizados);
   }
 
-  /** Deleta (logicamente) os registros indicados, sem passar pelo modal de conflito. */
+  /**
+   * Deleta (logicamente) os registros indicados, sem passar pelo modal de
+   * conflito. Depois de marcar os registros como "deletado", recalcula o
+   * status automático de todo o conjunto (mesma lógica do `handleRestaurar`)
+   * — necessário porque `groupSizeByEmail` (`EmailStatus.ts`) passa a
+   * ignorar registros deletados na contagem de duplicados: se a exclusão
+   * fez um grupo de duplicados sobrar com apenas 1 registro ativo, esse
+   * registro deixa de ser "duplicado" e volta a ser "válido"/"inválido"
+   * automaticamente, sem exigir nenhuma ação adicional de quem chamou esta
+   * função.
+   */
   async function deletarRegistros(ids: number[]) {
     const idsSet = new Set(ids);
     const agora = new Date().toISOString();
-    const registrosAtualizados = registros.map((registro) =>
+    const comStatusDeletado = registros.map((registro) =>
       idsSet.has(registro.id)
         ? { ...registro, status: 'deletado' as const, status_alterado: true, last_updated: agora }
         : registro
     );
+    const registrosAtualizados = recalcularStatusAutomatico(comStatusDeletado);
     await persistirRegistros(registrosAtualizados);
   }
 
@@ -285,6 +296,23 @@ export function Emails() {
 
   async function handleConfirmarConflito(idsParaDeletar: Set<number>) {
     setConflitoExclusao(null);
+    await deletarRegistros([...idsParaDeletar]);
+  }
+
+  function handleCancelarDuplicados() {
+    // Fecha o modal sem alterar nada — mesmo padrão do cancelar de conflito.
+    setGrupoDuplicadoAberto(null);
+  }
+
+  /**
+   * Confirmação do `DuplicadosConflitoModal`: deleta os ids marcados pelo
+   * usuário e fecha o modal. A regra "nunca deixar o grupo chegar a 0" já
+   * foi garantida pelo próprio modal (`confirmDisabled`); aqui só resta
+   * disparar a exclusão — `deletarRegistros` cuida de recalcular o status
+   * automático do grupo (ver comentário da função).
+   */
+  async function handleConfirmarDuplicados(idsParaDeletar: Set<number>) {
+    setGrupoDuplicadoAberto(null);
     await deletarRegistros([...idsParaDeletar]);
   }
 
@@ -375,9 +403,10 @@ export function Emails() {
         )}
 
         {grupoDuplicadoAberto && (
-          <DuplicadosModal
+          <DuplicadosConflitoModal
             registros={grupoDuplicadoAberto}
-            onFechar={() => setGrupoDuplicadoAberto(null)}
+            onCancelar={handleCancelarDuplicados}
+            onConfirmar={(ids) => void handleConfirmarDuplicados(ids)}
           />
         )}
       </div>

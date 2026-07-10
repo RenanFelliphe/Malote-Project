@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { IconeAlerta, IconeCheck, IconeFechar } from '../Icons';
+import { IconeAlerta, IconeCheck } from '../Icons';
+import { Dialog } from '../Dialog';
 import { EtapaInformacoes } from './EtapaInformacoes';
 import { EtapaMapeamento } from './EtapaMapeamento';
 import { EtapaRevisao } from './EtapaRevisao';
@@ -58,15 +59,9 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
     };
   }, [arquivo]);
 
-  // Fecha via Esc — sempre passando pela confirmação de cancelamento,
-  // igual ao clique no X ou no overlay.
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') solicitarFechamento();
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  // Fechamento via Esc, clique fora e botão "X" agora são responsabilidade
+  // do Dialog (ver onClose abaixo) — sempre passando pela confirmação de
+  // cancelamento, igual antes.
 
   const estatisticas = useMemo(() => {
     if (!planilha) return { total: 0, validos: 0, invalidos: 0, duplicados: 0 };
@@ -101,162 +96,155 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
   const etapa1Valida = nomeProjetoValido && nomeArquivoValido;
   const etapa2Valida = estado.colunasNome.length > 0 && estado.colunasEmail.length > 0;
 
+  const mostrarConteudo = Boolean(planilha) && !carregando && !erro;
+
   return (
-    <div className="modal-overlay" onClick={solicitarFechamento}>
-      <div
-        className="modal-content modal-importacao"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Assistente de importação de planilha"
-      >
-        <div className="modal-header">
-          <h2>Importar planilha</h2>
-          <button
-            type="button"
-            className="modal-fechar"
-            onClick={solicitarFechamento}
-            aria-label="Fechar"
-          >
-            <IconeFechar />
+    <Dialog
+      isOpen
+      onClose={solicitarFechamento}
+      title="Importar planilha"
+      className="modal-importacao"
+      // Enquanto a confirmação de cancelamento (dialog aninhado) está
+      // aberta, o Esc deve fechar apenas ela — não também disparar
+      // solicitarFechamento deste dialog externo.
+      closeOnEsc={!confirmandoCancelamento}
+      footer={
+        mostrarConteudo ? (
+          <>
+            {etapa === 1 ? (
+              <span />
+            ) : (
+              <button
+                type="button"
+                className="dialog-botao-cancelar"
+                onClick={() => setEtapa((atual) => (atual - 1) as TEtapaImportacao)}
+              >
+                Voltar
+              </button>
+            )}
+
+            {etapa === 1 && (
+              <button
+                type="button"
+                className="dialog-botao-primario"
+                disabled={!etapa1Valida}
+                onClick={() => setEtapa(2)}
+              >
+                Avançar
+              </button>
+            )}
+
+            {etapa === 2 && (
+              <button
+                type="button"
+                className="dialog-botao-primario"
+                disabled={!etapa2Valida}
+                onClick={() => setEtapa(3)}
+              >
+                Avançar
+              </button>
+            )}
+
+            {etapa === 3 && (
+              <button type="button" className="dialog-botao-primario" onClick={confirmarImportacao}>
+                Confirmar Importação
+              </button>
+            )}
+          </>
+        ) : undefined
+      }
+    >
+      {carregando && <p className="importacao-status">Lendo planilha selecionada...</p>}
+
+      {erro && !carregando && (
+        <div className="importacao-erro">
+          <p>{erro}</p>
+          <button type="button" className="dialog-botao-cancelar" onClick={onFechar}>
+            Fechar
           </button>
         </div>
+      )}
 
-        {carregando && <p className="importacao-status">Lendo planilha selecionada...</p>}
+      {mostrarConteudo && (
+        <>
+          <ol className="importacao-stepper" aria-label={`Etapa ${etapa} de 3`}>
+            {ETAPAS.map(({ numero, rotulo }) => {
+              const concluida = numero < etapa;
+              const ativa = numero === etapa;
+              return (
+                <li
+                  key={numero}
+                  className={`importacao-stepper-item ${ativa ? 'ativa' : ''} ${
+                    concluida ? 'concluida' : ''
+                  }`}
+                >
+                  <span className="importacao-stepper-bolha">
+                    {concluida ? <IconeCheck /> : numero}
+                  </span>
+                  <span className="importacao-stepper-rotulo">{rotulo}</span>
+                </li>
+              );
+            })}
+          </ol>
 
-        {erro && !carregando && (
-          <div className="importacao-erro">
-            <p>{erro}</p>
-            <button type="button" className="modal-botao-cancelar" onClick={onFechar}>
-              Fechar
-            </button>
+          <div className="importacao-corpo">
+            {etapa === 1 && planilha && (
+              <EtapaInformacoes
+                estado={estado}
+                onEstadoChange={atualizarEstado}
+                headers={planilha.headers}
+                linhas={planilha.linhas}
+                formato={planilha.formato}
+                tamanhoBytes={planilha.tamanhoBytes}
+                estatisticas={estatisticas}
+              />
+            )}
+
+            {etapa === 2 && planilha && (
+              <EtapaMapeamento estado={estado} onEstadoChange={atualizarEstado} headers={planilha.headers} />
+            )}
+
+            {etapa === 3 && planilha && (
+              <EtapaRevisao
+                estado={estado}
+                headers={planilha.headers}
+                formato={planilha.formato}
+                tamanhoBytes={planilha.tamanhoBytes}
+                estatisticas={estatisticas}
+              />
+            )}
           </div>
-        )}
-
-        {planilha && !carregando && !erro && (
-          <>
-            <ol className="importacao-stepper" aria-label={`Etapa ${etapa} de 3`}>
-              {ETAPAS.map(({ numero, rotulo }) => {
-                const concluida = numero < etapa;
-                const ativa = numero === etapa;
-                return (
-                  <li
-                    key={numero}
-                    className={`importacao-stepper-item ${ativa ? 'ativa' : ''} ${
-                      concluida ? 'concluida' : ''
-                    }`}
-                  >
-                    <span className="importacao-stepper-bolha">
-                      {concluida ? <IconeCheck /> : numero}
-                    </span>
-                    <span className="importacao-stepper-rotulo">{rotulo}</span>
-                  </li>
-                );
-              })}
-            </ol>
-
-            <div className="importacao-corpo">
-              {etapa === 1 && (
-                <EtapaInformacoes
-                  estado={estado}
-                  onEstadoChange={atualizarEstado}
-                  headers={planilha.headers}
-                  linhas={planilha.linhas}
-                  formato={planilha.formato}
-                  tamanhoBytes={planilha.tamanhoBytes}
-                  estatisticas={estatisticas}
-                />
-              )}
-
-              {etapa === 2 && (
-                <EtapaMapeamento
-                  estado={estado}
-                  onEstadoChange={atualizarEstado}
-                  headers={planilha.headers}
-                />
-              )}
-
-              {etapa === 3 && (
-                <EtapaRevisao
-                  estado={estado}
-                  headers={planilha.headers}
-                  formato={planilha.formato}
-                  tamanhoBytes={planilha.tamanhoBytes}
-                  estatisticas={estatisticas}
-                />
-              )}
-            </div>
-
-            <div className="modal-rodape">
-              {etapa === 1 ? (
-                <span />
-              ) : (
-                <button
-                  type="button"
-                  className="modal-botao-cancelar"
-                  onClick={() => setEtapa((atual) => (atual - 1) as TEtapaImportacao)}
-                >
-                  Voltar
-                </button>
-              )}
-
-              {etapa === 1 && (
-                <button
-                  type="button"
-                  className="modal-botao-primario"
-                  disabled={!etapa1Valida}
-                  onClick={() => setEtapa(2)}
-                >
-                  Avançar
-                </button>
-              )}
-
-              {etapa === 2 && (
-                <button
-                  type="button"
-                  className="modal-botao-primario"
-                  disabled={!etapa2Valida}
-                  onClick={() => setEtapa(3)}
-                >
-                  Avançar
-                </button>
-              )}
-
-              {etapa === 3 && (
-                <button type="button" className="modal-botao-primario" onClick={confirmarImportacao}>
-                  Confirmar Importação
-                </button>
-              )}
-            </div>
-          </>
-        )}
-      </div>
+        </>
+      )}
 
       {confirmandoCancelamento && (
-        <div className="modal-overlay modal-overlay-confirmacao" onClick={continuarEditando}>
-          <div
-            className="modal-content modal-confirmacao-cancelamento"
-            onClick={(e) => e.stopPropagation()}
-            role="alertdialog"
-            aria-modal="true"
-            aria-label="Confirmar cancelamento da importação"
-          >
-            <div className="confirmacao-cancelamento-icone">
-              <IconeAlerta />
-            </div>
-            <h2>Deseja cancelar a importação?</h2>
-            <p>Todo o progresso realizado será perdido.</p>
-            <div className="modal-rodape modal-rodape-centralizado">
-              <button type="button" className="modal-botao-cancelar" onClick={continuarEditando}>
+        <Dialog
+          isOpen
+          onClose={continuarEditando}
+          role="alertdialog"
+          showCloseButton={false}
+          ariaLabel="Confirmar cancelamento da importação"
+          overlayClassName="modal-overlay-confirmacao"
+          className="modal-confirmacao-cancelamento"
+          footerClassName="dialog-rodape-centralizado"
+          footer={
+            <>
+              <button type="button" className="dialog-botao-cancelar" onClick={continuarEditando}>
                 Continuar editando
               </button>
-              <button type="button" className="modal-botao-deletar" onClick={cancelarImportacao}>
+              <button type="button" className="dialog-botao-deletar" onClick={cancelarImportacao}>
                 Cancelar importação
               </button>
-            </div>
+            </>
+          }
+        >
+          <div className="confirmacao-cancelamento-icone">
+            <IconeAlerta />
           </div>
-        </div>
+          <h2>Deseja cancelar a importação?</h2>
+          <p>Todo o progresso realizado será perdido.</p>
+        </Dialog>
       )}
-    </div>
+    </Dialog>
   );
 }

@@ -1,5 +1,5 @@
 import type { EmailRecord } from '../types/email';
-import { IconeFechar } from './Icons';
+import { Dialog } from './Dialog';
 
 interface Props {
   /** Registros que compartilham o mesmo e-mail (grupo de duplicados). */
@@ -23,42 +23,38 @@ export function DuplicadosModal({ registros, onFechar }: Props) {
   const email = registros[0]?.email ?? '';
 
   return (
-    <div className="modal-overlay" onClick={onFechar}>
-      <div className="modal-content modal-duplicados" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Registros com o mesmo e-mail</h2>
-          <button type="button" className="modal-fechar" onClick={onFechar} aria-label="Fechar">
-            <IconeFechar />
-          </button>
-        </div>
+    <Dialog
+      isOpen
+      onClose={onFechar}
+      title="Registros com o mesmo e-mail"
+      className="modal-duplicados"
+    >
+      <p className="duplicados-email">{email}</p>
 
-        <p className="duplicados-email">{email}</p>
-
-        <table className="duplicados-tabela">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nome</th>
-              <th>E-mail</th>
-              <th>Status</th>
+      <table className="duplicados-tabela">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {registros.map((registro) => (
+            <tr key={registro.id}>
+              <td>{registro.id}</td>
+              <td>{registro.nome}</td>
+              <td>{registro.email}</td>
+              <td>
+                <span className={`status-badge status-${registro.status}`}>
+                  {registro.status}
+                </span>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {registros.map((registro) => (
-              <tr key={registro.id}>
-                <td>{registro.id}</td>
-                <td>{registro.nome}</td>
-                <td>{registro.email}</td>
-                <td>
-                  <span className={`status-badge status-${registro.status}`}>
-                    {registro.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          ))}
+        </tbody>
+      </table>
+    </Dialog>
   );
 }
