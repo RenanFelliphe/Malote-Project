@@ -1459,6 +1459,17 @@ button.status-badge-clicavel:hover {
   outline: none;
 }
 
+.dialog-content.modal-exportar {
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dialog-content.modal-exportar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
 .dialog-header {
   display: flex;
   align-items: center;
@@ -1565,103 +1576,267 @@ button.status-badge-clicavel:hover {
 }
 
 /* --- Modal de exportação --- */
+/* =========================================================================
+   Modal de exportação
+   -------------------------------------------------------------------------
+   Substitui o antigo bloco "--- Modal de exportação ---" do design system.
+   A lista de status e o seletor de formato passam a ter classes próprias
+   (`.exportar-*`, `.formato-card`) em vez de reaproveitar `.modal-lista` e
+   `.modal-modo-botoes` — essas duas continuam servindo outros modais
+   (ConflitoExclusaoModal etc.), então ganhar uma variante dedicada evita
+   qualquer efeito colateral nos demais usos.
+   ========================================================================= */
+
+.modal-exportar {
+  max-width: 560px;
+}
 
 .exportar-secao {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
 }
 
-.conflito-lista {
+.exportar-secao:not(:first-child) {
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.exportar-secao-cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.exportar-selecionar-todos {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: max-content;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.exportar-selecionar-todos input {
+  accent-color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.exportar-selecionar-todos:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+/* --- Lista de status --- */
+
+.exportar-lista-status {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 160px;
-  overflow-y: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.conflito-lista li {
-  border-bottom: 1px solid var(--color-border);
-  font-size: 0.85rem;
-}
-
-.conflito-lista li:last-child {
-  border-bottom: none;
-}
-
-.conflito-lista-enviados li {
   display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  color: var(--color-text-tertiary);
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-.conflito-lista-deletar li label {
+.exportar-lista-status-item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0.75rem;
+  gap: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   cursor: pointer;
+  background: var(--color-surface);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
-.conflito-lista-deletar li:hover {
+.exportar-lista-status-item:hover {
+  border-color: var(--color-border-strong);
   background: var(--color-surface-hover);
 }
 
-.conflito-nome {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.exportar-lista-status-item input {
+  accent-color: var(--color-accent);
 }
 
-.conflito-email {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--color-text-tertiary);
-  font-size: 0.8rem;
-  font-family: var(--font-mono);
+.exportar-lista-status-indicador {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  background: var(--color-neutral);
 }
 
-.dialog-botao-cancelar {
-  padding: 0.6rem 1.15rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.dialog-botao-cancelar:hover {
-  background: var(--color-bg-subtle);
+.exportar-lista-status-texto {
+  flex: 1;
+  font-size: 0.86rem;
   color: var(--color-text);
 }
 
-.dialog-botao-deletar {
-  padding: 0.6rem 1.15rem;
-  border: none;
-  border-radius: var(--radius-md);
-  background: var(--color-danger);
-  color: #fff;
-  font-size: 0.85rem;
+.exportar-lista-status-contador {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
   font-weight: 600;
+  color: var(--color-text-tertiary);
+  min-width: 1.6rem;
+  text-align: right;
+}
+
+.exportar-lista-status-enviado .exportar-lista-status-indicador {
+  background: var(--color-info);
+}
+
+.exportar-lista-status-válido .exportar-lista-status-indicador {
+  background: var(--color-success);
+}
+
+.exportar-lista-status-inválido .exportar-lista-status-indicador {
+  background: var(--color-danger);
+}
+
+.exportar-lista-status-duplicado .exportar-lista-status-indicador {
+  background: var(--color-warning);
+}
+
+.exportar-lista-status-deletado .exportar-lista-status-indicador {
+  background: var(--color-neutral);
+}
+
+li.marcado .exportar-lista-status-item {
+  border-color: var(--color-border-strong);
+  background: var(--color-neutral-bg);
+}
+
+/* --- Cartões de formato --- */
+
+.exportar-grade-formatos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.55rem;
+}
+
+.formato-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.85rem 0.6rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
   cursor: pointer;
-  transition: filter var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
 }
 
-.dialog-botao-deletar:hover:not(:disabled) {
-  filter: brightness(0.92);
+.formato-card:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
 }
 
-.dialog-botao-deletar:disabled {
-  background: var(--color-border-strong);
-  cursor: not-allowed;
+.formato-card.ativo {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.formato-card-monograma {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.formato-card.ativo .formato-card-monograma {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.formato-card-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.25;
+}
+
+.formato-card.ativo .formato-card-label {
+  color: var(--color-text);
+}
+
+.formato-card-check {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--color-accent);
+}
+
+/* --- Rodapé --- */
+
+.exportar-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.exportar-rodape-contagem {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.exportar-rodape-numero {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.exportar-rodape-texto {
+  font-size: 0.78rem;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.exportar-rodape-barra {
+  flex-basis: 100%;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-subtle);
+  overflow: hidden;
+  margin-top: 0.15rem;
+}
+
+.exportar-rodape-barra-preenchida {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  transition: width var(--transition-base);
+}
+
+@media (max-width: 480px) {
+  .exportar-grade-formatos {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* =========================================================================
@@ -1813,6 +1988,7 @@ button.status-badge-clicavel:hover {
 .modal-lista label {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.6rem;
   padding: 0.5rem 0.75rem;
   cursor: pointer;
@@ -1823,6 +1999,13 @@ button.status-badge-clicavel:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.modal-lista-contador {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  min-width: 2.5rem;
+  text-align: right;
 }
 
 .modal-lista-vazia {
