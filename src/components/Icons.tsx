@@ -9,6 +9,7 @@ import {
   FiDownload,
   FiEdit3,
   FiFileText,
+  FiMail,
   FiMoon,
   FiMoreVertical,
   FiRefreshCw,
@@ -85,6 +86,11 @@ export function IconeExportar() {
 
 export function IconeAtualizarPlanilha() {
   return <FiRefreshCw size={15} aria-hidden="true" />;
+}
+
+/** Ícone do item "Editar e-mail" no dropdown de configurações (REFATORACAO-EMAIL-TITULO-CONTEUDO.md). */
+export function IconeEditarEmail() {
+  return <FiMail size={15} aria-hidden="true" />;
 }
 
 export function IconeAlerta() {

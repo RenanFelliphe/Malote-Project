@@ -8,9 +8,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const emailsJsonPath = path.resolve(__dirname, 'data/emails.json')
 
 /**
- * Middleware de dev server que persiste o array de registros em
- * data/emails.json. Usado pela Etapa 5 (atualização manual de status)
- * e será reaproveitado pelas próximas sub-etapas (exclusão/restauração).
+ * Middleware de dev server que persiste `data/emails.json`.
+ *
+ * A partir da migração descrita em REFATORACAO-EMAIL-TITULO-CONTEUDO.md, o
+ * arquivo passou a ser o objeto completo `{ email, registros }` (EmailsData) —
+ * não mais um array puro de registros. `salvarEmails` (services/emailsApi.ts)
+ * sempre envia esse objeto completo, então o middleware valida explicitamente
+ * o formato recebido antes de gravar, para não persistir silenciosamente um
+ * corpo incompleto (ex.: um array de registros solto, que apagaria `email`).
  */
 function emailsApiPlugin() {
   return {
@@ -27,8 +32,23 @@ function emailsApiPlugin() {
         req.on('data', (chunk) => { body += chunk })
         req.on('end', () => {
           try {
-            const registros = JSON.parse(body)
-            fs.writeFileSync(emailsJsonPath, JSON.stringify(registros, null, 2) + '\n', 'utf-8')
+            const dados = JSON.parse(body)
+
+            const formatoValido =
+              dados &&
+              typeof dados === 'object' &&
+              !Array.isArray(dados) &&
+              dados.email &&
+              typeof dados.email === 'object' &&
+              Array.isArray(dados.registros)
+
+            if (!formatoValido) {
+              throw new Error(
+                'Corpo inválido: esperado objeto { email, registros }, não um array de registros solto.'
+              )
+            }
+
+            fs.writeFileSync(emailsJsonPath, JSON.stringify(dados, null, 2) + '\n', 'utf-8')
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify({ ok: true }))

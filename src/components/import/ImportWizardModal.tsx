@@ -4,6 +4,7 @@ import { IconeAlerta, IconeCheck } from '../Icons';
 import { Dialog } from '../Dialog';
 import { EtapaInformacoes } from './EtapaInformacoes';
 import { EtapaMapeamento } from './EtapaMapeamento';
+import { EtapaDefinicao } from './EtapaDefinicao';
 import { EtapaRevisao } from './EtapaRevisao';
 import { parsearPlanilha, type PlanilhaParseada } from './utils/parseSheetBrowser';
 import { calcularEstatisticasPreliminares } from './utils/statsPreliminares';
@@ -17,11 +18,12 @@ interface Props {
 const ETAPAS: { numero: TEtapaImportacao; rotulo: string }[] = [
   { numero: 1, rotulo: 'Informações' },
   { numero: 2, rotulo: 'Mapeamento' },
-  { numero: 3, rotulo: 'Revisão' },
+  { numero: 3, rotulo: 'Definição' },
+  { numero: 4, rotulo: 'Revisão' },
 ];
 
 /**
- * Assistente de importação de planilha (3 etapas). Implementação apenas de
+ * Assistente de importação de planilha (4 etapas). Implementação apenas de
  * interface/navegação — ver descrição da tarefa: nenhuma importação real é
  * realizada aqui. "Confirmar Importação" apenas fecha o modal.
  */
@@ -146,6 +148,12 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
             )}
 
             {etapa === 3 && (
+              <button type="button" className="dialog-botao-primario" onClick={() => setEtapa(4)}>
+                Avançar
+              </button>
+            )}
+
+            {etapa === 4 && (
               <button type="button" className="dialog-botao-primario" onClick={confirmarImportacao}>
                 Confirmar Importação
               </button>
@@ -167,7 +175,7 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
 
       {mostrarConteudo && (
         <>
-          <ol className="importacao-stepper" aria-label={`Etapa ${etapa} de 3`}>
+          <ol className="importacao-stepper" aria-label={`Etapa ${etapa} de 4`}>
             {ETAPAS.map(({ numero, rotulo }) => {
               const concluida = numero < etapa;
               const ativa = numero === etapa;
@@ -204,7 +212,9 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
               <EtapaMapeamento estado={estado} onEstadoChange={atualizarEstado} headers={planilha.headers} />
             )}
 
-            {etapa === 3 && planilha && (
+            {etapa === 3 && planilha && <EtapaDefinicao estado={estado} onEstadoChange={atualizarEstado} />}
+
+            {etapa === 4 && planilha && (
               <EtapaRevisao
                 estado={estado}
                 headers={planilha.headers}

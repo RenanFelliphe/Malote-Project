@@ -1,802 +1,809 @@
-[
-  {
-    "id": 1,
-    "nome": "Ana Souza",
-    "email": "ana.souza1@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 2,
-    "nome": "Bruno Lima",
-    "email": "bruno.lima2@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 3,
-    "nome": "Carla Mendes",
-    "email": "carla.mendes3@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 4,
-    "nome": "Diego Alves",
-    "email": "diego.alves4@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 5,
-    "nome": "Eduarda Rocha",
-    "email": "eduarda.rocha5@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 6,
-    "nome": "Felipe Costa",
-    "email": "felipe.costa6@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 7,
-    "nome": "Gabriela Dias",
-    "email": "gabriela.dias7@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 8,
-    "nome": "Henrique Melo",
-    "email": "henrique.melo8@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 9,
-    "nome": "Isabela Ramos",
-    "email": "isabela.ramos9@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 10,
-    "nome": "João Pedro",
-    "email": "joao.pedro10@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 11,
-    "nome": "Karina Silva",
-    "email": "karina.silva11@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 12,
-    "nome": "Lucas Ferreira",
-    "email": "lucas.ferreira12@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 13,
-    "nome": "Mariana Torres",
-    "email": "mariana.torres13@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 14,
-    "nome": "Nicolas Barros",
-    "email": "nicolas.barros14@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 15,
-    "nome": "Olívia Cardoso",
-    "email": "olivia.cardoso15@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 16,
-    "nome": "Pedro Nunes",
-    "email": "pedro.nunes16@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 17,
-    "nome": "Queila Freitas",
-    "email": "queila.freitas17@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 18,
-    "nome": "Rafael Pinto",
-    "email": "rafael.pinto18@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 19,
-    "nome": "Sabrina Castro",
-    "email": "sabrina.castro19@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 20,
-    "nome": "Thiago Moreira",
-    "email": "thiago.moreira20@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 21,
-    "nome": "Ursula Prado",
-    "email": "ursula.prado21@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 22,
-    "nome": "Vitor Hugo",
-    "email": "vitor.hugo22@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 23,
-    "nome": "Wesley Batista",
-    "email": "wesley.batista23@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 24,
-    "nome": "Xênia Vieira",
-    "email": "xenia.vieira24@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 25,
-    "nome": "Yasmin Duarte",
-    "email": "yasmin.duarte25@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 26,
-    "nome": "Zeca Andrade",
-    "email": "zeca.andrade26@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 27,
-    "nome": "Amanda Farias",
-    "email": "amanda.farias27@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 28,
-    "nome": "Bernardo Teles",
-    "email": "bernardo.teles28@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 29,
-    "nome": "Camila Reis",
-    "email": "camila.reis29@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 30,
-    "nome": "Daniel Xavier",
-    "email": "daniel.xavier30@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 31,
-    "nome": "Elaine Brito",
-    "email": "elaine.brito31@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 32,
-    "nome": "Fábio Guedes",
-    "email": "fabio.guedes32@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 33,
-    "nome": "Giovana Peixoto",
-    "email": "giovana.peixoto33@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 34,
-    "nome": "Hugo Marques",
-    "email": "hugo.marques34@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 35,
-    "nome": "Inês Coutinho",
-    "email": "ines.coutinho35@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 36,
-    "nome": "Julio Sales",
-    "email": "julio.sales36@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 37,
-    "nome": "Kelly Nogueira",
-    "email": "kelly.nogueira37@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 38,
-    "nome": "Leonardo Assis",
-    "email": "leonardo.assis38@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 39,
-    "nome": "Marina Tavares",
-    "email": "marina.tavares39@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 40,
-    "nome": "Otávio Correia",
-    "email": "otavio.correia40@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 41,
-    "nome": "Paula Siqueira",
-    "email": "paula.siqueira41@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 42,
-    "nome": "Renato Aguiar",
-    "email": "renato.aguiar42@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 43,
-    "nome": "Simone Bezerra",
-    "email": "simone.bezerra43@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 44,
-    "nome": "Tarcísio Leal",
-    "email": "tarcisio.leal44@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 45,
-    "nome": "Valentina Gama",
-    "email": "valentina.gama45@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 46,
-    "nome": "William Cunha",
-    "email": "william.cunha46@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 47,
-    "nome": "Ximena Rocha",
-    "email": "ximena.rocha47@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 48,
-    "nome": "Yago Pimentel",
-    "email": "yago.pimentel48@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 49,
-    "nome": "Zilda Monteiro",
-    "email": "zilda.monteiro49@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 50,
-    "nome": "Alice Bastos",
-    "email": "alice.bastos50@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 51,
-    "nome": "Caio Moura",
-    "email": "caio.moura51@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 52,
-    "nome": "Débora Sant'Anna",
-    "email": "debora.sant'anna52@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 53,
-    "nome": "Emerson Vaz",
-    "email": "emerson.vaz53@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 54,
-    "nome": "Fernanda Lacerda",
-    "email": "fernanda.lacerda54@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 55,
-    "nome": "Guilherme Pontes",
-    "email": "guilherme.pontes55@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 56,
-    "nome": "Heloísa Braga",
-    "email": "heloisa.braga56@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 57,
-    "nome": "Igor Salgado",
-    "email": "igor.salgado57@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 58,
-    "nome": "Jaqueline Rêgo",
-    "email": "jaqueline.rego58@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 59,
-    "nome": "Kauê Medeiros",
-    "email": "kaue.medeiros59@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 60,
-    "nome": "Larissa Fagundes",
-    "email": "larissa.fagundes60@exemplo.com",
-    "status": "válido",
-    "status_alterado": false,
-    "last_updated": "2026-07-09T18:30:07.274Z"
-  },
-  {
-    "id": 61,
-    "nome": "Marcos Vinicius (1)",
-    "email": "marcos.vinicius@dominio.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 62,
-    "nome": "Marcos Vinicius (2)",
-    "email": "MARCOS.VINICIUS@DOMINIO.COM",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:24.555Z"
-  },
-  {
-    "id": 63,
-    "nome": "Marcos Vinicius (3)",
-    "email": "marcos.vinicius@dominio.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 64,
-    "nome": "Patrícia Gonçalves (1)",
-    "email": "patricia.goncalves@dominio.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 65,
-    "nome": "Patrícia Gonçalves (2)",
-    "email": "PATRICIA.GONCALVES@DOMINIO.COM",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 66,
-    "nome": "Patrícia Gonçalves (3)",
-    "email": "patricia.goncalves@dominio.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 67,
-    "nome": "Rodrigo Sampaio (1)",
-    "email": "rodrigo.sampaio@dominio.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 68,
-    "nome": "Rodrigo Sampaio (2)",
-    "email": "RODRIGO.SAMPAIO@DOMINIO.COM",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 69,
-    "nome": "Rodrigo Sampaio (3)",
-    "email": "rodrigo.sampaio@dominio.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 70,
-    "nome": "Cíntia Ferraz (1)",
-    "email": "cintia.ferraz@dominio.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 71,
-    "nome": "Cíntia Ferraz (2)",
-    "email": "CINTIA.FERRAZ@DOMINIO.COM",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 72,
-    "nome": "Cíntia Ferraz (3)",
-    "email": "cintia.ferraz@dominio.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 73,
-    "nome": "Anderson Prado (1)",
-    "email": "anderson.prado@dominio.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 74,
-    "nome": "Anderson Prado (2)",
-    "email": "ANDERSON.PRADO@DOMINIO.COM",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 75,
-    "nome": "Anderson Prado (3)",
-    "email": "anderson.prado@dominio.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 76,
-    "nome": "Beatriz Nascimento (1)",
-    "email": "beatriz.nascimento@corp.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 77,
-    "nome": "Beatriz Nascimento (2)",
-    "email": "BEATRIZ.NASCIMENTO@CORP.COM",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 78,
-    "nome": "Fabrício Andrade (1)",
-    "email": "fabricio.andrade@corp.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 79,
-    "nome": "Fabrício Andrade (2)",
-    "email": "FABRICIO.ANDRADE@CORP.COM",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 80,
-    "nome": "Juliana Prado (1)",
-    "email": "juliana.prado@corp.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 81,
-    "nome": "Juliana Prado (2)",
-    "email": "JULIANA.PRADO@CORP.COM",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 82,
-    "nome": "Sérgio Nakamura (1)",
-    "email": "sergio.nakamura@corp.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 83,
-    "nome": "Sérgio Nakamura (2)",
-    "email": "SERGIO.NAKAMURA@CORP.COM",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 84,
-    "nome": "Vanessa Righi (1)",
-    "email": "vanessa.righi@corp.com",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 85,
-    "nome": "Vanessa Righi (2)",
-    "email": "VANESSA.RIGHI@CORP.COM",
-    "status": "duplicado",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 86,
-    "nome": "Sem Arroba",
-    "email": "semarrobadominio.com",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 87,
-    "nome": "Sem Dominio",
-    "email": "usuario@dominiosemponto",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 88,
-    "nome": "Espaco No Meio",
-    "email": "nome sobrenome@dominio.com",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 89,
-    "nome": "Email Vazio",
-    "email": "",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 90,
-    "nome": "Somente Arroba Dominio",
-    "email": "@dominio.com",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 91,
-    "nome": "Sem Dominio Apos Arroba",
-    "email": "usuario@",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 92,
-    "nome": "Arroba Duplo",
-    "email": "usuario@@dominio.com",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 93,
-    "nome": "Ponto Final Sem Extensao",
-    "email": "usuario@dominio.",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 94,
-    "nome": "Texto Puro",
-    "email": "istoNaoEUmEmail",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 95,
-    "nome": "Somente Numeros",
-    "email": "123456789",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 96,
-    "nome": "Espaco Antes Arroba",
-    "email": "usuario @dominio.com",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 97,
-    "nome": "Dominio So Ponto",
-    "email": "usuario@.",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 98,
-    "nome": "Multiplos Espacos",
-    "email": "",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 99,
-    "nome": "Sem Usuario V2",
-    "email": "@outrodominio.com",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  },
-  {
-    "id": 100,
-    "nome": "Caracteres Invalidos",
-    "email": "usuário#dominio,com",
-    "status": "inválido",
-    "status_alterado": false,
-    "last_updated": "2026-07-10T18:29:20.715Z"
-  }
-]
+{
+  "email": {
+    "titulo": "Título teste",
+    "conteudo": "Corpo teste",
+    "atualizado_em": "2026-07-13T23:46:02.783Z"
+  },
+  "registros": [
+    {
+      "id": 1,
+      "nome": "Ana Souza",
+      "email": "ana.souza1@exemplo.com",
+      "status": "enviado",
+      "status_alterado": true,
+      "last_updated": "2026-07-14T00:11:30.992Z"
+    },
+    {
+      "id": 2,
+      "nome": "Bruno Lima",
+      "email": "bruno.lima2@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 3,
+      "nome": "Carla Mendes",
+      "email": "carla.mendes3@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 4,
+      "nome": "Diego Alves",
+      "email": "diego.alves4@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 5,
+      "nome": "Eduarda Rocha",
+      "email": "eduarda.rocha5@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 6,
+      "nome": "Felipe Costa",
+      "email": "felipe.costa6@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 7,
+      "nome": "Gabriela Dias",
+      "email": "gabriela.dias7@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 8,
+      "nome": "Henrique Melo",
+      "email": "henrique.melo8@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 9,
+      "nome": "Isabela Ramos",
+      "email": "isabela.ramos9@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 10,
+      "nome": "João Pedro",
+      "email": "joao.pedro10@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 11,
+      "nome": "Karina Silva",
+      "email": "karina.silva11@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 12,
+      "nome": "Lucas Ferreira",
+      "email": "lucas.ferreira12@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 13,
+      "nome": "Mariana Torres",
+      "email": "mariana.torres13@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 14,
+      "nome": "Nicolas Barros",
+      "email": "nicolas.barros14@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 15,
+      "nome": "Olívia Cardoso",
+      "email": "olivia.cardoso15@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 16,
+      "nome": "Pedro Nunes",
+      "email": "pedro.nunes16@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 17,
+      "nome": "Queila Freitas",
+      "email": "queila.freitas17@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 18,
+      "nome": "Rafael Pinto",
+      "email": "rafael.pinto18@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 19,
+      "nome": "Sabrina Castro",
+      "email": "sabrina.castro19@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 20,
+      "nome": "Thiago Moreira",
+      "email": "thiago.moreira20@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 21,
+      "nome": "Ursula Prado",
+      "email": "ursula.prado21@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 22,
+      "nome": "Vitor Hugo",
+      "email": "vitor.hugo22@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 23,
+      "nome": "Wesley Batista",
+      "email": "wesley.batista23@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 24,
+      "nome": "Xênia Vieira",
+      "email": "xenia.vieira24@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 25,
+      "nome": "Yasmin Duarte",
+      "email": "yasmin.duarte25@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 26,
+      "nome": "Zeca Andrade",
+      "email": "zeca.andrade26@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 27,
+      "nome": "Amanda Farias",
+      "email": "amanda.farias27@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 28,
+      "nome": "Bernardo Teles",
+      "email": "bernardo.teles28@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 29,
+      "nome": "Camila Reis",
+      "email": "camila.reis29@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 30,
+      "nome": "Daniel Xavier",
+      "email": "daniel.xavier30@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 31,
+      "nome": "Elaine Brito",
+      "email": "elaine.brito31@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 32,
+      "nome": "Fábio Guedes",
+      "email": "fabio.guedes32@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 33,
+      "nome": "Giovana Peixoto",
+      "email": "giovana.peixoto33@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 34,
+      "nome": "Hugo Marques",
+      "email": "hugo.marques34@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 35,
+      "nome": "Inês Coutinho",
+      "email": "ines.coutinho35@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 36,
+      "nome": "Julio Sales",
+      "email": "julio.sales36@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 37,
+      "nome": "Kelly Nogueira",
+      "email": "kelly.nogueira37@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 38,
+      "nome": "Leonardo Assis",
+      "email": "leonardo.assis38@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 39,
+      "nome": "Marina Tavares",
+      "email": "marina.tavares39@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 40,
+      "nome": "Otávio Correia",
+      "email": "otavio.correia40@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 41,
+      "nome": "Paula Siqueira",
+      "email": "paula.siqueira41@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 42,
+      "nome": "Renato Aguiar",
+      "email": "renato.aguiar42@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 43,
+      "nome": "Simone Bezerra",
+      "email": "simone.bezerra43@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 44,
+      "nome": "Tarcísio Leal",
+      "email": "tarcisio.leal44@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 45,
+      "nome": "Valentina Gama",
+      "email": "valentina.gama45@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 46,
+      "nome": "William Cunha",
+      "email": "william.cunha46@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 47,
+      "nome": "Ximena Rocha",
+      "email": "ximena.rocha47@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 48,
+      "nome": "Yago Pimentel",
+      "email": "yago.pimentel48@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 49,
+      "nome": "Zilda Monteiro",
+      "email": "zilda.monteiro49@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 50,
+      "nome": "Alice Bastos",
+      "email": "alice.bastos50@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 51,
+      "nome": "Caio Moura",
+      "email": "caio.moura51@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 52,
+      "nome": "Débora Sant'Anna",
+      "email": "debora.sant'anna52@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 53,
+      "nome": "Emerson Vaz",
+      "email": "emerson.vaz53@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 54,
+      "nome": "Fernanda Lacerda",
+      "email": "fernanda.lacerda54@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 55,
+      "nome": "Guilherme Pontes",
+      "email": "guilherme.pontes55@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 56,
+      "nome": "Heloísa Braga",
+      "email": "heloisa.braga56@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 57,
+      "nome": "Igor Salgado",
+      "email": "igor.salgado57@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 58,
+      "nome": "Jaqueline Rêgo",
+      "email": "jaqueline.rego58@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 59,
+      "nome": "Kauê Medeiros",
+      "email": "kaue.medeiros59@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 60,
+      "nome": "Larissa Fagundes",
+      "email": "larissa.fagundes60@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-09T18:30:07.274Z"
+    },
+    {
+      "id": 61,
+      "nome": "Marcos Vinicius (1)",
+      "email": "marcos.vinicius@dominio.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 62,
+      "nome": "Marcos Vinicius (2)",
+      "email": "MARCOS.VINICIUS@DOMINIO.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:24.555Z"
+    },
+    {
+      "id": 63,
+      "nome": "Marcos Vinicius (3)",
+      "email": "marcos.vinicius@dominio.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 64,
+      "nome": "Patrícia Gonçalves (1)",
+      "email": "patricia.goncalves@dominio.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 65,
+      "nome": "Patrícia Gonçalves (2)",
+      "email": "PATRICIA.GONCALVES@DOMINIO.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 66,
+      "nome": "Patrícia Gonçalves (3)",
+      "email": "patricia.goncalves@dominio.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 67,
+      "nome": "Rodrigo Sampaio (1)",
+      "email": "rodrigo.sampaio@dominio.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 68,
+      "nome": "Rodrigo Sampaio (2)",
+      "email": "RODRIGO.SAMPAIO@DOMINIO.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 69,
+      "nome": "Rodrigo Sampaio (3)",
+      "email": "rodrigo.sampaio@dominio.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 70,
+      "nome": "Cíntia Ferraz (1)",
+      "email": "cintia.ferraz@dominio.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 71,
+      "nome": "Cíntia Ferraz (2)",
+      "email": "CINTIA.FERRAZ@DOMINIO.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 72,
+      "nome": "Cíntia Ferraz (3)",
+      "email": "cintia.ferraz@dominio.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 73,
+      "nome": "Anderson Prado (1)",
+      "email": "anderson.prado@dominio.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 74,
+      "nome": "Anderson Prado (2)",
+      "email": "ANDERSON.PRADO@DOMINIO.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 75,
+      "nome": "Anderson Prado (3)",
+      "email": "anderson.prado@dominio.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 76,
+      "nome": "Beatriz Nascimento (1)",
+      "email": "beatriz.nascimento@corp.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 77,
+      "nome": "Beatriz Nascimento (2)",
+      "email": "BEATRIZ.NASCIMENTO@CORP.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 78,
+      "nome": "Fabrício Andrade (1)",
+      "email": "fabricio.andrade@corp.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 79,
+      "nome": "Fabrício Andrade (2)",
+      "email": "FABRICIO.ANDRADE@CORP.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 80,
+      "nome": "Juliana Prado (1)",
+      "email": "juliana.prado@corp.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 81,
+      "nome": "Juliana Prado (2)",
+      "email": "JULIANA.PRADO@CORP.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 82,
+      "nome": "Sérgio Nakamura (1)",
+      "email": "sergio.nakamura@corp.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 83,
+      "nome": "Sérgio Nakamura (2)",
+      "email": "SERGIO.NAKAMURA@CORP.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 84,
+      "nome": "Vanessa Righi (1)",
+      "email": "vanessa.righi@corp.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 85,
+      "nome": "Vanessa Righi (2)",
+      "email": "VANESSA.RIGHI@CORP.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 86,
+      "nome": "Sem Arroba",
+      "email": "semarrobadominio.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 87,
+      "nome": "Sem Dominio",
+      "email": "usuario@dominiosemponto",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 88,
+      "nome": "Espaco No Meio",
+      "email": "nome sobrenome@dominio.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 89,
+      "nome": "Email Vazio",
+      "email": "",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 90,
+      "nome": "Somente Arroba Dominio",
+      "email": "@dominio.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 91,
+      "nome": "Sem Dominio Apos Arroba",
+      "email": "usuario@",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 92,
+      "nome": "Arroba Duplo",
+      "email": "usuario@@dominio.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 93,
+      "nome": "Ponto Final Sem Extensao",
+      "email": "usuario@dominio.",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 94,
+      "nome": "Texto Puro",
+      "email": "istoNaoEUmEmail",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 95,
+      "nome": "Somente Numeros",
+      "email": "123456789",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 96,
+      "nome": "Espaco Antes Arroba",
+      "email": "usuario @dominio.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 97,
+      "nome": "Dominio So Ponto",
+      "email": "usuario@.",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 98,
+      "nome": "Multiplos Espacos",
+      "email": "",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 99,
+      "nome": "Sem Usuario V2",
+      "email": "@outrodominio.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    },
+    {
+      "id": 100,
+      "nome": "Caracteres Invalidos",
+      "email": "usuário#dominio,com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-10T18:29:20.715Z"
+    }
+  ]
+}

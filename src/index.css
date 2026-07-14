@@ -192,6 +192,50 @@ select {
   color: var(--color-text);
 }
 
+/* Botões "Copiar título"/"Copiar corpo" (Etapa 2 da refatoração descrita em
+   REFATORACAO-EMAIL-TITULO-CONTEUDO.md) — sempre visíveis no Header,
+   independentes do modal de edição estar aberto ou fechado (premissa
+   confirmada no plano: 1 clique = copiar). */
+
+.app-header-copiar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-header-copiar-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.app-header-copiar-botao:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.app-header-copiar-botao:disabled {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.app-header-copiar-botao.copiado {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
 .app-header-config {
   position: relative;
 }
@@ -1540,6 +1584,10 @@ button.status-badge-clicavel:hover {
   max-width: 560px;
 }
 
+.modal-email-conteudo {
+  max-width: 560px;
+}
+
 .modal-selecionar-todos {
   display: flex;
   align-items: center;
@@ -1924,13 +1972,21 @@ li.marcado .exportar-lista-status-item {
 }
 
 .modal-campo input,
-.modal-campo select {
+.modal-campo select,
+.modal-campo textarea {
   padding: 0.5rem 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-text);
   font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.modal-campo textarea {
+  resize: vertical;
+  min-height: 8rem;
+  line-height: 1.5;
 }
 
 .modal-campo-label {
@@ -2053,6 +2109,14 @@ li.marcado .exportar-lista-status-item {
   }
 
   .app-header-logo span {
+    display: none;
+  }
+
+  .app-header-copiar-botao {
+    padding: 0.4rem 0.55rem;
+  }
+
+  .app-header-copiar-botao span {
     display: none;
   }
 
@@ -2236,6 +2300,25 @@ li.marcado .exportar-lista-status-item {
   box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
+.campo-formulario textarea {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 6rem;
+  line-height: 1.5;
+}
+
+.campo-formulario textarea:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
 .preview-url {
   margin: 0;
   font-size: 0.82rem;
@@ -2246,6 +2329,20 @@ li.marcado .exportar-lista-status-item {
 .preview-url strong {
   color: var(--color-accent);
   font-weight: 600;
+}
+
+/* --- Badge "opcional" (reutilizado onde um campo/etapa não é obrigatório) --- */
+
+.badge-opcional {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  white-space: nowrap;
 }
 
 /* --- Prévia da planilha --- */
@@ -2528,6 +2625,15 @@ li.marcado .exportar-lista-status-item {
   line-height: 1.4;
 }
 
+/* --- Etapa de Definição (título/corpo do e-mail, opcional) --- */
+
+.etapa-definicao-instrucao {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
 /* --- Etapa de Revisão --- */
 
 .etapa-revisao-instrucao {
@@ -2575,16 +2681,37 @@ li.marcado .exportar-lista-status-item {
 
 /* --- Botões do rodapé --- */
 
-.dialog-botao-primario {
+.dialog-botao-cancelar,
+.dialog-botao-primario,
+.dialog-botao-deletar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.6rem 1.25rem;
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
-  background: var(--color-accent);
-  color: var(--color-accent-contrast);
   font-size: 0.85rem;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
-  transition: filter var(--transition-fast);
+  transition: all var(--transition-fast);
+}
+
+.dialog-botao-cancelar {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.dialog-botao-cancelar:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.dialog-botao-primario {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-contrast);
 }
 
 .dialog-botao-primario:hover:not(:disabled) {
@@ -2593,7 +2720,24 @@ li.marcado .exportar-lista-status-item {
 
 .dialog-botao-primario:disabled {
   background: var(--color-border-strong);
+  border-color: var(--color-border-strong);
   color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.dialog-botao-deletar {
+  background: var(--color-danger-bg);
+  border-color: transparent;
+  color: var(--color-danger);
+}
+
+.dialog-botao-deletar:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.dialog-botao-cancelar:disabled,
+.dialog-botao-deletar:disabled {
+  opacity: 0.65;
   cursor: not-allowed;
 }
 

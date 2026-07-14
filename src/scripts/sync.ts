@@ -17,7 +17,8 @@ import { dirname, resolve } from 'node:path';
 import { readSheet } from './utils/readSheet.js';
 import { identifyColumns, pickFirstFilled, EMAIL_COLUMNS } from './utils/identifyColumns.js';
 import { isValidEmail, normalizeEmail } from './utils/validateEmail.js';
-import type { EmailRecord, TStatus } from '../types/email.js';
+import type { EmailConteudo, EmailRecord, EmailsData, TStatus } from '../types/email.js';
+import { EMAIL_CONTEUDO_VAZIO } from '../types/email.js';
 
 // ---------------------------------------------------------------------------
 // 1. Argumentos da linha de comando
@@ -51,17 +52,39 @@ function defaultJsonPathFor(_sheetPath: string): string {
 // 2. Carregar JSON existente (fonte oficial dos dados — seção 2.1)
 // ---------------------------------------------------------------------------
 
-function loadExistingJson(jsonPath: string): EmailRecord[] {
+/**
+ * A partir da migração descrita em REFATORACAO-EMAIL-TITULO-CONTEUDO.md,
+ * `data/emails.json` passou a ser `{ email, registros }` (EmailsData), não
+ * mais um array puro de registros. Este script nunca deve sobrescrever
+ * título/corpo do e-mail — ele só sincroniza `registros` — por isso carrega
+ * e devolve o `email` existente junto, para ser regravado intacto ao final.
+ *
+ * Aceita também o formato antigo (array puro) por compatibilidade com
+ * arquivos ainda não migrados: nesse caso, `email` volta vazio
+ * (`EMAIL_CONTEUDO_VAZIO`), já que não havia esse campo para preservar.
+ */
+function loadExistingJson(jsonPath: string): { email: EmailConteudo; records: EmailRecord[] } {
   if (!existsSync(jsonPath)) {
-    return [];
+    return { email: EMAIL_CONTEUDO_VAZIO, records: [] };
   }
   const raw = readFileSync(jsonPath, 'utf-8').trim();
-  if (raw === '') return [];
+  if (raw === '') return { email: EMAIL_CONTEUDO_VAZIO, records: [] };
+
   const parsed = JSON.parse(raw);
-  if (!Array.isArray(parsed)) {
-    throw new Error(`O arquivo JSON em "${jsonPath}" não contém um array de registros.`);
+
+  if (Array.isArray(parsed)) {
+    // Formato antigo (array puro) — sem `email` para preservar.
+    return { email: EMAIL_CONTEUDO_VAZIO, records: parsed as EmailRecord[] };
   }
-  return parsed as EmailRecord[];
+
+  if (parsed && typeof parsed === 'object' && Array.isArray((parsed as EmailsData).registros)) {
+    const dados = parsed as EmailsData;
+    return { email: dados.email ?? EMAIL_CONTEUDO_VAZIO, records: dados.registros };
+  }
+
+  throw new Error(
+    `O arquivo JSON em "${jsonPath}" não está em um formato reconhecido (esperado array de registros ou objeto { email, registros }).`
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -171,9 +194,15 @@ function applyStatusRules(records: EmailRecord[]): EmailRecord[] {
 // 7. Gravar JSON atualizado
 // ---------------------------------------------------------------------------
 
-function writeJson(jsonPath: string, records: EmailRecord[]) {
+/**
+ * Grava o objeto completo `{ email, registros }`. `email` é sempre o mesmo
+ * valor carregado por `loadExistingJson` — este script nunca gera nem altera
+ * título/corpo, apenas repassa o que já existia no arquivo.
+ */
+function writeJson(jsonPath: string, email: EmailConteudo, records: EmailRecord[]) {
+  const dados: EmailsData = { email, registros: records };
   mkdirSync(dirname(jsonPath), { recursive: true });
-  writeFileSync(jsonPath, JSON.stringify(records, null, 2) + '\n', 'utf-8');
+  writeFileSync(jsonPath, JSON.stringify(dados, null, 2) + '\n', 'utf-8');
 }
 
 // ---------------------------------------------------------------------------
@@ -193,13 +222,13 @@ function main() {
   console.log(`  ${sheetRows.length} linha(s) encontrada(s).`);
 
   console.log(`Carregando JSON existente: ${outPath}`);
-  const existing = loadExistingJson(outPath);
+  const { email: emailExistente, records: existing } = loadExistingJson(outPath);
   console.log(`  ${existing.length} registro(s) já existente(s).`);
 
   const { records, added, updated } = syncRecords(sheetRows, existing);
   const finalRecords = applyStatusRules(records);
 
-  writeJson(outPath, finalRecords);
+  writeJson(outPath, emailExistente, finalRecords);
 
   const counters = {
     total: finalRecords.length,

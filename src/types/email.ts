@@ -81,3 +81,33 @@ export interface EmailCounters {
   deletado: number;
   enviado: number;
 }
+
+/**
+ * Título e corpo do e-mail a ser enviado aos registros da planilha
+ * (ver REFATORACAO-EMAIL-TITULO-CONTEUDO.md). Por enquanto é texto simples
+ * (sem WYSIWYG/HTML); formatação rica fica como possível melhoria futura.
+ */
+export interface EmailConteudo {
+  titulo: string;
+  conteudo: string;
+  /** Data/hora ISO da última alteração salva via o modal de edição. */
+  atualizado_em: string;
+}
+
+/** Valor inicial/vazio de `EmailConteudo`, usado quando nada foi preenchido ainda. */
+export const EMAIL_CONTEUDO_VAZIO: EmailConteudo = {
+  titulo: '',
+  conteudo: '',
+  atualizado_em: '',
+};
+
+/**
+ * Formato persistido em `data/emails.json`: título/corpo do e-mail e os
+ * registros da planilha convivendo no mesmo arquivo (seção 5 do plano de
+ * refatoração), preparando o formato para quando cada planilha tiver seu
+ * próprio arquivo autocontido (seção 9 da especificação).
+ */
+export interface EmailsData {
+  email: EmailConteudo;
+  registros: EmailRecord[];
+}

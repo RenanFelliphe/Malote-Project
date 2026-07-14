@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import type { EmailRecord, TFiltro, TStatus, TStatusManual } from '../types/email';
+import type { EmailConteudo, EmailRecord, EmailsData, TFiltro, TStatus, TStatusManual } from '../types/email';
 import { calcularPaginacao } from '../components/utils/paginacao';
 import { calcularContadores, processarRegistros, ORDENACAO_PADRAO, TODOS_OS_STATUS, type TOrdenacao } from '../components/utils/emailData';
 import { recalcularStatusAutomatico, normalizeEmail } from '../components/EmailStatus';
@@ -15,7 +15,12 @@ import { salvarEmails } from '../services/emailsApi';
 
 import emailsJson from '../../data/emails.json';
 
-const registrosIniciais = emailsJson as EmailRecord[];
+// A partir da migração descrita em REFATORACAO-EMAIL-TITULO-CONTEUDO.md,
+// data/emails.json passou a ser um objeto `{ email, registros }` (EmailsData),
+// não mais um array puro de registros.
+const emailsData = emailsJson as EmailsData;
+const registrosIniciais = emailsData.registros;
+const emailConteudoInicial = emailsData.email;
 
 /** Grupo de seleção de um registro: "deletado" ou "ativo" (todos os demais status). */
 function grupoDoStatus(status: EmailRecord['status']): 'deletado' | 'ativo' {
@@ -38,6 +43,10 @@ export function Emails() {
     aDeletar: EmailRecord[];
   } | null>(null);
   const [erroSalvamento, setErroSalvamento] = useState<string | null>(null);
+  // Título/corpo do e-mail (REFATORACAO-EMAIL-TITULO-CONTEUDO.md). Editado
+  // via o modal aberto pelo dropdown do Header (Etapa 3); os botões de
+  // copiar (Etapa 2) já leem este mesmo estado.
+  const [email, setEmail] = useState<EmailConteudo>(emailConteudoInicial);
 
   const contadores = useMemo(() => calcularContadores(registros), [registros]);
 
@@ -167,6 +176,26 @@ export function Emails() {
   }
 
   /**
+   * Persiste o `email` editado pelo modal "Editar e-mail" (Etapa 3),
+   * chamado via `onSalvarEmail` do `Header`. Mesmo padrão de
+   * `persistirRegistros`: grava imediatamente e reverte a UI se a gravação
+   * falhar — mas aqui quem lança o erro é o próprio `EmailConteudoModal`
+   * (que exibe a mensagem inline e mantém o modal aberto), então a reversão
+   * de estado acontece aqui e o erro é relançado para o modal tratar.
+   */
+  async function persistirEmailConteudo(novoEmail: EmailConteudo) {
+    const emailAnterior = email;
+    setEmail(novoEmail);
+
+    try {
+      await salvarEmails({ email: novoEmail, registros });
+    } catch (erro) {
+      setEmail(emailAnterior);
+      throw erro;
+    }
+  }
+
+  /**
    * Persiste imediatamente o array completo (seção 2.2). Em caso de falha,
    * reverte a UI para o estado anterior — não faz sentido manter um estado
    * que não foi de fato salvo em disco.
@@ -180,7 +209,7 @@ export function Emails() {
     setErroSalvamento(null);
 
     try {
-      await salvarEmails(registrosAtualizados);
+      await salvarEmails({ email, registros: registrosAtualizados });
       if (!options?.preservarSelecao) {
         setSelecionados(new Set());
       }
@@ -334,7 +363,7 @@ export function Emails() {
 
   return (
     <>
-      <Header registros={registros} />
+      <Header registros={registros} email={email} onSalvarEmail={persistirEmailConteudo} />
 
       <div className="emails-page">
         <div className="emails-page-header">
