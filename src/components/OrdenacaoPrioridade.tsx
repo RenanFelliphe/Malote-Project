@@ -1,10 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { CRITERIO_ORDENACAO_LABELS, type TOrdenacao } from './utils/emailData';
-
-interface Props {
-  ordenacao: TOrdenacao;
-  onOrdenacaoChange: (nova: TOrdenacao) => void;
+/**
+ * Componente genérico o suficiente para ordenar qualquer lista por uma
+ * hierarquia de critérios — usado tanto na tabela de e-mails (critérios
+ * `TCriterioOrdenacao` de `components/utils/emailData.ts`) quanto na Home
+ * (critérios `TCriterioOrdenacaoHome` de `pages/utils/homeOrdenacao.ts`,
+ * Etapa 7 do plano de refatoração multi-página). Os rótulos de cada
+ * critério deixam de vir de um import fixo e passam a ser recebidos via
+ * prop (`labels`), o que permite reaproveitar o mesmo componente com um
+ * `Record` de labels diferente em vez de duplicar código (ver seção 3.5 /
+ * Etapa 7 do plano).
+ */
+interface Props<T extends string> {
+  ordenacao: T[];
+  labels: Record<T, string>;
+  onOrdenacaoChange: (nova: T[]) => void;
 }
 
 /**
@@ -24,7 +34,7 @@ interface Props {
  * padrão — nesses ambientes os botões ▲/▼ são o fallback universal para
  * reordenar.
  */
-export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
+export function OrdenacaoPrioridade<T extends string>({ ordenacao, labels, onOrdenacaoChange }: Props<T>) {
   const [aberto, setAberto] = useState(false);
   const [indiceArrastado, setIndiceArrastado] = useState<number | null>(null);
   const [indiceSobrevoado, setIndiceSobrevoado] = useState<number | null>(null);
@@ -67,7 +77,7 @@ export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
     const [criterio] = nova.splice(origem, 1);
     nova.splice(destino, 0, criterio);
     onOrdenacaoChange(nova);
-    setAnuncio(`${CRITERIO_ORDENACAO_LABELS[criterio]} agora é o critério ${destino === 0 ? 'principal' : `de prioridade ${destino + 1}`} de ordenação.`);
+    setAnuncio(`${labels[criterio]} agora é o critério ${destino === 0 ? 'principal' : `de prioridade ${destino + 1}`} de ordenação.`);
   }
 
   function moverComBotao(index: number, direcao: -1 | 1) {
@@ -85,7 +95,7 @@ export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
     setIndiceDraggableAtivo(null);
   }
 
-  const principal = ordenacao.length > 0 ? CRITERIO_ORDENACAO_LABELS[ordenacao[0]] : 'Selecionar critério';
+  const principal = ordenacao.length > 0 ? labels[ordenacao[0]] : 'Selecionar critério';
 
   return (
     <div className="ordenacao-select" ref={containerRef}>
@@ -141,11 +151,11 @@ export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
                 >
                   ⠿
                 </span>
-                <span className="ordenacao-label">{CRITERIO_ORDENACAO_LABELS[criterio]}</span>
+                <span className="ordenacao-label">{labels[criterio]}</span>
                 <span className="ordenacao-botoes">
                   <button
                     type="button"
-                    aria-label={`Subir "${CRITERIO_ORDENACAO_LABELS[criterio]}" na prioridade`}
+                    aria-label={`Subir "${labels[criterio]}" na prioridade`}
                     disabled={index === 0}
                     onClick={() => moverComBotao(index, -1)}
                   >
@@ -153,7 +163,7 @@ export function OrdenacaoPrioridade({ ordenacao, onOrdenacaoChange }: Props) {
                   </button>
                   <button
                     type="button"
-                    aria-label={`Descer "${CRITERIO_ORDENACAO_LABELS[criterio]}" na prioridade`}
+                    aria-label={`Descer "${labels[criterio]}" na prioridade`}
                     disabled={index === ordenacao.length - 1}
                     onClick={() => moverComBotao(index, 1)}
                   >

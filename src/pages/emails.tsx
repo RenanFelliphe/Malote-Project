@@ -13,29 +13,33 @@ import { DuplicadosConflitoModal } from '../components/DuplicadosConflitoModal';
 import { Header } from '../components/Header';
 import { salvarEmails } from '../services/emailsApi';
 
-import emailsJson from '../../data/emails.json';
-
-// A partir da migração descrita em REFATORACAO-EMAIL-TITULO-CONTEUDO.md,
-// data/emails.json passou a ser um objeto `{ email, registros }` (EmailsData),
-// não mais um array puro de registros.
-const emailsData = emailsJson as EmailsData;
-const registrosIniciais = emailsData.registros;
-const emailConteudoInicial = emailsData.email;
+/**
+ * Props recebidas da rota (`App.tsx`), no mesmo papel que `App.tsx` +
+ * `CourseLesson` cumprem no Multiverso (ver refatoracaoMultiPaginas-v2.md,
+ * seção 3.3 / Etapa 5): o componente deixa de importar dado fixo e passa a
+ * ser um template genérico, que recebe o projeto já resolvido (slug + dados)
+ * em vez de descobri-lo sozinho.
+ *
+ */
+interface EmailsProps {
+  slug: string;
+  dados: EmailsData;
+}
 
 /** Grupo de seleção de um registro: "deletado" ou "ativo" (todos os demais status). */
 function grupoDoStatus(status: EmailRecord['status']): 'deletado' | 'ativo' {
   return status === 'deletado' ? 'deletado' : 'ativo';
 }
 
-export function Emails() {
-  const [registros, setRegistros] = useState<EmailRecord[]>(registrosIniciais);
+export function Emails({ slug, dados }: EmailsProps) {
+  const [registros, setRegistros] = useState<EmailRecord[]>(dados.registros);
   const [termoBusca, setTermoBusca] = useState('');
   const [statusFiltrados, setStatusFiltrados] = useState<Set<TStatus>>(new Set(TODOS_OS_STATUS));
   const [ordenacao, setOrdenacao] = useState<TOrdenacao>(ORDENACAO_PADRAO);
   const [selecionados, setSelecionados] = useState<Set<number>>(new Set());
   // Quantidade de registros renderizados por página, usada como tamanho da
   // seção exibida na tabela.
-  const [quantidade, setQuantidade] = useState<number>(() => Math.max(1, Math.min(100, registrosIniciais.length)));
+  const [quantidade, setQuantidade] = useState<number>(() => Math.max(1, Math.min(100, dados.registros.length)));
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [grupoDuplicadoAberto, setGrupoDuplicadoAberto] = useState<EmailRecord[] | null>(null);
   const [conflitoExclusao, setConflitoExclusao] = useState<{
@@ -46,7 +50,7 @@ export function Emails() {
   // Título/corpo do e-mail (REFATORACAO-EMAIL-TITULO-CONTEUDO.md). Editado
   // via o modal aberto pelo dropdown do Header (Etapa 3); os botões de
   // copiar (Etapa 2) já leem este mesmo estado.
-  const [email, setEmail] = useState<EmailConteudo>(emailConteudoInicial);
+  const [email, setEmail] = useState<EmailConteudo>(dados.email);
 
   const contadores = useMemo(() => calcularContadores(registros), [registros]);
 
@@ -188,7 +192,7 @@ export function Emails() {
     setEmail(novoEmail);
 
     try {
-      await salvarEmails({ email: novoEmail, registros });
+      await salvarEmails(slug, { email: novoEmail, registros });
     } catch (erro) {
       setEmail(emailAnterior);
       throw erro;
@@ -209,7 +213,7 @@ export function Emails() {
     setErroSalvamento(null);
 
     try {
-      await salvarEmails({ email, registros: registrosAtualizados });
+      await salvarEmails(slug, { email, registros: registrosAtualizados });
       if (!options?.preservarSelecao) {
         setSelecionados(new Set());
       }
@@ -363,7 +367,7 @@ export function Emails() {
 
   return (
     <>
-      <Header registros={registros} email={email} onSalvarEmail={persistirEmailConteudo} />
+      <Header slug={slug} registros={registros} email={email} onSalvarEmail={persistirEmailConteudo} />
 
       <div className="emails-page">
         <div className="emails-page-header">

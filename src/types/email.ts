@@ -102,12 +102,23 @@ export const EMAIL_CONTEUDO_VAZIO: EmailConteudo = {
 };
 
 /**
- * Formato persistido em `data/emails.json`: título/corpo do e-mail e os
- * registros da planilha convivendo no mesmo arquivo (seção 5 do plano de
- * refatoração), preparando o formato para quando cada planilha tiver seu
- * próprio arquivo autocontido (seção 9 da especificação).
+ * Formato persistido em `data/<slug>/emails.json`: metadados do projeto
+ * (nome de exibição e datas de criação/atualização), título/corpo do e-mail
+ * e os registros da planilha, todos convivendo no mesmo arquivo — um por
+ * projeto (ver plano de refatoração multi-página, seção 3.1).
  */
 export interface EmailsData {
+  /** Nome de exibição do projeto, livre, sem slugificação (definido no wizard). */
+  projeto: string;
+  /**
+   * Data/hora ISO da última escrita bem-sucedida no arquivo (qualquer
+   * alteração em `email` ou `registros`). Gravado pelo servidor a cada
+   * `PUT`, nunca pelo client. Diferente de `email.atualizado_em`, que marca
+   * especificamente a última edição do título/corpo do e-mail.
+   */
+  atualizado_em: string;
+  /** Data/hora ISO de quando o projeto foi importado. Gravado uma única vez. */
+  criado_em: string;
   email: EmailConteudo;
   registros: EmailRecord[];
 }

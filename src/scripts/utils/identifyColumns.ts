@@ -14,6 +14,7 @@ export const ID_COLUMNS = ['ID', 'Id', 'id', '#', 'Aluno – ID', 'Aluno - ID'];
 
 /** Nomes de coluna aceitos para o nome do destinatário. */
 export const NOME_COLUMNS = [
+  'Nome2',
   'Nome',
   'nome',
   'Nome completo',
@@ -26,6 +27,7 @@ export const NOME_COLUMNS = [
 
 /** Nomes de coluna aceitos para o e-mail (pode haver mais de uma pergunta/coluna). */
 export const EMAIL_COLUMNS = [
+  'E-mail cadastrado na plataforma',
   'E-mail',
   'Email',
   'e-mail',

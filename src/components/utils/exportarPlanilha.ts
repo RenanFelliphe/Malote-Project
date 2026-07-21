@@ -47,10 +47,16 @@ function gerarConteudoCsv(registros: EmailRecord[]): string {
   return linhas.map((linha) => linha.map(escaparCampoCsv).join(';')).join('\r\n');
 }
 
-/** Nome de arquivo com a data de geração, ex.: `emails-2026-07-08.csv`. */
-function nomeArquivo(extensao: string): string {
+/**
+ * Nome de arquivo com o slug do projeto (quando disponível) e a data de
+ * geração, ex.: `projeto-teste-2026-07-08.csv`. Antes da Etapa 9, o
+ * prefixo era sempre fixo (`emails-`), o que gerava o mesmo nome de
+ * arquivo independente de qual projeto estava aberto — agora reflete o
+ * projeto de origem.
+ */
+function nomeArquivo(extensao: string, prefixo: string): string {
   const dataDeHoje = new Date().toISOString().slice(0, 10);
-  return `emails-${dataDeHoje}.${extensao}`;
+  return `${prefixo}-${dataDeHoje}.${extensao}`;
 }
 
 function baixarBlob(blob: Blob, nome: string) {
@@ -69,19 +75,19 @@ function baixarBlob(blob: Blob, nome: string) {
  * do Excel quando abertos diretamente por duplo clique — para esse caso
  * existe a opção "CSV (UTF-8)" abaixo.
  */
-function exportarCsv(registros: EmailRecord[]) {
+function exportarCsv(registros: EmailRecord[], prefixo: string) {
   const conteudo = gerarConteudoCsv(registros);
-  baixarBlob(new Blob([conteudo], { type: 'text/csv;charset=utf-8' }), nomeArquivo('csv'));
+  baixarBlob(new Blob([conteudo], { type: 'text/csv;charset=utf-8' }), nomeArquivo('csv', prefixo));
 }
 
 /** CSV com BOM UTF-8, para o Excel reconhecer a codificação e exibir corretamente nomes acentuados. */
-function exportarCsvUtf8(registros: EmailRecord[]) {
+function exportarCsvUtf8(registros: EmailRecord[], prefixo: string) {
   const conteudo = `\uFEFF${gerarConteudoCsv(registros)}`;
-  baixarBlob(new Blob([conteudo], { type: 'text/csv;charset=utf-8' }), nomeArquivo('csv'));
+  baixarBlob(new Blob([conteudo], { type: 'text/csv;charset=utf-8' }), nomeArquivo('csv', prefixo));
 }
 
 /** XLSX via SheetJS — mesma biblioteca já usada no script de sincronização (`scripts/sync.ts`), agora também no navegador. */
-async function exportarXlsx(registros: EmailRecord[]) {
+async function exportarXlsx(registros: EmailRecord[], prefixo: string) {
   const XLSX = await import('xlsx');
   const linhas = [COLUNAS as unknown as string[], ...linhasDosRegistros(registros)];
   const planilha = XLSX.utils.aoa_to_sheet(linhas);
@@ -89,7 +95,7 @@ async function exportarXlsx(registros: EmailRecord[]) {
 
   const livro = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(livro, planilha, 'E-mails');
-  XLSX.writeFile(livro, nomeArquivo('xlsx'));
+  XLSX.writeFile(livro, nomeArquivo('xlsx', prefixo));
 }
 
 /**
@@ -97,7 +103,7 @@ async function exportarXlsx(registros: EmailRecord[]) {
  * bordas), com paginação manual quando os registros não cabem em uma
  * única página A4.
  */
-async function exportarPdf(registros: EmailRecord[]) {
+async function exportarPdf(registros: EmailRecord[], prefixo: string) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
@@ -150,23 +156,35 @@ async function exportarPdf(registros: EmailRecord[]) {
     y += 16;
   }
 
-  doc.save(nomeArquivo('pdf'));
+  doc.save(nomeArquivo('pdf', prefixo));
 }
 
-/** Ponto de entrada único usado pelo `ExportarModal`: despacha para o gerador do formato escolhido. */
-export async function exportarRegistros(registros: EmailRecord[], formato: TFormatoExportacao): Promise<void> {
+/**
+ * Ponto de entrada único usado pelo `ExportarModal`: despacha para o
+ * gerador do formato escolhido. `slug` é o slug do projeto atual (Etapa
+ * 9) — usado como prefixo do nome do arquivo, para não gerar sempre
+ * `emails-<data>.<ext>` independente de qual projeto foi exportado. Sem
+ * slug (ex.: chamada futura fora do contexto de um projeto), cai para o
+ * prefixo genérico `emails`.
+ */
+export async function exportarRegistros(
+  registros: EmailRecord[],
+  formato: TFormatoExportacao,
+  slug?: string
+): Promise<void> {
+  const prefixo = slug ?? 'emails';
   switch (formato) {
     case 'csv':
-      exportarCsv(registros);
+      exportarCsv(registros, prefixo);
       return;
     case 'csv-utf8':
-      exportarCsvUtf8(registros);
+      exportarCsvUtf8(registros, prefixo);
       return;
     case 'xlsx':
-      await exportarXlsx(registros);
+      await exportarXlsx(registros, prefixo);
       return;
     case 'pdf':
-      await exportarPdf(registros);
+      await exportarPdf(registros, prefixo);
       return;
   }
 }

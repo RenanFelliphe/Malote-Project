@@ -1,17 +1,20 @@
 {
+  "projeto": "Projeto Teste",
+  "criado_em": "2026-07-21T16:18:43.000Z",
+  "atualizado_em": "2026-07-21T16:18:43.000Z",
   "email": {
-    "titulo": "Título teste",
-    "conteudo": "Corpo teste",
-    "atualizado_em": "2026-07-13T23:46:02.783Z"
+    "titulo": "Parabéns pela conclusão do curso no Multiverso Rio Pomba Valley! 🎉",
+    "conteudo": "Parabéns por concluir o curso Inteligência Artificial para Estudantes no Multiverso Rio Pomba Valley! 🎉\n\nSeu esforço valeu a pena, e temos mais uma boa notícia: o seu certificado do Instituto Energisa será enviado entre os dias 3 e 10 de agosto.\n\nEnquanto isso, aproveite para emitir também o certificado da Microsoft e enriquecer ainda mais o seu currículo.\n\nLembre-se de que sua bolsa de estudos permanece ativa durante todo o mês de julho. Aproveite esse período para explorar a plataforma e concluir outros cursos disponíveis.\n\nContinue investindo no seu aprendizado. Desejamos muito sucesso na sua jornada! 🚀",
+    "atualizado_em": "2026-07-15T12:44:01.865Z"
   },
   "registros": [
     {
       "id": 1,
       "nome": "Ana Souza",
       "email": "ana.souza1@exemplo.com",
-      "status": "enviado",
-      "status_alterado": true,
-      "last_updated": "2026-07-14T00:11:30.992Z"
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 2,
@@ -19,7 +22,7 @@
       "email": "bruno.lima2@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 3,
@@ -27,7 +30,7 @@
       "email": "carla.mendes3@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 4,
@@ -35,7 +38,7 @@
       "email": "diego.alves4@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 5,
@@ -43,7 +46,7 @@
       "email": "eduarda.rocha5@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 6,
@@ -51,7 +54,7 @@
       "email": "felipe.costa6@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 7,
@@ -59,7 +62,7 @@
       "email": "gabriela.dias7@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 8,
@@ -67,7 +70,7 @@
       "email": "henrique.melo8@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 9,
@@ -75,7 +78,7 @@
       "email": "isabela.ramos9@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 10,
@@ -83,7 +86,7 @@
       "email": "joao.pedro10@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 11,
@@ -91,7 +94,7 @@
       "email": "karina.silva11@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 12,
@@ -99,7 +102,7 @@
       "email": "lucas.ferreira12@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 13,
@@ -107,7 +110,7 @@
       "email": "mariana.torres13@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 14,
@@ -115,7 +118,7 @@
       "email": "nicolas.barros14@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 15,
@@ -123,7 +126,7 @@
       "email": "olivia.cardoso15@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 16,
@@ -131,7 +134,7 @@
       "email": "pedro.nunes16@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 17,
@@ -139,7 +142,7 @@
       "email": "queila.freitas17@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 18,
@@ -147,7 +150,7 @@
       "email": "rafael.pinto18@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 19,
@@ -155,7 +158,7 @@
       "email": "sabrina.castro19@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 20,
@@ -163,7 +166,7 @@
       "email": "thiago.moreira20@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 21,
@@ -171,7 +174,7 @@
       "email": "ursula.prado21@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 22,
@@ -179,7 +182,7 @@
       "email": "vitor.hugo22@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 23,
@@ -187,7 +190,7 @@
       "email": "wesley.batista23@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 24,
@@ -195,7 +198,7 @@
       "email": "xenia.vieira24@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 25,
@@ -203,7 +206,7 @@
       "email": "yasmin.duarte25@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 26,
@@ -211,7 +214,7 @@
       "email": "zeca.andrade26@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 27,
@@ -219,7 +222,7 @@
       "email": "amanda.farias27@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 28,
@@ -227,7 +230,7 @@
       "email": "bernardo.teles28@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 29,
@@ -235,7 +238,7 @@
       "email": "camila.reis29@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 30,
@@ -243,7 +246,7 @@
       "email": "daniel.xavier30@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 31,
@@ -251,7 +254,7 @@
       "email": "elaine.brito31@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 32,
@@ -259,7 +262,7 @@
       "email": "fabio.guedes32@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 33,
@@ -267,7 +270,7 @@
       "email": "giovana.peixoto33@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 34,
@@ -275,7 +278,7 @@
       "email": "hugo.marques34@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 35,
@@ -283,7 +286,7 @@
       "email": "ines.coutinho35@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 36,
@@ -291,7 +294,7 @@
       "email": "julio.sales36@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 37,
@@ -299,7 +302,7 @@
       "email": "kelly.nogueira37@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 38,
@@ -307,7 +310,7 @@
       "email": "leonardo.assis38@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 39,
@@ -315,7 +318,7 @@
       "email": "marina.tavares39@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 40,
@@ -323,7 +326,7 @@
       "email": "otavio.correia40@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 41,
@@ -331,7 +334,7 @@
       "email": "paula.siqueira41@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 42,
@@ -339,7 +342,7 @@
       "email": "renato.aguiar42@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 43,
@@ -347,7 +350,7 @@
       "email": "simone.bezerra43@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 44,
@@ -355,7 +358,7 @@
       "email": "tarcisio.leal44@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 45,
@@ -363,7 +366,7 @@
       "email": "valentina.gama45@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 46,
@@ -371,7 +374,7 @@
       "email": "william.cunha46@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 47,
@@ -379,7 +382,7 @@
       "email": "ximena.rocha47@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 48,
@@ -387,7 +390,7 @@
       "email": "yago.pimentel48@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 49,
@@ -395,7 +398,7 @@
       "email": "zilda.monteiro49@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 50,
@@ -403,7 +406,7 @@
       "email": "alice.bastos50@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 51,
@@ -411,7 +414,7 @@
       "email": "caio.moura51@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 52,
@@ -419,7 +422,7 @@
       "email": "debora.sant'anna52@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 53,
@@ -427,7 +430,7 @@
       "email": "emerson.vaz53@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 54,
@@ -435,7 +438,7 @@
       "email": "fernanda.lacerda54@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 55,
@@ -443,7 +446,7 @@
       "email": "guilherme.pontes55@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 56,
@@ -451,7 +454,7 @@
       "email": "heloisa.braga56@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 57,
@@ -459,7 +462,7 @@
       "email": "igor.salgado57@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 58,
@@ -467,7 +470,7 @@
       "email": "jaqueline.rego58@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 59,
@@ -475,7 +478,7 @@
       "email": "kaue.medeiros59@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 60,
@@ -483,7 +486,7 @@
       "email": "larissa.fagundes60@exemplo.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-07-09T18:30:07.274Z"
+      "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
       "id": 61,
@@ -491,7 +494,7 @@
       "email": "marcos.vinicius@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 62,
@@ -499,7 +502,7 @@
       "email": "MARCOS.VINICIUS@DOMINIO.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:24.555Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 63,
@@ -507,7 +510,7 @@
       "email": "marcos.vinicius@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 64,
@@ -515,7 +518,7 @@
       "email": "patricia.goncalves@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 65,
@@ -523,7 +526,7 @@
       "email": "PATRICIA.GONCALVES@DOMINIO.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 66,
@@ -531,7 +534,7 @@
       "email": "patricia.goncalves@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 67,
@@ -539,7 +542,7 @@
       "email": "rodrigo.sampaio@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 68,
@@ -547,7 +550,7 @@
       "email": "RODRIGO.SAMPAIO@DOMINIO.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 69,
@@ -555,7 +558,7 @@
       "email": "rodrigo.sampaio@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 70,
@@ -563,7 +566,7 @@
       "email": "cintia.ferraz@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 71,
@@ -571,7 +574,7 @@
       "email": "CINTIA.FERRAZ@DOMINIO.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 72,
@@ -579,7 +582,7 @@
       "email": "cintia.ferraz@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 73,
@@ -587,7 +590,7 @@
       "email": "anderson.prado@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 74,
@@ -595,7 +598,7 @@
       "email": "ANDERSON.PRADO@DOMINIO.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 75,
@@ -603,7 +606,7 @@
       "email": "anderson.prado@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 76,
@@ -611,7 +614,7 @@
       "email": "beatriz.nascimento@corp.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 77,
@@ -619,7 +622,7 @@
       "email": "BEATRIZ.NASCIMENTO@CORP.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 78,
@@ -627,7 +630,7 @@
       "email": "fabricio.andrade@corp.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 79,
@@ -635,7 +638,7 @@
       "email": "FABRICIO.ANDRADE@CORP.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 80,
@@ -643,7 +646,7 @@
       "email": "juliana.prado@corp.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 81,
@@ -651,7 +654,7 @@
       "email": "JULIANA.PRADO@CORP.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 82,
@@ -659,7 +662,7 @@
       "email": "sergio.nakamura@corp.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 83,
@@ -667,7 +670,7 @@
       "email": "SERGIO.NAKAMURA@CORP.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 84,
@@ -675,7 +678,7 @@
       "email": "vanessa.righi@corp.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 85,
@@ -683,7 +686,7 @@
       "email": "VANESSA.RIGHI@CORP.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 86,
@@ -691,7 +694,7 @@
       "email": "semarrobadominio.com",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 87,
@@ -699,7 +702,7 @@
       "email": "usuario@dominiosemponto",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 88,
@@ -707,7 +710,7 @@
       "email": "nome sobrenome@dominio.com",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 89,
@@ -715,7 +718,7 @@
       "email": "",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 90,
@@ -723,7 +726,7 @@
       "email": "@dominio.com",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 91,
@@ -731,7 +734,7 @@
       "email": "usuario@",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 92,
@@ -739,7 +742,7 @@
       "email": "usuario@@dominio.com",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 93,
@@ -747,7 +750,7 @@
       "email": "usuario@dominio.",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 94,
@@ -755,7 +758,7 @@
       "email": "istoNaoEUmEmail",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 95,
@@ -763,7 +766,7 @@
       "email": "123456789",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 96,
@@ -771,7 +774,7 @@
       "email": "usuario @dominio.com",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 97,
@@ -779,7 +782,7 @@
       "email": "usuario@.",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 98,
@@ -787,7 +790,7 @@
       "email": "",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 99,
@@ -795,7 +798,7 @@
       "email": "@outrodominio.com",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
       "id": 100,
@@ -803,7 +806,7 @@
       "email": "usuário#dominio,com",
       "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-07-10T18:29:20.715Z"
+      "last_updated": "2026-07-15T12:52:47.755Z"
     }
   ]
 }

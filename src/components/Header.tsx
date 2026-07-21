@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import type { EmailConteudo, EmailRecord, EmailsData } from '../types/email';
+import type { EmailConteudo, EmailRecord } from '../types/email';
 import { ThemeToggle } from './ThemeToggle';
 import { ExportarModal } from './ExportarModal';
 import { EmailConteudoModal } from './EmailConteudoModal';
 import { copiarTexto } from './utils/clipboard';
-import { salvarEmails } from '../services/emailsApi';
 import {
   IconeAtualizarPlanilha,
   IconeConfiguracoes,
@@ -17,35 +16,40 @@ import {
   IconePlanilha,
 } from './Icons';
 
-import emailsJson from '../../data/emails.json';
-
 /** Duração do feedback visual "copiado" nos botões do Header (mesmo valor usado em `EmailTable`). */
 const DURACAO_FEEDBACK_COPIA_MS = 1500;
 
 interface Props {
   /**
+   * Slug do projeto atualmente aberto (Etapa 9 — ajustes finos, pós
+   * refatoração multi-página). Passado apenas pela tela de e-mails; usado
+   * como prefixo do nome do arquivo exportado (`ExportarModal`), para não
+   * gerar sempre `emails-<data>.<ext>` independente de qual projeto está
+   * aberto.
+   */
+  slug?: string;
+  /**
    * Registros da planilha atualmente aberta na tela, usados pela
    * exportação. Passado pela tela de e-mails (estado já editado da
-   * sessão); quando omitido — ex.: na Home, que ainda não gerencia uma
-   * planilha real (seção "Dívidas Técnicas" do PROMPTME.md) — cai para a
-   * base padrão em `data/emails.json`, já que hoje só existe uma
-   * planilha no sistema.
+   * sessão). Quando omitido — caso da Home, que lista vários projetos e
+   * não tem um único "aberto" — as ações que dependem de uma planilha
+   * específica (copiar título/corpo, editar e-mail, exportar) ficam
+   * desabilitadas, em vez de recair sobre um projeto arbitrário.
    */
   registros?: EmailRecord[];
   /**
    * Título/corpo do e-mail (REFATORACAO-EMAIL-TITULO-CONTEUDO.md), usado
-   * pelos botões "Copiar título"/"Copiar corpo". Mesma regra de fallback
-   * dos registros: quando omitido, cai para o `email` padrão de
-   * `data/emails.json`.
+   * pelos botões "Copiar título"/"Copiar corpo". Mesma regra de
+   * disponibilidade de `registros`: sem projeto aberto, não há e-mail para
+   * copiar.
    */
   email?: EmailConteudo;
   /**
    * Persiste o novo `email` (chamado pelo modal "Editar e-mail", Etapa 3).
    * Passado pela tela de e-mails, que é quem detém o estado de `registros`
    * necessário para gravar o objeto `EmailsData` completo sem perdê-los.
-   * Quando omitido (ex.: na Home, que ainda não gerencia uma planilha real),
-   * o próprio `Header` persiste diretamente via `emailsApi`, usando o
-   * fallback de `registros` já usado pela exportação.
+   * Sem projeto aberto (Home), o item "Editar e-mail" fica desabilitado —
+   * não há em qual projeto gravar a edição.
    */
   onSalvarEmail?: (novoEmail: EmailConteudo) => Promise<void>;
 }
@@ -67,7 +71,7 @@ interface Props {
  * planilhas for implementado — ficam desabilitados de propósito, para não
  * sugerir uma ação que a aplicação ainda não sabe executar.
  */
-export function Header({ registros, email, onSalvarEmail }: Props) {
+export function Header({ slug, registros, email, onSalvarEmail }: Props) {
   const [menuAberto, setMenuAberto] = useState(false);
   const [modalExportarAberto, setModalExportarAberto] = useState(false);
   const [modalEmailAberto, setModalEmailAberto] = useState(false);
@@ -76,10 +80,13 @@ export function Header({ registros, email, onSalvarEmail }: Props) {
   const botaoRef = useRef<HTMLButtonElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // A partir da migração descrita em REFATORACAO-EMAIL-TITULO-CONTEUDO.md,
-  // data/emails.json passou a ser `{ email, registros }` (EmailsData), não
-  // mais um array puro — o fallback precisa ler o campo `registros`.
-  const registrosParaExportar = registros ?? (emailsJson as EmailsData).registros;
+  // Sem `registros`, não há um projeto específico aberto (caso da Home,
+  // que lista vários projetos ao mesmo tempo) — usado para desabilitar as
+  // ações que antes recaíam silenciosamente sobre o primeiro projeto do
+  // glob (`PROJETOS[0]`), o que ficou incorreto desde que passou a existir
+  // mais de um projeto real em disco (Etapa 9).
+  const projetoAberto = registros !== undefined;
+  const registrosParaExportar = registros ?? [];
 
   // Cópia local do `email`, usada apenas como fallback quando a prop não é
   // fornecida (Home) — nesse caso, é atualizada logo após um salvamento bem
@@ -88,7 +95,11 @@ export function Header({ registros, email, onSalvarEmail }: Props) {
   // `email` existe (pages/emails.tsx), ela sempre tem prioridade abaixo,
   // então este estado nem chega a ser consultado.
   const [emailSalvoLocalmente, setEmailSalvoLocalmente] = useState<EmailConteudo | null>(null);
-  const emailAtual = email ?? emailSalvoLocalmente ?? (emailsJson as EmailsData).email;
+  const emailAtual = email ?? emailSalvoLocalmente ?? {
+    titulo: '',
+    conteudo: '',
+    atualizado_em: '',
+  };
 
   useEffect(() => {
     return () => {
@@ -112,19 +123,16 @@ export function Header({ registros, email, onSalvarEmail }: Props) {
   }
 
   /**
-   * Persiste o `email` editado no modal (Etapa 3). Quando a tela que
-   * renderiza o `Header` gerencia o estado real (`onSalvarEmail`, hoje só
-   * `pages/emails.tsx`), delega a ela — é quem detém `registros` para
-   * gravar o `EmailsData` completo sem perdê-los. Sem esse callback (Home),
-   * persiste diretamente aqui, reaproveitando o mesmo fallback de
-   * `registros` já usado pela exportação.
+   * Persiste o `email` editado no modal (Etapa 3). Sempre delega a
+   * `onSalvarEmail` (só passado por `pages/emails.tsx`, que é quem detém
+   * `registros` para gravar o `EmailsData` completo sem perdê-los) — o
+   * item "Editar e-mail" do menu fica desabilitado quando não há projeto
+   * aberto (Home), então esta função só é chamada quando `onSalvarEmail`
+   * existe.
    */
   async function handleSalvarEmail(novoEmail: EmailConteudo) {
-    if (onSalvarEmail) {
-      await onSalvarEmail(novoEmail);
-    } else {
-      await salvarEmails({ email: novoEmail, registros: registrosParaExportar });
-    }
+    if (!onSalvarEmail) return;
+    await onSalvarEmail(novoEmail);
     setEmailSalvoLocalmente(novoEmail);
   }
 
@@ -242,6 +250,8 @@ export function Header({ registros, email, onSalvarEmail }: Props) {
                 role="menuitem"
                 className="app-header-config-item app-header-config-item-botao"
                 onClick={abrirEdicaoEmail}
+                disabled={!projetoAberto}
+                title={projetoAberto ? undefined : 'Abra um projeto para editar o e-mail'}
               >
                 <IconeEditarEmail />
                 Editar e-mail
@@ -252,6 +262,8 @@ export function Header({ registros, email, onSalvarEmail }: Props) {
                 role="menuitem"
                 className="app-header-config-item app-header-config-item-botao"
                 onClick={abrirExportacao}
+                disabled={!projetoAberto}
+                title={projetoAberto ? undefined : 'Abra um projeto para exportar'}
               >
                 <IconeExportar />
                 Exportar planilha
@@ -273,7 +285,7 @@ export function Header({ registros, email, onSalvarEmail }: Props) {
       </header>
 
       {modalExportarAberto && (
-        <ExportarModal registros={registrosParaExportar} onFechar={() => setModalExportarAberto(false)} />
+        <ExportarModal slug={slug} registros={registrosParaExportar} onFechar={() => setModalExportarAberto(false)} />
       )}
 
       {modalEmailAberto && (

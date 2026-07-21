@@ -63,23 +63,29 @@ function defaultJsonPathFor(_sheetPath: string): string {
  * arquivos ainda não migrados: nesse caso, `email` volta vazio
  * (`EMAIL_CONTEUDO_VAZIO`), já que não havia esse campo para preservar.
  */
-function loadExistingJson(jsonPath: string): { email: EmailConteudo; records: EmailRecord[] } {
+function loadExistingJson(jsonPath: string): Pick<EmailsData, 'email' | 'registros' | 'projeto' | 'criado_em' | 'atualizado_em'> {
   if (!existsSync(jsonPath)) {
-    return { email: EMAIL_CONTEUDO_VAZIO, records: [] };
+    return { email: EMAIL_CONTEUDO_VAZIO, registros: [], projeto: '', criado_em: '', atualizado_em: '' };
   }
   const raw = readFileSync(jsonPath, 'utf-8').trim();
-  if (raw === '') return { email: EMAIL_CONTEUDO_VAZIO, records: [] };
+  if (raw === '') return { email: EMAIL_CONTEUDO_VAZIO, registros: [], projeto: '', criado_em: '', atualizado_em: '' };
 
   const parsed = JSON.parse(raw);
 
   if (Array.isArray(parsed)) {
     // Formato antigo (array puro) — sem `email` para preservar.
-    return { email: EMAIL_CONTEUDO_VAZIO, records: parsed as EmailRecord[] };
+    return { email: EMAIL_CONTEUDO_VAZIO, registros: parsed as EmailRecord[], projeto: '', criado_em: '', atualizado_em: '' };
   }
 
   if (parsed && typeof parsed === 'object' && Array.isArray((parsed as EmailsData).registros)) {
     const dados = parsed as EmailsData;
-    return { email: dados.email ?? EMAIL_CONTEUDO_VAZIO, records: dados.registros };
+    return {
+      email: dados.email ?? EMAIL_CONTEUDO_VAZIO,
+      registros: dados.registros,
+      projeto: dados.projeto ?? '',
+      criado_em: dados.criado_em ?? '',
+      atualizado_em: dados.atualizado_em ?? '',
+    };
   }
 
   throw new Error(
@@ -199,8 +205,20 @@ function applyStatusRules(records: EmailRecord[]): EmailRecord[] {
  * valor carregado por `loadExistingJson` — este script nunca gera nem altera
  * título/corpo, apenas repassa o que já existia no arquivo.
  */
-function writeJson(jsonPath: string, email: EmailConteudo, records: EmailRecord[]) {
-  const dados: EmailsData = { email, registros: records };
+function writeJson(
+  jsonPath: string,
+  email: EmailConteudo,
+  records: EmailRecord[],
+  metadados: Pick<EmailsData, 'projeto' | 'criado_em'>
+) {
+  const agora = new Date().toISOString();
+  const dados: EmailsData = {
+    projeto: metadados.projeto,
+    atualizado_em: agora,
+    criado_em: metadados.criado_em || agora,
+    email,
+    registros: records,
+  };
   mkdirSync(dirname(jsonPath), { recursive: true });
   writeFileSync(jsonPath, JSON.stringify(dados, null, 2) + '\n', 'utf-8');
 }
@@ -222,13 +240,14 @@ function main() {
   console.log(`  ${sheetRows.length} linha(s) encontrada(s).`);
 
   console.log(`Carregando JSON existente: ${outPath}`);
-  const { email: emailExistente, records: existing } = loadExistingJson(outPath);
+  const dadosExistentes = loadExistingJson(outPath);
+  const { email: emailExistente, registros: existing } = dadosExistentes;
   console.log(`  ${existing.length} registro(s) já existente(s).`);
 
   const { records, added, updated } = syncRecords(sheetRows, existing);
   const finalRecords = applyStatusRules(records);
 
-  writeJson(outPath, emailExistente, finalRecords);
+  writeJson(outPath, emailExistente, finalRecords, dadosExistentes);
 
   const counters = {
     total: finalRecords.length,

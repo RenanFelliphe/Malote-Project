@@ -1,0 +1,28 @@
+{
+  "projeto": "Segundo Projeto",
+  "criado_em": "2026-07-21T18:00:00.000Z",
+  "atualizado_em": "2026-07-21T18:00:00.000Z",
+  "email": {
+    "titulo": "Assunto de teste do segundo projeto",
+    "conteudo": "Corpo de teste do segundo projeto.",
+    "atualizado_em": "2026-07-21T18:00:00.000Z"
+  },
+  "registros": [
+    {
+      "id": 1,
+      "nome": "Fulano de Teste",
+      "email": "fulano@exemplo.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-07-21T18:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "nome": "Ciclana de Teste",
+      "email": "ciclana@exemplo.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-07-21T18:00:00.000Z"
+    }
+  ]
+}

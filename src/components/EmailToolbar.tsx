@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import type { TFiltro, TStatus } from '../types/email';
-import { FILTROS, TODOS_OS_STATUS, type TOrdenacao } from './utils/emailData';
+import { CRITERIO_ORDENACAO_LABELS, FILTROS, TODOS_OS_STATUS, type TOrdenacao } from './utils/emailData';
 import { OrdenacaoPrioridade } from './OrdenacaoPrioridade';
 import { QuantidadeInput } from './QuantidadeInput';
 
@@ -138,7 +138,11 @@ export function EmailToolbar({
       <div className="toolbar-linha toolbar-linha-2">
         <div className="ordenacao">
           <span className="ordenacao-rotulo">Ordenar por:</span>
-          <OrdenacaoPrioridade ordenacao={ordenacao} onOrdenacaoChange={onOrdenacaoChange} />
+          <OrdenacaoPrioridade
+            ordenacao={ordenacao}
+            labels={CRITERIO_ORDENACAO_LABELS}
+            onOrdenacaoChange={onOrdenacaoChange}
+          />
         </div>
 
         <label className="exibir-registros">

@@ -6,6 +6,12 @@ import { exportarRegistros, type TFormatoExportacao } from './utils/exportarPlan
 import { calcularContadores } from './utils/emailData';
 
 interface Props {
+  /**
+   * Slug do projeto atual (Etapa 9), usado como prefixo do nome do arquivo
+   * gerado (`exportarPlanilha.ts`). Quando ausente, cai para o prefixo
+   * genérico `emails`.
+   */
+  slug?: string;
   /** Registros da planilha atualmente carregada (já no estado da tela, não a cópia estática do JSON). */
   registros: EmailRecord[];
   onFechar: () => void;
@@ -47,7 +53,7 @@ const FORMATOS: { value: TFormatoExportacao; sigla: string; label: string }[] = 
  * de texto puro — mais fácil de escanear com o olho quando os quatro
  * formatos têm nomes parecidos (CSV / CSV UTF-8).
  */
-export function ExportarModal({ registros, onFechar }: Props) {
+export function ExportarModal({ slug, registros, onFechar }: Props) {
   const [statusSelecionados, setStatusSelecionados] = useState<Set<TStatus>>(() => new Set(['enviado']));
   const [formato, setFormato] = useState<TFormatoExportacao>('csv');
   const [exportando, setExportando] = useState(false);
@@ -91,7 +97,7 @@ export function ExportarModal({ registros, onFechar }: Props) {
     setExportando(true);
     setErro(null);
     try {
-      await exportarRegistros(registrosFiltrados, formato);
+      await exportarRegistros(registrosFiltrados, formato, slug);
       onFechar();
     } catch {
       setErro('Não foi possível gerar o arquivo. Tente novamente.');

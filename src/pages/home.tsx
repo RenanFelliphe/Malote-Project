@@ -2,38 +2,27 @@ import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Header } from '../components/Header';
+import { OrdenacaoPrioridade } from '../components/OrdenacaoPrioridade';
 import { IconeImportar, IconePlanilha } from '../components/Icons';
 import { ImportWizardModal } from '../components/import/ImportWizardModal';
-
-/**
- * Representa uma planilha já importada, renderizada como um card na Home.
- *
- * Por enquanto é uma lista estática com um único item apontando para o
- * componente de e-mails atual (`/emails`). Quando `email.tsx` virar um
- * template genérico, cada card passará a vir de dados reais (planilhas
- * importadas pelo usuário) e ganhará ações de editar/deletar/organizar.
- */
-interface PlanilhaCard {
-  id: string;
-  titulo: string;
-  descricao: string;
-  rota: string;
-}
-
-const planilhas: PlanilhaCard[] = [
-  {
-    id: 'sistema-emails',
-    titulo: 'Sistema de E-mails',
-    descricao: 'Organize, valide e envie sua base de contatos.',
-    rota: '/emails',
-  },
-];
+import { PROJETOS } from '../data/projetos';
+import {
+  CRITERIO_ORDENACAO_HOME_LABELS,
+  ORDENACAO_HOME_PADRAO,
+  ordenarProjetos,
+  type TOrdenacaoHome,
+} from './utils/HomeOrdenacao';
 
 export function Home() {
   const inputArquivoRef = useRef<HTMLInputElement | null>(null);
   // Arquivo selecionado no explorador do SO — sua presença é o que
   // controla a exibição do assistente de importação (ImportWizardModal).
   const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
+  // Hierarquia de ordenação dos cards de projeto (Etapa 7, seção 3.5) —
+  // padrão: alfabética primeiro, conforme ORDENACAO_HOME_PADRAO.
+  const [ordenacao, setOrdenacao] = useState<TOrdenacaoHome>(ORDENACAO_HOME_PADRAO);
+
+  const projetosOrdenados = ordenarProjetos(PROJETOS, ordenacao);
 
   function abrirSeletorDeArquivo() {
     inputArquivoRef.current?.click();
@@ -80,14 +69,24 @@ export function Home() {
           </button>
         </div>
 
+        {projetosOrdenados.length > 0 && (
+          <div className="ordenacao">
+            <span className="ordenacao-rotulo">Ordenar por:</span>
+            <OrdenacaoPrioridade
+              ordenacao={ordenacao}
+              labels={CRITERIO_ORDENACAO_HOME_LABELS}
+              onOrdenacaoChange={setOrdenacao}
+            />
+          </div>
+        )}
+
         <div className="grid-cards-paginas">
-          {planilhas.map((planilha) => (
-            <Link key={planilha.id} to={planilha.rota} className="card-pagina">
+          {projetosOrdenados.map((projeto) => (
+            <Link key={projeto.slug} to={`/${projeto.slug}`} className="card-pagina">
               <span className="card-pagina-icone">
                 <IconePlanilha />
               </span>
-              <span className="card-pagina-titulo">{planilha.titulo}</span>
-              <span className="card-pagina-descricao">{planilha.descricao}</span>
+              <span className="card-pagina-titulo">{projeto.dados.projeto}</span>
             </Link>
           ))}
         </div>
