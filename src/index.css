@@ -152,9 +152,8 @@ select {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 1rem 1.75rem;
+  width: 100%;
+  padding: 1rem 3rem;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -318,9 +317,7 @@ select {
    ========================================================================= */
 
 .emails-page {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 2.5rem 1.75rem 5rem;
+  padding: 2.5rem 3rem;
 }
 
 .emails-page-header {
@@ -371,8 +368,7 @@ select {
 
 .home-page {
   max-width: 1180px;
-  margin: 0 auto;
-  padding: 2.5rem 1.75rem 5rem;
+  padding: 2.5rem 3rem;
 }
 
 .home-page-header {
@@ -380,7 +376,6 @@ select {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1.5rem;
-  margin-bottom: 2rem;
 }
 
 .home-page-header-titulo {
@@ -404,7 +399,10 @@ select {
 
 .home-page-acoes {
   display: flex;
-  margin-bottom: 2rem;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem 0;
 }
 
 .botao-importar-planilha {

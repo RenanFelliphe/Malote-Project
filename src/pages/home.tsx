@@ -56,29 +56,26 @@ export function Home() {
         </div>
 
         <div className="home-page-acoes">
-          <input
-            ref={inputArquivoRef}
-            type="file"
-            accept=".csv,.xlsx"
-            className="input-arquivo-escondido"
-            onChange={handleArquivoEscolhido}
-          />
-          <button type="button" className="botao-importar-planilha" onClick={abrirSeletorDeArquivo}>
-            <IconeImportar />
-            Importar planilha
-          </button>
+          <div className="importar-planilha">
+            <input ref={inputArquivoRef} type="file" accept=".csv,.xlsx" className="input-arquivo-escondido" onChange={handleArquivoEscolhido} />
+            <button type="button" className="botao-importar-planilha" onClick={abrirSeletorDeArquivo}>
+              <IconeImportar />
+              Importar planilha
+            </button>
+          </div>
+
+          {projetosOrdenados.length > 0 && (
+            <div className="ordenacao">
+              <span className="ordenacao-rotulo">Ordenar por:</span>
+              <OrdenacaoPrioridade
+                ordenacao={ordenacao}
+                labels={CRITERIO_ORDENACAO_HOME_LABELS}
+                onOrdenacaoChange={setOrdenacao}
+              />
+            </div>
+          )}
         </div>
 
-        {projetosOrdenados.length > 0 && (
-          <div className="ordenacao">
-            <span className="ordenacao-rotulo">Ordenar por:</span>
-            <OrdenacaoPrioridade
-              ordenacao={ordenacao}
-              labels={CRITERIO_ORDENACAO_HOME_LABELS}
-              onOrdenacaoChange={setOrdenacao}
-            />
-          </div>
-        )}
 
         <div className="grid-cards-paginas">
           {projetosOrdenados.map((projeto) => (

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import type { EmailConteudo, EmailRecord } from '../types/email';
 import { ThemeToggle } from './ThemeToggle';
@@ -79,6 +79,8 @@ export function Header({ slug, registros, email, onSalvarEmail }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const botaoRef = useRef<HTMLButtonElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const location = useLocation();
 
   // Sem `registros`, não há um projeto específico aberto (caso da Home,
   // que lista vários projetos ao mesmo tempo) — usado para desabilitar as
@@ -181,38 +183,37 @@ export function Header({ slug, registros, email, onSalvarEmail }: Props) {
           <span>Sistema de E-mails</span>
         </Link>
 
-        <nav className="app-header-nav">
-          <Link to="/" className="app-header-link">
-            Home
-          </Link>
-        </nav>
+        <nav className="app-header-nav" />
 
-        <div className="app-header-copiar">
-          <button
-            type="button"
-            className={`app-header-copiar-botao ${campoCopiado === 'titulo' ? 'copiado' : ''}`}
-            onClick={() => void copiarCampo('titulo')}
-            disabled={!emailAtual.titulo}
-            title="Copiar título do e-mail"
-            aria-label="Copiar título do e-mail"
-          >
-            <IconeCopiar />
-            <span>{campoCopiado === 'titulo' ? 'Copiado!' : 'Copiar título'}</span>
-          </button>
+        {
+          location.pathname != '/' && (
+            <div className="app-header-copiar">
+              <button
+                type="button"
+                className={`app-header-copiar-botao ${campoCopiado === 'titulo' ? 'copiado' : ''}`}
+                onClick={() => void copiarCampo('titulo')}
+                disabled={!emailAtual.titulo}
+                title="Copiar título do e-mail"
+                aria-label="Copiar título do e-mail"
+              >
+                <IconeCopiar />
+                <span>{campoCopiado === 'titulo' ? 'Copiado!' : 'Copiar título'}</span>
+              </button>
 
-          <button
-            type="button"
-            className={`app-header-copiar-botao ${campoCopiado === 'conteudo' ? 'copiado' : ''}`}
-            onClick={() => void copiarCampo('conteudo')}
-            disabled={!emailAtual.conteudo}
-            title="Copiar corpo do e-mail"
-            aria-label="Copiar corpo do e-mail"
-          >
-            <IconeCopiar />
-            <span>{campoCopiado === 'conteudo' ? 'Copiado!' : 'Copiar corpo'}</span>
-          </button>
-        </div>
-
+              <button
+                type="button"
+                className={`app-header-copiar-botao ${campoCopiado === 'conteudo' ? 'copiado' : ''}`}
+                onClick={() => void copiarCampo('conteudo')}
+                disabled={!emailAtual.conteudo}
+                title="Copiar corpo do e-mail"
+                aria-label="Copiar corpo do e-mail"
+              >
+                <IconeCopiar />
+                <span>{campoCopiado === 'conteudo' ? 'Copiado!' : 'Copiar corpo'}</span>
+              </button>
+            </div>
+          )
+        }
         <div className="app-header-config" ref={containerRef}>
           <button
             type="button"
@@ -234,6 +235,22 @@ export function Header({ slug, registros, email, onSalvarEmail }: Props) {
                 <ThemeToggle />
               </div>
 
+              {
+                location.pathname != '/' && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="app-header-config-item app-header-config-item-botao"
+                    onClick={abrirEdicaoEmail}
+                    disabled={!projetoAberto}
+                    title={projetoAberto ? undefined : 'Abra um projeto para editar o e-mail'}
+                  >
+                    <IconeEditarEmail />
+                    Editar e-mail
+                  </button>
+                )
+              }
+              
               <button
                 type="button"
                 role="menuitem"
@@ -243,18 +260,6 @@ export function Header({ slug, registros, email, onSalvarEmail }: Props) {
               >
                 <IconeAtualizarPlanilha />
                 Atualizar planilha
-              </button>
-
-              <button
-                type="button"
-                role="menuitem"
-                className="app-header-config-item app-header-config-item-botao"
-                onClick={abrirEdicaoEmail}
-                disabled={!projetoAberto}
-                title={projetoAberto ? undefined : 'Abra um projeto para editar o e-mail'}
-              >
-                <IconeEditarEmail />
-                Editar e-mail
               </button>
 
               <button
