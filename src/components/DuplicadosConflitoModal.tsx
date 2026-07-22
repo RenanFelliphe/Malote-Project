@@ -50,6 +50,10 @@ function particionarGrupoDuplicados(registros: EmailRecord[]) {
  *    todos os elegíveis já chegam pré-marcados. Se a seleção aqui nascesse
  *    cheia, o botão Confirmar nasceria desabilitado (por violar a regra
  *    "sobrar 1") sem o usuário ter feito nada.
+ *
+ * Quando `confirmDisabled` é `true` por essa regra, o `ConflictDialog`
+ * exibe uma mensagem contextual (`disabledHint`) explicando o motivo, em
+ * vez de deixar o botão desabilitado sem explicação.
  */
 export function DuplicadosConflitoModal({ registros, onCancelar, onConfirmar }: Props) {
   const { enviados, elegiveis } = particionarGrupoDuplicados(registros);
@@ -106,6 +110,7 @@ export function DuplicadosConflitoModal({ registros, onCancelar, onConfirmar }: 
       confirmVariant="danger"
       confirmLabel="Deletar"
       confirmDisabled={confirmDisabled}
+      disabledHint="É necessário manter pelo menos um registro ativo neste grupo."
       className="modal-duplicados"
     >
       <DeleteConflictContent

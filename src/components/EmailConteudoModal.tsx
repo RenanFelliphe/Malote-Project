@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import type { EmailConteudo } from '../types/email';
+import { ConfirmDialog } from './ConfirmDialog';
 import { Dialog } from './Dialog';
 
 interface Props {
@@ -29,15 +30,36 @@ interface Props {
  * "Salvar" persiste imediatamente e fecha o modal ao concluir com sucesso;
  * em caso de falha, o modal permanece aberto exibindo a mensagem de erro,
  * preservando o que o usuário já digitou.
+ *
+ * Etapa 6 (RefatoracaoModais.md): fechar (clique fora, ESC ou "Cancelar")
+ * com `titulo`/`conteudo` diferentes dos valores originais de `email`
+ * dispara uma confirmação (`ConfirmDialog`, reaproveitando o mesmo padrão
+ * visual usado pelo `ImportWizardModal`) antes de descartar as alterações.
  */
 export function EmailConteudoModal({ email, onFechar, onSalvar }: Props) {
   const [titulo, setTitulo] = useState(email.titulo);
   const [conteudo, setConteudo] = useState(email.conteudo);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [confirmandoFechamento, setConfirmandoFechamento] = useState(false);
 
-  function fechar() {
+  const alteracoesPendentes = titulo !== email.titulo || conteudo !== email.conteudo;
+
+  function solicitarFechamento() {
     if (salvando) return;
+    if (alteracoesPendentes) {
+      setConfirmandoFechamento(true);
+      return;
+    }
+    onFechar();
+  }
+
+  function continuarEditando() {
+    setConfirmandoFechamento(false);
+  }
+
+  function descartarAlteracoes() {
+    setConfirmandoFechamento(false);
     onFechar();
   }
 
@@ -59,12 +81,21 @@ export function EmailConteudoModal({ email, onFechar, onSalvar }: Props) {
   return (
     <Dialog
       isOpen
-      onClose={fechar}
+      onClose={solicitarFechamento}
       title="Editar e-mail"
       className="modal-email-conteudo"
+      // Enquanto a confirmação de descarte (dialog aninhado) está aberta, o
+      // Esc deve fechar apenas ela — não também disparar solicitarFechamento
+      // deste dialog externo (mesmo padrão do ImportWizardModal).
+      closeOnEsc={!confirmandoFechamento}
       footer={
         <>
-          <button type="button" className="dialog-botao-cancelar" onClick={fechar} disabled={salvando}>
+          <button
+            type="button"
+            className="dialog-botao-cancelar"
+            onClick={solicitarFechamento}
+            disabled={salvando}
+          >
             Cancelar
           </button>
           <button
@@ -97,14 +128,27 @@ export function EmailConteudoModal({ email, onFechar, onSalvar }: Props) {
         </label>
         <textarea
           id="email-conteudo-corpo"
+          className="campo-corpo-email"
           value={conteudo}
           onChange={(evento) => setConteudo(evento.target.value)}
           placeholder="Corpo do e-mail"
-          rows={10}
         />
+        <span className="modal-campo-contador">{conteudo.length} caracteres</span>
       </div>
 
       {erro && <p className="erro-salvamento">{erro}</p>}
+
+      {confirmandoFechamento && (
+        <ConfirmDialog
+          ariaLabel="Descartar alterações do e-mail"
+          titulo="Descartar alterações?"
+          descricao="As alterações feitas no título e/ou corpo do e-mail não foram salvas e serão perdidas."
+          rotuloCancelar="Continuar editando"
+          rotuloConfirmar="Descartar alterações"
+          onCancelar={continuarEditando}
+          onConfirmar={descartarAlteracoes}
+        />
+      )}
     </Dialog>
   );
 }

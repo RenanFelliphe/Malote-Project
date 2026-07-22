@@ -1503,13 +1503,30 @@ button.status-badge-clicavel:hover {
   outline: none;
 }
 
-.dialog-content.modal-exportar {
+.importacao-corpo,
+.modal-lista,
+.coluna-seletora-lista,
+.preview-planilha-tabela-wrapper {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE/Edge legado */
+}
+
+.importacao-corpo::-webkit-scrollbar,
+.modal-lista::-webkit-scrollbar,
+.coluna-seletora-lista::-webkit-scrollbar,
+.preview-planilha-tabela-wrapper::-webkit-scrollbar {
+  display: none;                /* ou width: 0; height: 0; como já fizeram no bloco existente */
+}
+
+.dialog-content.modal-exportar,
+.dialog-content.dialog-rolavel {
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-.dialog-content.modal-exportar::-webkit-scrollbar {
+.dialog-content.modal-exportar::-webkit-scrollbar,
+.dialog-content.dialog-rolavel::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
@@ -1554,19 +1571,66 @@ button.status-badge-clicavel:hover {
   justify-content: center;
 }
 
+/* Botões de ação do rodapé, agora agrupados em um wrapper próprio dentro de
+   `.dialog-rodape`. Necessário para o `ConflictDialog` poder inserir o aviso
+   contextual (`.conflict-dialog-aviso`) acima dos botões sem quebrar o
+   `justify-content: space-between` original entre Cancelar/Confirmar —
+   `flex: 1` faz este wrapper ocupar toda a largura disponível mesmo sendo o
+   único filho direto de `.dialog-rodape` nos casos sem aviso. */
+.dialog-rodape-botoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex: 1;
+}
+
+/* Variante do rodapé usada pelo `ConflictDialog` quando há aviso contextual
+   de botão desabilitado (etapa 4): empilha o aviso acima da linha de
+   botões, em vez do layout padrão de uma única linha. */
+.dialog-rodape-com-aviso {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+}
+
 /* =========================================================================
    ConflictDialog (template de conflitos reais)
 
    Construído sobre o Dialog acima (título + rodapé cancelar/confirmar já
-   vêm do Dialog). Só a descrição de apoio precisa de estilo próprio; o
-   conteúdo de cada conflito (ex.: DeleteConflictContent) traz suas próprias
-   classes.
+   vêm do Dialog). Só a descrição de apoio e o aviso contextual precisam de
+   estilo próprio; o conteúdo de cada conflito (ex.: DeleteConflictContent)
+   traz suas próprias classes.
    ========================================================================= */
 
 .conflict-dialog-descricao {
   margin: 0;
   color: var(--color-text-secondary);
   font-size: 0.85rem;
+}
+
+/* Aviso contextual exibido quando o botão de confirmar está desabilitado
+   (ex.: "É necessário manter pelo menos um registro ativo neste grupo.").
+   Mesma linguagem visual de "atenção" já usada em `.status-duplicado` e no
+   ícone de alerta da confirmação de cancelamento do wizard de importação. */
+.conflict-dialog-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.conflict-dialog-aviso svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.1rem;
 }
 
 /* =========================================================================
@@ -1621,6 +1685,155 @@ button.status-badge-clicavel:hover {
   margin: 0;
   font-size: 0.8rem;
   color: var(--color-text-tertiary);
+}
+
+/* --- Listas de conflito (Enviados / A Deletar) ---
+   Estrutura de `DeleteConflictContent.tsx` não muda: `.conflito-nome` e
+   `.conflito-email` continuam como `<span>` irmãos dentro do `<li>`
+   (Enviados) ou do `<label>` (A Deletar, que também contém o checkbox).
+   O empilhamento nome/e-mail e o alinhamento com o checkbox são resolvidos
+   só com CSS, sem exigir nenhum wrapper novo no componente. */
+
+.conflito-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.conflito-lista li {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.conflito-lista li:last-child {
+  border-bottom: none;
+}
+
+.conflito-lista-enviados li {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.75rem;
+}
+
+.conflito-lista-deletar li label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+/* A partir da Etapa 3, o checkbox nativo (`.checkbox-customizado-input`) fica
+   oculto visualmente — quem ocupa a primeira coluna da grade é a caixa
+   customizada, e a segunda coluna passa a ser o wrapper de conteúdo
+   (`.checkbox-customizado-conteudo`), que empilha nome/e-mail internamente
+   em flex-column (ver bloco "Checkbox customizado" abaixo). */
+.conflito-lista-deletar li label .checkbox-customizado-caixa {
+  grid-column: 1;
+}
+
+.conflito-lista-deletar li label .checkbox-customizado-conteudo {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.conflito-nome,
+.conflito-email {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conflito-nome {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.conflito-email {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+/* --- Checkbox customizado (Etapa 3) ---
+   Componente `CheckboxCustomizado.tsx`, inspirado nos cartões de formato do
+   `ExportarModal` (`.formato-card`). Usado hoje pelas listas de seleção do
+   `DeleteConflictContent` (individual e "Selecionar Todos"); pensado para
+   ser reaproveitado por qualquer outro modal com seleção múltipla.
+
+   O `<input type="checkbox">` real permanece no DOM e concentra toda a
+   semântica/interação (foco, teclado, `checked`, `disabled`) — apenas fica
+   oculto visualmente via clip (não `display: none`, que o tiraria da árvore
+   de acessibilidade). A caixa visível é decorativa (`aria-hidden`) e reage
+   ao estado do input via seletor `:checked ~`. */
+
+.checkbox-customizado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox-customizado.desabilitado {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.checkbox-customizado-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.checkbox-customizado-caixa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-accent-contrast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.checkbox-customizado:hover .checkbox-customizado-caixa {
+  border-color: var(--color-accent);
+}
+
+.checkbox-customizado-input:checked ~ .checkbox-customizado-caixa {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.checkbox-customizado-input:focus-visible ~ .checkbox-customizado-caixa {
+  box-shadow: 0 0 0 2px var(--color-accent-soft), 0 0 0 3px var(--color-accent);
+}
+
+.checkbox-customizado.desabilitado:hover .checkbox-customizado-caixa {
+  border-color: var(--color-border-strong);
+}
+
+.checkbox-customizado-input:disabled ~ .checkbox-customizado-caixa {
+  background: var(--color-surface);
+}
+
+.checkbox-customizado-conteudo {
+  min-width: 0;
 }
 
 /* --- Modal de exportação --- */
@@ -1843,6 +2056,15 @@ li.marcado .exportar-lista-status-item {
   width: 100%;
 }
 
+.exportar-rodape-aviso {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-danger);
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+}
+
 .exportar-rodape-contagem {
   display: flex;
   align-items: baseline;
@@ -1881,7 +2103,7 @@ li.marcado .exportar-lista-status-item {
   transition: width var(--transition-base);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 720px) {
   .exportar-grade-formatos {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1993,6 +2215,20 @@ li.marcado .exportar-lista-status-item {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   font-weight: 500;
+}
+
+/* Etapa 5 (RefatoracaoModais.md) — corpo do e-mail (`EmailConteudoModal`):
+   antes usava `rows={10}` fixo; a altura mínima equivalente agora vem
+   daqui, e o redimensionamento vertical já vem de `.modal-campo textarea`
+   acima. */
+.campo-corpo-email {
+  min-height: 14rem;
+}
+
+.modal-campo-contador {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
 }
 
 .modal-modo-exibicao {
@@ -2188,6 +2424,14 @@ li.marcado .exportar-lista-status-item {
 }
 
 /* --- Stepper --- */
+
+.importacao-stepper-resumo {
+  display: none;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
 
 .importacao-stepper {
   display: flex;
@@ -2784,5 +3028,9 @@ li.marcado .exportar-lista-status-item {
 
   .importacao-stepper-rotulo {
     display: none;
+  }
+
+  .importacao-stepper-resumo {
+    display: block;
   }
 }

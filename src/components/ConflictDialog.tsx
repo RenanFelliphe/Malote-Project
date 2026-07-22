@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { Dialog } from './Dialog';
+import { IconeAlerta } from './Icons';
 
 interface ConflictDialogProps {
   /** Título do conflito, exibido no header do Dialog. */
@@ -29,6 +30,15 @@ interface ConflictDialogProps {
   confirmVariant?: 'primary' | 'danger';
   /** Classes extras para o container do Dialog (ex.: variantes de largura). */
   className?: string;
+  /**
+   * Explicação contextual de por que o botão de confirmar está desabilitado
+   * (ex.: "É necessário manter pelo menos um registro ativo neste grupo.").
+   * Só é exibida quando `confirmDisabled` é `true` — enquanto a seleção for
+   * válida, nenhuma mensagem aparece. Mantém o `ConflictDialog` genérico:
+   * cada consumidor decide se e qual mensagem faz sentido para sua própria
+   * regra de desabilitação.
+   */
+  disabledHint?: ReactNode;
 }
 
 /**
@@ -72,27 +82,39 @@ export function ConflictDialog({
   confirmDisabled = false,
   confirmVariant = 'primary',
   className,
+  disabledHint,
 }: ConflictDialogProps) {
+  const mostrarAviso = confirmDisabled && Boolean(disabledHint);
+
   return (
     <Dialog
       isOpen
       onClose={onCancel}
       title={title}
       role="alertdialog"
-      className={className}
+      className={`dialog-rolavel ${className ?? ''}`.trim()}
+      footerClassName={mostrarAviso ? 'dialog-rodape-com-aviso' : undefined}
       footer={
         <>
-          <button type="button" className="dialog-botao-cancelar" onClick={onCancel}>
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            className={confirmVariant === 'danger' ? 'dialog-botao-deletar' : 'dialog-botao-primario'}
-            onClick={onConfirm}
-            disabled={confirmDisabled}
-          >
-            {confirmLabel}
-          </button>
+          {mostrarAviso && (
+            <p className="conflict-dialog-aviso" role="status">
+              <IconeAlerta />
+              <span>{disabledHint}</span>
+            </p>
+          )}
+          <div className="dialog-rodape-botoes">
+            <button type="button" className="dialog-botao-cancelar" onClick={onCancel}>
+              {cancelLabel}
+            </button>
+            <button
+              type="button"
+              className={confirmVariant === 'danger' ? 'dialog-botao-deletar' : 'dialog-botao-primario'}
+              onClick={onConfirm}
+              disabled={confirmDisabled}
+            >
+              {confirmLabel}
+            </button>
+          </div>
         </>
       }
     >

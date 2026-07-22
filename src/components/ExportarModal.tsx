@@ -114,6 +114,9 @@ export function ExportarModal({ slug, registros, onFechar }: Props) {
       className="modal-exportar"
       footer={
         <div className="exportar-rodape">
+          {registrosFiltrados.length === 0 && (
+            <p className="exportar-rodape-aviso">Selecione ao menos um status para exportar.</p>
+          )}
           <button
             type="button"
             className="dialog-botao-copiar"

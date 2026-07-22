@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { IconeAlerta, IconeCheck } from '../Icons';
+import { IconeCheck } from '../Icons';
+import { ConfirmDialog } from '../ConfirmDialog';
 import { Dialog } from '../Dialog';
 import { EtapaInformacoes } from './EtapaInformacoes';
 import { EtapaMapeamento } from './EtapaMapeamento';
@@ -165,6 +166,15 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
       {carregando && <p className="importacao-status">Lendo planilha selecionada...</p>}
 
       {erro && !carregando && (
+        // Etapa 10 (RefatoracaoModais.md): decisão explícita entre as duas
+        // abordagens propostas — manter o fechamento direto (sem passar pela
+        // confirmação de `cancelarImportacao`/`continuarEditando`), já que
+        // esse estado é alcançado antes de qualquer etapa do wizard ser
+        // exibida (a planilha nem chegou a ser lida com sucesso), então não
+        // existe progresso do usuário para se perder aqui. O botão usa a
+        // mesma classe (`dialog-botao-cancelar`) do par de botões do
+        // `ConfirmDialog` compartilhado, mantendo a linguagem visual
+        // consistente mesmo sem reaproveitar o componente em si.
         <div className="importacao-erro">
           <p>{erro}</p>
           <button type="button" className="dialog-botao-cancelar" onClick={onFechar}>
@@ -175,7 +185,11 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
 
       {mostrarConteudo && (
         <>
-          <ol className="importacao-stepper" aria-label={`Etapa ${etapa} de 4`}>
+          <p className="importacao-stepper-resumo">
+            Etapa {etapa} de 4 — {ETAPAS[etapa - 1].rotulo}
+          </p>
+
+          <ol className="importacao-stepper" aria-hidden="true">
             {ETAPAS.map(({ numero, rotulo }) => {
               const concluida = numero < etapa;
               const ativa = numero === etapa;
@@ -228,32 +242,15 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
       )}
 
       {confirmandoCancelamento && (
-        <Dialog
-          isOpen
-          onClose={continuarEditando}
-          role="alertdialog"
-          showCloseButton={false}
+        <ConfirmDialog
           ariaLabel="Confirmar cancelamento da importação"
-          overlayClassName="modal-overlay-confirmacao"
-          className="modal-confirmacao-cancelamento"
-          footerClassName="dialog-rodape-centralizado"
-          footer={
-            <>
-              <button type="button" className="dialog-botao-cancelar" onClick={continuarEditando}>
-                Continuar editando
-              </button>
-              <button type="button" className="dialog-botao-deletar" onClick={cancelarImportacao}>
-                Cancelar importação
-              </button>
-            </>
-          }
-        >
-          <div className="confirmacao-cancelamento-icone">
-            <IconeAlerta />
-          </div>
-          <h2>Deseja cancelar a importação?</h2>
-          <p>Todo o progresso realizado será perdido.</p>
-        </Dialog>
+          titulo="Deseja cancelar a importação?"
+          descricao="Todo o progresso realizado será perdido."
+          rotuloCancelar="Continuar editando"
+          rotuloConfirmar="Cancelar importação"
+          onCancelar={continuarEditando}
+          onConfirmar={cancelarImportacao}
+        />
       )}
     </Dialog>
   );

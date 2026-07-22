@@ -1,7 +1,7 @@
 {
   "projeto": "Projeto Teste",
   "criado_em": "2026-07-21T16:18:43.000Z",
-  "atualizado_em": "2026-07-21T16:18:43.000Z",
+  "atualizado_em": "2026-07-22T13:57:17.312Z",
   "email": {
     "titulo": "Parabéns pela conclusão do curso no Multiverso Rio Pomba Valley! 🎉",
     "conteudo": "Parabéns por concluir o curso Inteligência Artificial para Estudantes no Multiverso Rio Pomba Valley! 🎉\n\nSeu esforço valeu a pena, e temos mais uma boa notícia: o seu certificado do Instituto Energisa será enviado entre os dias 3 e 10 de agosto.\n\nEnquanto isso, aproveite para emitir também o certificado da Microsoft e enriquecer ainda mais o seu currículo.\n\nLembre-se de que sua bolsa de estudos permanece ativa durante todo o mês de julho. Aproveite esse período para explorar a plataforma e concluir outros cursos disponíveis.\n\nContinue investindo no seu aprendizado. Desejamos muito sucesso na sua jornada! 🚀",
@@ -12,9 +12,9 @@
       "id": 1,
       "nome": "Ana Souza",
       "email": "ana.souza1@exemplo.com",
-      "status": "válido",
-      "status_alterado": false,
-      "last_updated": "2026-07-15T12:52:47.753Z"
+      "status": "enviado",
+      "status_alterado": true,
+      "last_updated": "2026-07-22T13:57:17.307Z"
     },
     {
       "id": 2,
@@ -494,7 +494,7 @@
       "email": "marcos.vinicius@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "last_updated": "2026-07-22T13:57:04.879Z"
     },
     {
       "id": 62,
@@ -502,7 +502,7 @@
       "email": "MARCOS.VINICIUS@DOMINIO.COM",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "last_updated": "2026-07-22T13:57:04.879Z"
     },
     {
       "id": 63,
@@ -510,7 +510,7 @@
       "email": "marcos.vinicius@dominio.com",
       "status": "duplicado",
       "status_alterado": false,
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "last_updated": "2026-07-22T13:57:04.879Z"
     },
     {
       "id": 64,

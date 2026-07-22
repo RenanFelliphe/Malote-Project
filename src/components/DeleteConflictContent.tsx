@@ -1,4 +1,5 @@
 import type { EmailRecord } from '../types/email';
+import { CheckboxCustomizado } from './CheckboxCustomizado';
 
 interface Props {
   /** Registros com status "enviado" presentes na seleção — apenas exibição. */
@@ -54,27 +55,24 @@ export function DeleteConflictContent({
 
       <section className="conflito-secao">
         <h3>A Deletar ({aDeletar.length})</h3>
-        <label className="modal-selecionar-todos">
-          <input
-            type="checkbox"
-            checked={todosSelecionados}
-            onChange={onToggleAll}
-            disabled={aDeletar.length === 0}
-          />
+        <CheckboxCustomizado
+          className="modal-selecionar-todos"
+          checked={todosSelecionados}
+          onChange={onToggleAll}
+          disabled={aDeletar.length === 0}
+        >
           Selecionar Todos
-        </label>
+        </CheckboxCustomizado>
         <ul className="conflito-lista conflito-lista-deletar">
           {aDeletar.map((registro) => (
             <li key={registro.id}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={selecionados.has(registro.id)}
-                  onChange={() => onToggle(registro.id)}
-                />
+              <CheckboxCustomizado
+                checked={selecionados.has(registro.id)}
+                onChange={() => onToggle(registro.id)}
+              >
                 <span className="conflito-nome">{registro.nome || '(sem nome)'}</span>
                 <span className="conflito-email">{registro.email || '(sem e-mail)'}</span>
-              </label>
+              </CheckboxCustomizado>
             </li>
           ))}
         </ul>
