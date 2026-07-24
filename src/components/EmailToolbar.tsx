@@ -147,7 +147,7 @@ export function EmailToolbar({
 
         <label className="exibir-registros">
           Exibir Registros
-          <QuantidadeInput valor={quantidade} onChange={onQuantidadeChange} max={quantidadeMax} min={100} />
+          <QuantidadeInput valor={quantidade} onChange={onQuantidadeChange} max={quantidadeMax} min={1} />
         </label>
       </div>
     </div>
