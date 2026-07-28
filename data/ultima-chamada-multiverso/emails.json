@@ -1,52 +1,52 @@
 {
   "projeto": "Última Chamada Multiverso",
-  "atualizado_em": "2026-07-24T18:50:22.014Z",
+  "atualizado_em": "2026-07-27T13:22:22.762Z",
   "criado_em": "2026-07-24T18:50:22.014Z",
   "email": {
-    "titulo": "",
-    "conteudo": "",
-    "atualizado_em": ""
+    "titulo": "Última semana para concluir seus cursos no Multiverso Rio Pomba Valley",
+    "conteudo": "Falta apenas 1 semana para o encerramento das bolsas do Multiverso Rio Pomba Valley❗\nSe você recebeu uma bolsa, aproveite estes últimos dias para concluir seus cursos. O acesso permanecerá disponível somente até 31/07.\nApós essa data, o acesso será encerrado para os bolsistas.\n🚀 Você ainda pode concluir gratuitamente:\nEmpregabilidade com Microsoft Copilot\nFluência em Inteligência Artificial\nInteligência Artificial para Estudantes\nLetramento Digital e Produtividade\nPreparação para o Mercado de Trabalho\n⚠️ Importante:\nOs certificados do Instituto Energisa serão enviados entre os dias 03 e 10 de agosto.\nNão deixe para a última hora. Conclua seus cursos até 31/07 e aproveite sua bolsa ao máximo.\n🔗 Acesse a plataforma em:\nriopombavalley.org.br\nBons estudos!\nEquipe Multiverso Rio Pomba Valley",
+    "atualizado_em": "2026-07-27T13:22:22.729Z"
   },
   "registros": [
     {
       "id": 566,
       "nome": "Altamiro Junior",
       "email": "altamiro.junior@institutoenergisa.org.br",
-      "status": "válido",
-      "status_alterado": false,
-      "last_updated": "2026-07-24T18:50:22.009Z"
+      "status": "inválido",
+      "status_alterado": true,
+      "last_updated": "2026-07-27T12:48:10.980Z"
     },
     {
       "id": 733,
       "nome": "Gerente Sapienza",
       "email": "gerentesapienzariopomba@gmail.com",
-      "status": "válido",
-      "status_alterado": false,
-      "last_updated": "2026-07-24T18:50:22.009Z"
+      "status": "inválido",
+      "status_alterado": true,
+      "last_updated": "2026-07-27T12:48:12.562Z"
     },
     {
       "id": 811,
       "nome": "Geraldo",
       "email": "geraldoccampostesteenergisa2@gmail.com",
-      "status": "válido",
-      "status_alterado": false,
-      "last_updated": "2026-07-24T18:50:22.009Z"
+      "status": "inválido",
+      "status_alterado": true,
+      "last_updated": "2026-07-27T12:48:13.778Z"
     },
     {
       "id": 926,
       "nome": "Renan Felliphe",
       "email": "felliphemouraa@gmail.com",
-      "status": "válido",
-      "status_alterado": false,
-      "last_updated": "2026-07-24T18:50:22.009Z"
+      "status": "inválido",
+      "status_alterado": true,
+      "last_updated": "2026-07-27T12:48:16.954Z"
     },
     {
       "id": 952,
       "nome": "Altamiro",
       "email": "altamirolacerdadealmeidajunior@gmail.com",
-      "status": "válido",
-      "status_alterado": false,
-      "last_updated": "2026-07-24T18:50:22.009Z"
+      "status": "inválido",
+      "status_alterado": true,
+      "last_updated": "2026-07-27T12:48:18.114Z"
     },
     {
       "id": 970,

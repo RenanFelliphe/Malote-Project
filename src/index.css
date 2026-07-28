@@ -2218,9 +2218,308 @@ li.marcado .exportar-lista-status-item {
 /* Etapa 5 (RefatoracaoModais.md) — corpo do e-mail (`EmailConteudoModal`):
    antes usava `rows={10}` fixo; a altura mínima equivalente agora vem
    daqui, e o redimensionamento vertical já vem de `.modal-campo textarea`
-   acima. */
+   acima.
+
+   Etapa 2 (refatoracaoEmailFormatado.md) — o `<textarea>` deu lugar ao
+   editor Tiptap (`EmailEditorRico`); `.campo-corpo-email` passou a ser o
+   invólucro de todo o editor (toolbar + área editável), por isso ganhou
+   borda/raio/fundo próprios em vez de herdar o estilo de
+   `.modal-campo textarea`. */
 .campo-corpo-email {
   min-height: 14rem;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.campo-corpo-email:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-soft);
+}
+
+/* Área editável do Tiptap (classe passada via `editorProps.attributes.class`
+   em `EmailEditorRico.tsx`). Tipografia básica para os nós/marcas do
+   StarterKit + extensões habilitadas (negrito, itálico, listas simples,
+   parágrafos) — sem estilos de heading/blockquote/code, já que esses nós
+   ficam desativados por decisão de escopo. */
+.campo-corpo-email-editor {
+  flex: 1;
+  min-height: 10rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  overflow-y: auto;
+}
+
+.campo-corpo-email-editor .tiptap {
+  outline: none;
+}
+
+.campo-corpo-email-editor p {
+  margin: 0 0 0.6em;
+}
+
+.campo-corpo-email-editor p:last-child {
+  margin-bottom: 0;
+}
+
+.campo-corpo-email-editor ul,
+.campo-corpo-email-editor ol {
+  margin: 0 0 0.6em;
+  padding-left: 1.4em;
+}
+
+/* Etapa 6 (refatoracaoEmailFormatado.md) — listas simples, sem numeração
+   aninhada: `disc` no primeiro nível, `circle` no segundo. */
+.campo-corpo-email-editor ul {
+  list-style-type: disc;
+}
+
+.campo-corpo-email-editor ul ul {
+  list-style-type: circle;
+}
+
+.campo-corpo-email-editor ol {
+  list-style-type: decimal;
+}
+
+/* Etapa 7 (refatoracaoEmailFormatado.md) — "transformar em botão": nó de
+   bloco customizado (`NoBotao`, `data-tipo="botao-email"`), estilo fixo por
+   decisão de escopo (caixa arredondada, cor de fundo, padding, margin,
+   centralizado). Marcas internas (negrito, cor, alinhamento) continuam
+   aplicáveis ao(s) parágrafo(s) de dentro, sem conflito com este estilo. */
+.email-botao {
+  margin: 0.6em auto;
+  padding: 0.7em 1.4em;
+  max-width: fit-content;
+  border-radius: 6px;
+  background-color: var(--color-accent);
+  text-align: center;
+}
+
+/* Etapa 8 (refatoracaoEmailFormatado.md) — a extensão `TextAlign` escreve o
+   alinhamento como `style="text-align: ..."` inline, direto no elemento
+   (parágrafo ou, dentro do botão, no próprio `.email-botao`). Isso já tem
+   prioridade sobre o `text-align: center` fixo acima sem precisar de nenhuma
+   regra extra aqui — o `center` acima é só o valor padrão visual da caixa,
+   não uma trava; o usuário pode alinhar à esquerda o texto de dentro do
+   botão normalmente pela toolbar. */
+
+.email-botao p {
+  margin: 0;
+  color: #ffffff;
+}
+
+/* Etapa 5 (refatoracaoEmailFormatado.md) — link aplicado pela toolbar.
+   Cor de acento para ficar consistente com o resto da interface, já que o
+   link ainda não tem estilo próprio definido pelo usuário. */
+.campo-corpo-email-editor a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: text;
+}
+
+/* Placeholder do editor vazio (extensão `Placeholder`, Etapa 2). O Tiptap
+   marca o primeiro parágrafo vazio com `is-editor-empty` e expõe o texto do
+   placeholder via atributo `data-placeholder`. */
+.campo-corpo-email-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--color-text-tertiary);
+}
+
+/* =========================================================================
+   Toolbar do corpo do e-mail (refatoracaoEmailFormatado.md — Etapa 3, com
+   Etapas 4 a 8 completadas aqui: cor/realce, link, listas, "transformar em
+   botão" e alinhamento. Todas reaproveitam as mesmas classes genéricas de
+   botão/grupo/separador definidas logo abaixo — nenhuma dessas etapas
+   precisou de estilo próprio além do que já existia).
+   ========================================================================= */
+
+.email-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+}
+
+.email-editor-toolbar-botao {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-editor-toolbar-botao:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.email-editor-toolbar-botao.ativo {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.email-editor-toolbar-botao:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Pontinho indicador da cor atualmente aplicada, sob o ícone de "cor do
+   texto"/"realce" (Etapa 4). */
+.email-editor-toolbar-indicador {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.7rem;
+  height: 0.15rem;
+  border-radius: var(--radius-full);
+}
+
+.email-editor-toolbar-separador {
+  width: 1px;
+  height: 1.3rem;
+  margin: 0 0.25rem;
+  background: var(--color-border-strong);
+}
+
+/* Âncora de posicionamento para os popovers (cor, realce, link) — cada
+   botão que abre um popover fica dentro de um grupo com `position:
+   relative`, para que o popover (`position: absolute`) se posicione em
+   relação a ele, não à toolbar inteira. */
+.email-editor-toolbar-grupo {
+  position: relative;
+  display: flex;
+}
+
+.email-editor-toolbar-popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem;
+}
+
+.email-editor-toolbar-popover-cores {
+  width: 9.5rem;
+}
+
+.email-editor-toolbar-popover-grade {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+.email-editor-toolbar-amostra {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-surface);
+  outline: 1px solid var(--color-border);
+  cursor: pointer;
+  padding: 0;
+}
+
+.email-editor-toolbar-amostra:hover {
+  outline-color: var(--color-border-strong);
+}
+
+.email-editor-toolbar-amostra.ativa {
+  outline: 2px solid var(--color-accent);
+}
+
+.email-editor-toolbar-popover-remover {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-editor-toolbar-popover-remover:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+/* Popover de link (Etapa 5). */
+.email-editor-toolbar-popover-link {
+  width: 15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.email-editor-toolbar-popover-input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+.email-editor-toolbar-popover-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.email-editor-toolbar-popover-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.email-editor-toolbar-popover-botao-aplicar {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.email-editor-toolbar-popover-botao-aplicar:hover {
+  background: var(--color-accent-hover);
+}
+
+.email-editor-toolbar-popover-acoes .email-editor-toolbar-popover-remover {
+  flex: 1;
+  width: auto;
 }
 
 .modal-campo-contador {
@@ -3032,3 +3331,4 @@ li.marcado .exportar-lista-status-item {
     display: block;
   }
 }
+

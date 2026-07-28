@@ -84,11 +84,19 @@ export interface EmailCounters {
 
 /**
  * Título e corpo do e-mail a ser enviado aos registros da planilha
- * (ver REFATORACAO-EMAIL-TITULO-CONTEUDO.md). Por enquanto é texto simples
- * (sem WYSIWYG/HTML); formatação rica fica como possível melhoria futura.
+ * (ver REFATORACAO-EMAIL-TITULO-CONTEUDO.md).
  */
 export interface EmailConteudo {
   titulo: string;
+  /**
+   * Corpo do e-mail em **HTML** (não texto puro), produzido pelo editor
+   * rico baseado em Tiptap (ver refatoracaoEmailFormatado.md). Registros
+   * salvos antes dessa refatoração continuam válidos sem migração: texto
+   * puro é HTML válido por si só (sem tags), então segue renderizando e
+   * editando normalmente. Ao extrair o texto visível (ex. contador de
+   * caracteres, exportações), usar o texto do editor (`editor.getText()`),
+   * nunca `.length` desta string diretamente — ela inclui marcação HTML.
+   */
   conteudo: string;
   /** Data/hora ISO da última alteração salva via o modal de edição. */
   atualizado_em: string;

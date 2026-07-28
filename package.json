@@ -11,7 +11,19 @@
     "sync": "cross-env TS_NODE_PROJECT=tsconfig.scripts.json node --loader ts-node/esm src/scripts/sync.ts"
   },
   "dependencies": {
+    "@tiptap/core": "^3.29.2",
+    "@tiptap/extension-color": "^3.29.2",
+    "@tiptap/extension-highlight": "^3.29.2",
+    "@tiptap/extension-link": "^3.29.2",
+    "@tiptap/extension-placeholder": "^3.29.2",
+    "@tiptap/extension-text-align": "^3.29.2",
+    "@tiptap/extension-text-style": "^3.29.2",
+    "@tiptap/extension-underline": "^3.29.2",
+    "@tiptap/pm": "^3.29.2",
+    "@tiptap/react": "^3.29.2",
+    "@tiptap/starter-kit": "^3.29.2",
     "cross-env": "^10.1.0",
+    "dompurify": "^3.2.4",
     "jspdf": "^2.5.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -21,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
