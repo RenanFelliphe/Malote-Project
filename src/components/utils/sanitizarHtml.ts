@@ -24,8 +24,15 @@ import DOMPurify from 'dompurify';
  *   3). O Tiptap normaliza a saída para essas tags (não usa `b`/`i`), mas
  *   elas continuam na lista para não quebrar HTML salvo por uma versão
  *   anterior do editor ou colado de fora já nesse formato.
- * - `span`: portador de `style` para cor de texto e highlight (Etapa 4) —
- *   é como `Color`/`Highlight` renderizam a marca.
+ * - `span`: portador de `style` para cor de texto (Etapa 4) — é como
+ *   `Color` renderiza a marca (via `TextStyle`).
+ * - `mark`: portador de `style`/`data-color` para o realce (Etapa 4) —
+ *   é como `Highlight` renderiza a marca quando `multicolor: true`
+ *   (refatoracaoEmailFormatado.md, revisão — Etapa 0/1: antes desta
+ *   correção, `mark` não constava aqui, então o DOMPurify descartava a tag
+ *   inteira — texto preservado, `style`/`data-color` perdidos junto com
+ *   ela, por isso o realce nunca sobrevivia à sanitização, nem dentro do
+ *   próprio editor).
  * - `a`: link (Etapa 5).
  * - `ul`, `ol`, `li`: listas simples (Etapa 6).
  * - `div`: usado exclusivamente pelo nó `noBotao` (Etapa 7) — identificado
@@ -46,6 +53,13 @@ import DOMPurify from 'dompurify';
  *   caso (o estilo do botão não é inline).
  * - `data-tipo`: marca estrutural do nó de botão (`parseHTML` de
  *   `NoBotao.ts` procura exatamente por `div[data-tipo="botao-email"]`).
+ * - `data-color`: usado por `Highlight` (`multicolor: true`) para
+ *   round-trip sem perda do valor original da cor ao reabrir um e-mail já
+ *   salvo — `parseHTML` da extensão prefere `data-color` a `style` quando
+ *   ambos estão presentes (ver `@tiptap/extension-highlight`). Já seria
+ *   preservado mesmo sem constar aqui, porque o DOMPurify libera qualquer
+ *   atributo `data-*` por padrão (`ALLOW_DATA_ATTR`) — listado mesmo assim
+ *   pela mesma razão de `data-tipo`: deixar a intenção explícita.
  *
  * Deliberadamente fora da lista: `id` (não faz parte do HTML de e-mail —
  * o único uso de `id` no editor é no elemento raiz do `EditorContent`, fora
@@ -57,8 +71,8 @@ import DOMPurify from 'dompurify';
  * a uma futura expansão descuidada de `ALLOWED_TAGS`).
  */
 const CONFIGURACAO_SANITIZACAO: Parameters<typeof DOMPurify.sanitize>[1] = {
-  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'span', 'a', 'ul', 'ol', 'li', 'div'],
-  ALLOWED_ATTR: ['style', 'href', 'target', 'rel', 'class', 'data-tipo'],
+  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'span', 'mark', 'a', 'ul', 'ol', 'li', 'div'],
+  ALLOWED_ATTR: ['style', 'href', 'target', 'rel', 'class', 'data-tipo', 'data-color'],
   FORBID_TAGS: ['script', 'style', 'img', 'svg', 'iframe', 'object', 'embed', 'form'],
   FORBID_ATTR: [
     'onerror',

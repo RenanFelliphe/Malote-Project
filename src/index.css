@@ -2353,6 +2353,19 @@ li.marcado .exportar-lista-status-item {
   background: var(--color-bg-subtle);
 }
 
+/* Seção fixa da toolbar (Funções Básicas/Extras/Listas/Alinhamento/Limpar
+   Formatação — refatoracaoEmailFormatado.md, revisão — Etapa 4). Mesmo
+   `gap` que os botões já tinham como filhos diretos da toolbar, agora
+   aplicado dentro de cada seção — o agrupamento em `ToolbarGrupo` não muda
+   o espaçamento visual entre os botões. `flex-wrap` evita que uma seção
+   force overflow horizontal antes que a Etapa 5 decida colapsá-la. */
+.email-editor-toolbar-grupo-secao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem;
+}
+
 .email-editor-toolbar-botao {
   position: relative;
   display: flex;

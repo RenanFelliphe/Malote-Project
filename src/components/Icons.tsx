@@ -1,5 +1,10 @@
 import {
   FiAlertTriangle,
+  FiAlignCenter,
+  FiAlignJustify,
+  FiAlignLeft,
+  FiAlignRight,
+  FiBold,
   FiCheck,
   FiChevronDown,
   FiChevronLeft,
@@ -9,6 +14,8 @@ import {
   FiDownload,
   FiEdit3,
   FiFileText,
+  FiItalic,
+  FiLink,
   FiMail,
   FiMoon,
   FiMoreVertical,
@@ -19,9 +26,16 @@ import {
   FiSettings,
   FiSun,
   FiTrash2,
+  FiUnderline,
   FiUpload,
   FiX,
 } from 'react-icons/fi';
+// O conjunto Feather (react-icons/fi), usado em todo o resto do projeto, não
+// tem ícones de tachado/cor de texto/realce/listas/"botão". Para esses seis,
+// usa-se o conjunto Bootstrap Icons (react-icons/bi), que mantém o mesmo
+// estilo de contorno (outline) do Feather — evita misturar um estilo
+// preenchido (solid) no meio da toolbar.
+import { BiFontColor, BiHighlight, BiListOl, BiListUl, BiSquareRounded, BiStrikethrough } from 'react-icons/bi';
 
 export function IconeCopiar() {
   return <FiCopy size={14} aria-hidden="true" />;
@@ -111,4 +125,67 @@ export function IconeSetaCima() {
 
 export function IconeSetaBaixo() {
   return <FiChevronDown size={13} aria-hidden="true" />;
+}
+
+/**
+ * Ícones da toolbar do editor de corpo do e-mail
+ * (refatoracaoEmailFormatado.md — Etapas 3 a 8, 11). `IconeRestaurar`
+ * (definido acima) é reaproveitado para "limpar formatação" — não entra
+ * aqui de novo.
+ */
+export function IconeNegrito() {
+  return <FiBold size={14} aria-hidden="true" />;
+}
+
+export function IconeItalico() {
+  return <FiItalic size={14} aria-hidden="true" />;
+}
+
+export function IconeSublinhado() {
+  return <FiUnderline size={14} aria-hidden="true" />;
+}
+
+export function IconeTachado() {
+  return <BiStrikethrough size={16} aria-hidden="true" />;
+}
+
+export function IconeCorTexto() {
+  return <BiFontColor size={17} aria-hidden="true" />;
+}
+
+export function IconeRealce() {
+  return <BiHighlight size={17} aria-hidden="true" />;
+}
+
+export function IconeLink() {
+  return <FiLink size={14} aria-hidden="true" />;
+}
+
+export function IconeListaNaoOrdenada() {
+  return <BiListUl size={18} aria-hidden="true" />;
+}
+
+export function IconeListaOrdenada() {
+  return <BiListOl size={18} aria-hidden="true" />;
+}
+
+export function IconeBotaoEmail() {
+  return <BiSquareRounded size={16} aria-hidden="true" />;
+}
+
+export function IconeAlinharEsquerda() {
+  return <FiAlignLeft size={14} aria-hidden="true" />;
+}
+
+export function IconeAlinharCentro() {
+  return <FiAlignCenter size={14} aria-hidden="true" />;
+}
+
+/** Alinhar à direita/justificado (refatoracaoEmailFormatado.md, revisão — Etapa 2). */
+export function IconeAlinharDireita() {
+  return <FiAlignRight size={14} aria-hidden="true" />;
+}
+
+export function IconeAlinharJustificado() {
+  return <FiAlignJustify size={14} aria-hidden="true" />;
 }

@@ -1,194 +1,158 @@
-# Refatoração — Formatação Rica no Corpo do E-mail
+# Refatoração — Correção e Evolução do Editor Rico
 
-## 1. Contexto do projeto
+## 1. Contexto desta revisão
 
-O **Sistema de Organização e Envio de E-mails** é uma aplicação React 19/TypeScript/Vite. O registro de cada e-mail (`EmailConteudo`, em `src/types/email.ts`) tem hoje um campo `conteudo` de **texto puro**, editado em `EmailConteudoModal.tsx` através de um `<textarea>` simples. Não existe, em nenhum ponto do sistema, um caminho que preserve ou produza HTML — nem na edição, nem na cópia para a área de transferência (`copiarTexto`, em `utils/clipboard.ts`, escreve apenas `text/plain`, chamada pelo botão "Copiar corpo" em `Header.tsx`). Todos os estilos do projeto vivem num único arquivo global, `src/index.css`.
+O plano anterior (`refatoracaoEmailFormatado.md`, etapas 0–15) já foi implementado: o editor rico Tiptap está no ar, substituindo o `<textarea>` original, com toolbar, paste formatado, sanitização e cópia com `text/html`. Uma rodada de teste manual (prints da plataforma e do Outlook) revelou que **parte** das funções não sobrevive até o destino final (Gmail/Outlook), e outra parte ficou incompleta em relação ao que o produto precisa.
 
-## 2. A demanda
+Este documento organiza a correção dos bugs encontrados e a implementação do que faltou, em cima do código já existente — não é um retrabalho do zero.
 
-Gmail e Outlook não oferecem formatação de texto nativa na composição — mas aceitam colar conteúdo já formatado (negrito, cor, links, botões etc.), preservando a formatação. Hoje, ao colar um e-mail formatado na nossa plataforma, a formatação se perde (por ser um `<textarea>`), e não há como formatar o texto pela própria plataforma.
+### 1.1 O que os prints confirmam
 
-## 3. Decisão de escopo (registrada nesta etapa de planejamento)
+Comparando o print da plataforma com o print do rascunho no Outlook, lado a lado:
 
-- **Funções da barra de ferramentas:** negrito, itálico, sublinhado, tachado, cor de texto, highlight (cor de fundo do texto), link, "transformar em botão", lista ordenada simples (sem numeração aninhada tipo "2.1"), lista não ordenada simples (bolinha cheia no nível 1, vazia no nível 2), alinhamento de texto, limpar formatação (aplicada apenas à seleção, não ao documento inteiro).
-- **Colar formatado:** o campo passa a aceitar HTML colado, preservando a formatação (dentro do conjunto de marcas suportado acima).
-- **Copiar formatado:** o botão "Copiar corpo" (`Header.tsx`) passa a escrever também `text/html` na área de transferência, para que colar no Gmail/Outlook preserve a formatação.
-- **Fora de escopo, por decisão explícita:** numeração aninhada de listas (1., 2., 2.1. ...) — mantém-se lista simples, sem essa complexidade.
-- **Biblioteca:** o editor será construído sobre o **Tiptap** (baseado em ProseMirror). Não usar `execCommand`/`contenteditable` cru — API deprecada e inconsistente entre navegadores.
-- **Modelo de dados:** `conteudo` passa de texto puro para **string HTML**. Compatível com os dados existentes (texto puro é HTML válido sem tags).
-- **"Transformar em botão"** será implementado como um **nó de bloco customizado** (não um mark), com estilo padrão fixo (caixa arredondada, cor, padding, margin), para poder conter dentro dele outras marcas (negrito, cor, alinhamento) sem conflito.
+| Formatação | Plataforma | Outlook | Situação |
+|---|---|---|---|
+| Negrito, Itálico, Sublinhado, Tachado | ✅ | ✅ | OK |
+| Link | ✅ | ✅ | OK |
+| Listas (ordenada/desordenada, com sublista) | ✅ | ✅ | OK |
+| Alinhamento centralizado | ✅ | ✅ | OK |
+| Cor de texto | ✅ (azul) | ❌ (texto preto liso) | **Quebrado** |
+| Realce | ✅ (fundo destacado) | ❌ (sem fundo) | **Quebrado** |
+| Botão | ✅ (caixa arredondada azul) | ❌ (texto em negrito solto, sem caixa, sem cor, sem link) | **Quebrado** |
+
+Isso **revisa** a hipótese registrada na análise anterior: antes eu havia levantado que a cor de texto provavelmente sobrevivia de ponta a ponta no código e o problema seria só uma limitação do motor de renderização do Outlook. O print derruba essa hipótese — cor de texto e realce falham exatamente do mesmo jeito visual, o que aponta para os dois serem descartados no **mesmo trecho do nosso próprio pipeline** (sanitização e/ou geração do HTML "email-safe" usado na cópia), e não para uma limitação externa do Outlook. A Etapa 0 abaixo trata os dois como uma causa provavelmente única, a ser confirmada por inspeção direta do código antes de decidir a correção exata.
+
+## 2. Decisões de escopo desta revisão
+
+- **Botão avançado:** cor do botão reaproveita o mesmo componente de paleta já usado em Cor de Texto/Realce (não um color-picker livre, mantendo a decisão original de escopo). Alinhamento do botão passa a seguir a mesma extensão `TextAlign` usada no texto, e não mais um valor fixo de CSS.
+- **Toolbar responsiva:** a resolução da responsividade é por **agrupamento em seções com popover**, nunca por quebra de linha. As seções são fixas: Funções Básicas, Extras, Listas, Alinhamento, Limpar Formatação — nessa ordem.
+- **Emoji:** usar biblioteca pronta (não construir do zero), por já existirem soluções maduras com categorias e busca no ecossistema React.
 
 > ## ⚠️ Regra de entrega a cada etapa — leia antes de começar
 >
-> **A cada etapa implementada, a entrega deve ser um único ZIP contendo *todos* os arquivos alterados desde a etapa 1 até a etapa atual — não apenas os da etapa corrente.**
+> **A cada etapa implementada, a entrega deve ser um único ZIP contendo *todos* os arquivos alterados desde a Etapa 0 desta revisão até a etapa atual — não apenas os da etapa corrente.**
 >
-> Exemplo: se a etapa atual sendo implementada é a **3**, o zip deve conter todo arquivo que foi alterado (criado ou modificado) nas etapas **1, 2 e 3** juntas. Arquivos que não foram tocados em nenhuma dessas etapas **não** entram no zip, mesmo que existam no projeto.
->
-> Cada etapa abaixo lista os arquivos que ela altera (**"Arquivos alterados"**) — o zip de cada etapa é a união desses arquivos com os de todas as etapas anteriores. Também lista os arquivos que preciso ver mas não vou alterar (**"Arquivos-fonte necessários"**) — envie só esses, você não precisa mandar o projeto completo de novo a cada etapa.
+> A mesma regra do plano anterior se aplica aqui, reiniciando a contagem cumulativa a partir da Etapa 0 deste documento (o plano anterior já foi entregue e mesclado ao projeto).
 
-## 4. Divisão em etapas
+## 3. Divisão em etapas
 
-A refatoração está dividida em 15 etapas. As etapas 0 a 2 são estritamente sequenciais (cada uma depende da anterior). A partir da etapa 3, os itens de barra de ferramentas (3 a 8) podem ser feitos em qualquer ordem entre si. As etapas 2, 9/10 e 13 são checkpoints — mudam algo perceptível para quem usa o sistema.
+As etapas 0 e 1 são de correção de bugs e devem vir primeiro, pois travam a confiabilidade de tudo que já existe. As etapas 2–5 são de melhoria/completude e podem ser feitas em qualquer ordem entre si. As etapas 6–8 (botão avançado) são sequenciais entre si. A etapa 9 (emoji) é independente e pode entrar em paralelo a qualquer momento a partir da etapa 1. As etapas 1, 5, 8 e 10 são checkpoints.
 
-### Etapa 0 — Escolha e instalação da base do editor
+### Etapa 0 — Diagnóstico de código: por que cor de texto e realce se perdem
 
-**O que fazer:** adicionar `@tiptap/react`, `@tiptap/starter-kit` e as extensões oficiais necessárias (`Underline`, `Strike`, `Color`, `Highlight`, `TextStyle`, `Link`, `TextAlign` — `BulletList`/`OrderedList`/`ListItem` já vêm no starter kit).
+**O que fazer:** antes de qualquer correção, inspecionar na ordem: (1) `sanitizarHtml.ts` — conferir `ALLOWED_TAGS` (confirmar ausência de `mark`) e principalmente `ALLOWED_ATTR` (confirmar se `style` está de fato liberado para todas as tags ou só para algumas); (2) `clipboard.ts` — conferir qual HTML é de fato escrito no `ClipboardItem` (`text/html`): se é `editor.getHTML()` direto, o resultado de `emailHtmlInline()`, ou uma terceira fonte; (3) `emailHtmlInline.ts` — conferir se, ao processar o HTML para o formato "email-safe", alguma etapa de conversão classe→estilo acaba sobrescrevendo ou removendo o `style` que já existia no `span`/`mark` original, em vez de só complementar.
 
-**Por quê:** é a decisão de fundação — todas as etapas seguintes dependem dela.
+**Por quê:** o sintoma nos prints (cor e realce falham de forma idêntica, enquanto negrito/itálico/sublinhado/tachado/link funcionam) sugere uma causa comum ligada a como `style` é tratado no pipeline de sanitização/exportação — mas a análise anterior (baseada só em leitura de trechos do código) apontava para hipóteses diferentes para cada um dos dois casos. É preciso confirmar contra o código real antes de decidir o que corrigir, para não aplicar a correção errada em cima de um diagnóstico presumido.
 
-**Arquivos alterados:** `package.json`
+**Arquivos alterados:** nenhum (etapa de investigação).
 
-**Arquivos-fonte necessários:** nenhum além do próprio `package.json` atual.
+**Arquivos-fonte necessários:** `src/components/utils/sanitizarHtml.ts`, `src/components/utils/clipboard.ts`, `src/components/utils/emailHtmlInline.ts`, `src/components/Header.tsx`.
 
-### Etapa 1 — Modelo de dados (`types/email.ts`)
+### Etapa 1 — Correção: cor de texto e realce chegando ao Outlook/Gmail — checkpoint
 
-**O que fazer:** documentar (via comentário no tipo, seguindo o padrão já usado no projeto) que `conteudo` passa a conter HTML, não texto puro. Nenhuma mudança de schema no JSON é necessária — o campo continua sendo `string`.
+**O que fazer:** com base no diagnóstico da Etapa 0, aplicar a correção no ponto exato identificado — candidatos previstos: adicionar `mark` à allowlist de tags e garantir `style` liberado para `span`/`mark` em `sanitizarHtml.ts`; e/ou corrigir `emailHtmlInline.ts` para preservar (não sobrescrever) o `style` inline já presente nesses elementos.
 
-**Por quê:** é o ponto que o TypeScript sozinho não vai sinalizar (o tipo continua `string` antes e depois), então precisa ficar documentado explicitamente para quem for mexer depois.
+**Por quê é checkpoint:** é a correção do bug mais visível relatado — vale testar isoladamente, repetindo o ciclo colar-copiar-colar no Outlook e no Gmail, antes de empilhar as próximas etapas.
 
-**Decisão registrada aqui:** dado existente (texto puro) não precisa de migração/script, por ser HTML válido por si só.
+**Arquivos alterados:** `src/components/utils/sanitizarHtml.ts` e/ou `src/components/utils/emailHtmlInline.ts` (conforme achado da Etapa 0).
 
-**Arquivos alterados:** `src/types/email.ts`
+**Arquivos-fonte necessários:** nenhum adicional além do que já foi visto na Etapa 0.
 
-**Arquivos-fonte necessários:** nenhum adicional.
+### Etapa 2 — Alinhamento: adicionar direita e justificado
 
-### Etapa 2 — Substituir o `<textarea>` pelo editor Tiptap (sem toolbar ainda) — checkpoint
+**O que fazer:** trocar `TextAlign.configure({ alignments: ['left', 'center'], ... })` para incluir `'right'` e `'justify'` em `EmailEditorRico.tsx`; adicionar os dois ícones (`IconeAlinharDireita`, `IconeAlinharJustificado`) em `Icons.tsx`; adicionar os dois botões correspondentes em `EmailEditorToolbar.tsx`.
 
-**O que fazer:** criar um componente novo, `EmailEditorRico.tsx`, que encapsula `useEditor`/`EditorContent` do Tiptap com as extensões básicas de texto (sem negrito/itálico/etc. habilitados ainda). Usar esse componente dentro de `EmailConteudoModal.tsx` no lugar do `<textarea>`. Salvar `editor.getHTML()` no lugar do `evento.target.value`.
+**Por quê:** já é suportado nativamente pela extensão oficial do Tiptap — os outros dois valores só não foram habilitados na configuração original. É a correção mais simples do lote.
 
-**Por quê é checkpoint:** é a primeira mudança que altera a experiência de digitação em si — vale testar isoladamente antes de empilhar as próximas etapas em cima.
-
-**Atenção:** o contador de caracteres precisa passar a contar `editor.getText().length` (texto visível), não o tamanho da string HTML.
-
-**Arquivos alterados:** `src/components/EmailEditorRico.tsx` (novo), `src/components/EmailConteudoModal.tsx`, `src/index.css` (estilos base do editor, substituindo `.campo-corpo-email`)
-
-**Arquivos-fonte necessários:** `src/types/email.ts` (etapa 1)
-
-### Etapa 3 — Marcas de texto simples (negrito, itálico, sublinhado, tachado) + toolbar base
-
-**O que fazer:** habilitar `Bold`, `Italic`, `Underline`, `Strike` e criar `EmailEditorToolbar.tsx`, com os 4 botões correspondentes, cada um chamando `editor.chain().focus().toggleBold().run()` (padrão análogo para os outros).
-
-**Por quê:** valida o padrão de toolbar (botão → comando → estado ativo/inativo) antes de ir para os itens mais específicos.
-
-**Arquivos alterados:** `src/components/EmailEditorToolbar.tsx` (novo), `src/components/EmailEditorRico.tsx`, `src/index.css`
-
-**Arquivos-fonte necessários:** `src/components/Icons.tsx` (padrão de ícones já usado no projeto, para manter consistência visual)
-
-### Etapa 4 — Cor de texto e highlight
-
-**O que fazer:** habilitar `TextStyle` + `Color` (cor do texto) e `Highlight` (cor de fundo), com uma paleta fixa de cores na toolbar (não um color-picker livre, para manter o editor simples).
-
-**Por quê:** ambas dependem da extensão `TextStyle` como base — por isso ficam juntas nesta etapa.
-
-**Arquivos alterados:** `src/components/EmailEditorToolbar.tsx`, `src/components/EmailEditorRico.tsx`, `src/index.css`
+**Arquivos alterados:** `src/components/EmailEditorRico.tsx`, `src/components/EmailEditorToolbar.tsx`, `src/components/Icons.tsx`, `src/index.css`.
 
 **Arquivos-fonte necessários:** nenhum adicional.
 
-### Etapa 5 — Link
+### Etapa 3 — Limpar formatação: revisão pós-alinhamento
 
-**O que fazer:** habilitar a extensão `Link` e adicionar um botão que abre um input simples (inline ou popover) para a URL, aplicando `editor.chain().focus().setLink({ href }).run()`.
+**O que fazer:** confirmar que `unsetAllMarks().clearNodes()` (já implementado) também neutraliza corretamente os novos valores de alinhamento, sem quebrar a seleção. Ajustar apenas se o teste manual encontrar algum caso não coberto.
 
-**Por quê:** é o primeiro item que precisa de uma UI própria — serve de base de padrão para o botão de "transformar em botão" (etapa 7).
+**Por quê:** "Limpar formatação" foi originalmente implementado antes do alinhamento completo existir — vale confirmar que continua consistente com essa adição nova.
 
-**Arquivos alterados:** `src/components/EmailEditorToolbar.tsx`, `src/components/EmailEditorRico.tsx`, `src/index.css`
-
-**Arquivos-fonte necessários:** `src/components/Dialog.tsx` ou `src/components/ConfirmDialog.tsx` (só se optar por reaproveitar um padrão visual de popover já existente no projeto)
-
-### Etapa 6 — Listas simples (ordenada e não ordenada)
-
-**O que fazer:** habilitar `BulletList`/`OrderedList`/`ListItem` com os estilos padrão (`disc` no primeiro nível, `circle` no segundo — sem numeração aninhada customizada). Botões de toggle na toolbar.
-
-**Por quê:** por decisão de escopo, não entra lógica de numeração tipo "2.1.", o que simplifica bastante esta etapa.
-
-**Arquivos alterados:** `src/components/EmailEditorToolbar.tsx`, `src/index.css`
+**Arquivos alterados:** `src/components/EmailEditorToolbar.tsx` (apenas se o teste apontar ajuste necessário).
 
 **Arquivos-fonte necessários:** nenhum adicional.
 
-### Etapa 7 — "Transformar em botão" (nó customizado)
+### Etapa 4 — Toolbar em seções: estrutura e componente de grupo
 
-**O que fazer:** criar uma extensão de nó Tiptap (`NoBotao.ts`) que envolve a seleção atual num bloco com estilo padrão fixo (caixa arredondada, cor de fundo, padding, margin, centralizado), permitindo que marcas internas (negrito, cor, alinhamento) continuem aplicáveis ao texto dentro dele. Registrar a extensão no editor e adicionar o botão de toggle na toolbar.
+**O que fazer:** criar um componente reutilizável de grupo (`ToolbarGrupo.tsx`, por exemplo), no padrão de gatilho fechado + painel dropdown já usado em `OrdenacaoPrioridade.tsx` e no `PainelCores` existente dentro de `EmailEditorToolbar.tsx` (reaproveitando `painelAberto`/`ref`/clique-fora/Escape). Reorganizar `EmailEditorToolbar.tsx` em cinco grupos fixos, nesta ordem: **Funções Básicas** (Negrito, Itálico, Sublinhado, Tachado), **Extras** (Cor de Texto, Realce, Link, Botão), **Listas** (Desordenada, Ordenada), **Alinhamento** (Esquerda, Centro, Direita, Justificado), **Limpar Formatação**.
 
-**Por quê:** é o item de maior complexidade da lista de funções — não existe pronto no Tiptap, precisa ser modelado como nó customizado, exatamente pela exigência de aceitar formatações adicionais por dentro.
+**Por quê:** é a base estrutural da responsividade pedida — sem essa reorganização em grupos, não há o que colapsar depois.
 
-**Arquivos alterados:** `src/components/editor/extensoes/NoBotao.ts` (novo), `src/components/EmailEditorRico.tsx`, `src/components/EmailEditorToolbar.tsx`, `src/index.css`
+**Arquivos alterados:** `src/components/editor/ToolbarGrupo.tsx` (novo), `src/components/EmailEditorToolbar.tsx`, `src/index.css`.
 
-**Arquivos-fonte necessários:** nenhum adicional além do que já foi entregue nas etapas anteriores.
+**Arquivos-fonte necessários:** `src/components/OrdenacaoPrioridade.tsx` (padrão de referência de popover já usado no projeto).
 
-### Etapa 8 — Alinhamento de texto
+### Etapa 5 — Toolbar responsiva: colapso automático por largura — checkpoint
 
-**O que fazer:** habilitar a extensão `TextAlign` (esquerda, centro) nos tipos de nó relevantes (parágrafo, e o nó de botão da etapa 7).
+**O que fazer:** implementar a lógica de decidir, por grupo, se os botões aparecem expandidos (inline) ou colapsados atrás do gatilho do grupo, reagindo à largura disponível do container da toolbar — via `ResizeObserver` no elemento da toolbar, ou via `@container` queries de CSS. Em nenhum cenário os botões devem quebrar para uma segunda linha soltos; a alternativa a "caber" é sempre "virar grupo colapsado".
 
-**Por quê:** precisa vir depois da etapa 7 para garantir que o botão de "transformar em botão" já aceite alinhamento por dentro.
+**Por quê é checkpoint:** é a mudança de comportamento mais perceptível desta revisão para quem usa o sistema no dia a dia (editor com toolbar diferente da atual) — vale testar em diferentes larguras de tela antes de seguir para o botão avançado.
 
-**Arquivos alterados:** `src/components/EmailEditorRico.tsx`, `src/components/EmailEditorToolbar.tsx`, `src/index.css`
-
-**Arquivos-fonte necessários:** `src/components/editor/extensoes/NoBotao.ts` (etapa 7, para garantir compatibilidade)
-
-### Etapa 9 — Colar formatado (paste) — checkpoint
-
-**O que fazer:** configurar as regras de paste do Tiptap (`transformPastedHTML`/paste rules) para aceitar HTML colado de fora, normalizando para o conjunto de marcas/nós suportado (o que não é suportado é descartado ou convertido para texto simples, sem quebrar o editor).
-
-**Por quê é checkpoint:** é a mudança que resolve a queixa original ("colar e perder formatação") — vale testar com conteúdo colado do Gmail, Outlook e Word.
-
-**Arquivos alterados:** `src/components/EmailEditorRico.tsx`
+**Arquivos alterados:** `src/components/EmailEditorToolbar.tsx`, `src/components/editor/ToolbarGrupo.tsx`, `src/index.css`.
 
 **Arquivos-fonte necessários:** nenhum adicional.
 
-### Etapa 10 — Sanitização do HTML colado/armazenado
+### Etapa 6 — Botão avançado: atributos de cor e link no nó
 
-**O que fazer:** aplicar um sanitizador (`DOMPurify`) sobre o HTML antes de salvar, removendo `<script>`, atributos `on*` e qualquer tag fora da lista permitida.
+**O que fazer:** adicionar `addAttributes()` ao node `NoBotao.ts` para `cor` (background) e `href` (destino), persistidos como `data-cor`/`data-href` e refletidos no `style`/serialização do nó (`renderHTML`/`parseHTML`).
 
-**Por quê:** conteúdo colado vem de fora do sistema — sem sanitização, HTML malicioso colado poderia ser executado em qualquer lugar que renderize esse `conteudo` como HTML depois.
+**Por quê:** hoje o node não tem nenhum atributo — cor vem de uma constante fixa (`COR_ACENTO`) em `emailHtmlInline.ts` e não existe `href` em lugar nenhum, por isso o botão nunca foi clicável. É a mesma abordagem já usada no projeto para `Link` (atributo de marca) e `Highlight` (atributo `color`), só que aplicada a um node em vez de a uma mark.
 
-**Arquivos alterados:** `src/components/utils/sanitizarHtml.ts` (novo), `package.json` (dompurify), `src/components/EmailEditorRico.tsx`
-
-**Arquivos-fonte necessários:** nenhum adicional.
-
-### Etapa 11 — Limpar formatação (seleção)
-
-**O que fazer:** botão que aplica `editor.chain().focus().unsetAllMarks().clearNodes().run()` restrito à seleção atual.
-
-**Por quê:** depende das etapas 3 a 8 já estarem prontas — só faz sentido "limpar" formatações que já existem.
-
-**Arquivos alterados:** `src/components/EmailEditorToolbar.tsx`
+**Arquivos alterados:** `src/components/editor/extensoes/NoBotao.ts`.
 
 **Arquivos-fonte necessários:** nenhum adicional.
 
-### Etapa 12 — Serialização "email-safe" (estilos inline)
+### Etapa 7 — Botão avançado: UI de cor + link + alinhamento reativo
 
-**O que fazer:** criar uma função de exportação (`emailHtmlInline.ts`) que percorre o HTML do editor e converte classes/CSS para **estilos inline** (`style="..."`), já que Gmail e Outlook descartam `<style>` e, em boa parte dos casos, `class`.
+**O que fazer:** criar o popover do botão "Transformar em botão", reaproveitando o componente de paleta já usado em Cor de Texto/Realce (para a cor do botão) e o mesmo padrão de input de URL já usado no botão de Link (para o `href`). Corrigir o CSS: hoje `.email-botao` tem `margin: 0.6em auto` fixo, centralizando o bloco independentemente do `text-align` aplicado — trocar por margens condicionais ao valor de `TextAlign` do próprio node (`left`/`center`/`right`) e `width: 100%` para `justify`, para que o alinhamento do botão passe a seguir de fato a seleção feita na seção Alinhamento da toolbar, e não um valor fixo.
 
-**Por quê:** sem isso, tudo que foi construído nas etapas anteriores funciona dentro da plataforma mas perde a aparência ao ser colado no Gmail/Outlook.
+**Por quê:** fecha a lacuna de personalização pedida (hoje todo botão do sistema sai com a mesma cor, sem link, sempre centralizado). Depende da Etapa 6 (atributos já precisam existir no node antes de a UI poder gravá-los).
 
-**Arquivos alterados:** `src/components/utils/emailHtmlInline.ts` (novo)
+**Arquivos alterados:** `src/components/EmailEditorToolbar.tsx`, `src/components/editor/extensoes/NoBotao.ts`, `src/index.css`.
 
-**Arquivos-fonte necessários:** `src/index.css` (para saber quais estilos precisam virar inline — negrito, cor, highlight, link, botão, listas, alinhamento)
+**Arquivos-fonte necessários:** `src/components/editor/extensoes/NoBotao.ts` (etapa 6).
 
-### Etapa 13 — Copiar formatado (clipboard) — checkpoint
+### Etapa 8 — Botão avançado: exportação bulletproof para Outlook — checkpoint
 
-**O que fazer:** criar uma nova função em `clipboard.ts` (ex. `copiarHtml`) que escreve um `ClipboardItem` com `text/html` (usando o HTML "email-safe" da etapa 12) **e** `text/plain` como fallback. Atualizar o botão "Copiar corpo" em `Header.tsx` para usar essa função.
+**O que fazer:** em `emailHtmlInline.ts`, substituir a exportação do node de `<div>` com CSS puro por uma estrutura "bulletproof" de e-mail: `<table><tr><td style="background-color:...; border-radius:...">` contendo um `<a href="...">` real como link, com fallback VML via comentários condicionais `<!--[if mso]>` para preservar o arredondamento no Outlook Desktop.
 
-**Por quê é checkpoint:** fecha o segundo lado da demanda original — copiar da plataforma e colar no Gmail/Outlook já formatado.
+**Por quê é checkpoint:** o motor de renderização do Outlook Desktop (baseado no Word) não aplica `background-color`/`border-radius`/`padding` de forma confiável em `<div>`/`<span>` — só em `<table>`/`<td>` ou via VML. É a correção que finalmente faz o botão aparecer como botão (com cor, formato e link) no Outlook, então merece teste isolado antes de seguir.
 
-**Arquivos alterados:** `src/components/utils/clipboard.ts`, `src/components/Header.tsx`
+**Arquivos alterados:** `src/components/utils/emailHtmlInline.ts`.
 
-**Arquivos-fonte necessários:** `src/components/utils/emailHtmlInline.ts` (etapa 12), `src/types/email.ts`
+**Arquivos-fonte necessários:** `src/components/editor/extensoes/NoBotao.ts` (para saber exatamente quais atributos/estrutura o node expõe após as etapas 6 e 7).
 
-### Etapa 14 — Revisão do wizard de importação
+### Etapa 9 — Botão flutuante de emojis: instalação e componente
 
-**O que fazer:** revisar `EtapaDefinicao.tsx` (dentro do wizard de importação, hoje com seu próprio `<textarea>` para um `conteudo` inicial) e decidir se também vira rich-text ou permanece texto puro por ser um valor padrão inicial, não um e-mail final.
+**O que fazer:** adicionar a biblioteca de emoji picker escolhida (`emoji-mart`/`@emoji-mart/react` ou `emoji-picker-react`) ao `package.json`; criar `EmojiPickerFlutuante.tsx`, com um botão fixo (`position: absolute`) no canto inferior direito do modal `EmailConteudoModal.tsx`, seguindo o padrão visual de outros elementos flutuantes já existentes no projeto.
 
-**Por quê:** é o único outro ponto do sistema, além do modal de edição e do `Header`, que lida com `conteudo` — ficou de fora das etapas anteriores de propósito, para não misturar a construção do editor com a adaptação de um consumidor externo a ele.
+**Por quê:** não existe nada de emoji hoje no projeto (nenhuma dependência, nenhum componente). Usar biblioteca pronta evita o trabalho contínuo de manter atualizada uma base de dados de emojis alinhada à spec Unicode.
 
-**Arquivos alterados:** `src/components/import/EtapaDefinicao.tsx` (conforme decisão tomada nesta etapa)
+**Arquivos alterados:** `package.json`, `src/components/EmojiPickerFlutuante.tsx` (novo), `src/index.css`.
 
-**Arquivos-fonte necessários:** `src/components/import/types.ts`, `src/components/import/ImportWizardModal.tsx` (contexto de como o estado é usado no wizard), `src/components/EmailEditorRico.tsx` (caso decida reaproveitar o mesmo editor aqui)
+**Arquivos-fonte necessários:** `src/components/EmailConteudoModal.tsx` (para posicionar o botão flutuante corretamente dentro do modal).
 
-### Etapa 15 — Teste manual de fidelidade ponta a ponta
+### Etapa 10 — Botão flutuante de emojis: integração com o editor — checkpoint
 
-**O que fazer:** ciclo completo manual — colar conteúdo do Gmail/Outlook/Word na plataforma, editar com a toolbar, copiar de volta e colar no Gmail e no Outlook, conferindo negrito/cor/link/botão/listas/alinhamento em cada destino.
+**O que fazer:** ao selecionar um emoji no popover, inserir o caractere no cursor via `editor.chain().focus().insertContent(emoji).run()` (API padrão do Tiptap); conectar `EmojiPickerFlutuante.tsx` a `EmailEditorRico.tsx`.
 
-**Por quê:** é o único jeito de validar a demanda original de fato — o comportamento de paste/copy de HTML varia por cliente de e-mail de um jeito que não dá pra garantir só por inspeção de código.
+**Por quê é checkpoint:** fecha a última demanda nova desta revisão — vale confirmar que o emoji inserido sobrevive normalmente à sanitização (é só texto Unicode dentro de um `<p>`, já permitido) e à cópia formatada para Outlook/Gmail, sem tratamento especial necessário.
+
+**Arquivos alterados:** `src/components/EmailEditorRico.tsx`, `src/components/EmojiPickerFlutuante.tsx`.
+
+**Arquivos-fonte necessários:** nenhum adicional.
+
+### Etapa 11 — Teste manual de fidelidade ponta a ponta (revisão completa)
+
+**O que fazer:** repetir o ciclo completo de teste manual desta revisão — colar conteúdo do Gmail/Outlook/Word, aplicar cada função da toolbar reorganizada (incluindo alinhamento completo e botão avançado com cor/link/alinhamento), inserir emojis, copiar de volta e colar no Gmail e no Outlook — conferindo especificamente que cor de texto, realce e botão (cor, formato, link e alinhamento) agora sobrevivem nos dois clientes, o que era o conjunto de bugs que motivou esta revisão.
+
+**Por quê:** é o único jeito de confirmar que os três bugs relatados (cor, realce, botão) foram de fato resolvidos nos ambientes reais, já que o comportamento de paste/copy de HTML varia por cliente de e-mail de um jeito que não dá para garantir só por inspeção de código.
 
 **Arquivos alterados:** nenhum (apenas validação).
 

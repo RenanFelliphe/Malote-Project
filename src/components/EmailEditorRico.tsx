@@ -5,7 +5,7 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
-import TextStyle from '@tiptap/extension-text-style';
+import { TextStyle } from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline';
 
 import { NoBotao } from './editor/extensoes/NoBotao';
@@ -235,11 +235,13 @@ export function EmailEditorRico({ id, value, onChange, onContagemChange, placeho
       NoBotao,
       // Alinhamento de texto (Etapa 8 — refatoracaoEmailFormatado.md). Só
       // `paragraph` e `noBotao` (o nó de botão da Etapa 7) — não há outros
-      // tipos de bloco habilitados no editor. Por decisão de escopo, só
-      // esquerda/centro (`alignments`), sem justificado/direita.
+      // tipos de bloco habilitados no editor. Direita e justificado
+      // (refatoracaoEmailFormatado.md, revisão — Etapa 2) habilitados aqui:
+      // já eram suportados nativamente pela extensão, só não constavam em
+      // `alignments`.
       TextAlign.configure({
         types: ['paragraph', 'noBotao'],
-        alignments: ['left', 'center'],
+        alignments: ['left', 'center', 'right', 'justify'],
         defaultAlignment: 'left',
       }),
       Placeholder.configure({

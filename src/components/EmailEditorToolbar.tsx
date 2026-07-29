@@ -1,9 +1,12 @@
 import { useEditorState, type Editor } from '@tiptap/react';
 import { useEffect, useRef, useState } from 'react';
 
+import { ToolbarGrupo } from './editor/ToolbarGrupo';
 import {
   IconeAlinharCentro,
+  IconeAlinharDireita,
   IconeAlinharEsquerda,
+  IconeAlinharJustificado,
   IconeBotaoEmail,
   IconeCorTexto,
   IconeItalico,
@@ -104,6 +107,14 @@ function PainelCores({
  * `useEditorState`, que reage a toda transação do editor sem precisar de
  * listeners manuais.
  *
+ * Seções fixas da toolbar (refatoracaoEmailFormatado.md, revisão — Etapa 4):
+ * Funções Básicas, Extras, Listas, Alinhamento, Limpar Formatação, nessa
+ * ordem, cada uma montada com `ToolbarGrupo` (`editor/ToolbarGrupo.tsx`).
+ * "Transformar em botão" (Etapa 7) mudou de posição nesta revisão — antes
+ * ficava sozinho entre Listas e Alinhamento, agora entra no grupo Extras,
+ * junto de Cor/Realce/Link (é o agrupamento definido na revisão, não uma
+ * mudança de comportamento do próprio botão).
+ *
  * Cor de texto e realce (Etapa 4) abrem um painel próprio (`PainelCores`)
  * com a paleta fixa definida acima — não um `<input type="color">` livre,
  * por decisão de escopo registrada em refatoracaoEmailFormatado.md. Link
@@ -127,19 +138,21 @@ function PainelCores({
  * Botão estilizado (Etapa 7, completada aqui): `toggleNoBotao()` — comando
  * exposto pela extensão de nó customizado `NoBotao` (ver
  * `editor/extensoes/NoBotao.ts`). Não abre painel próprio; é um toggle
- * direto, igual aos de lista logo acima, já que o estilo do "botão" é fixo
- * (decisão de escopo).
+ * direto, igual aos de lista, já que o estilo do "botão" é fixo (decisão de
+ * escopo).
  *
- * Alinhamento (Etapa 8, completada aqui): dois botões de toggle simples
- * (esquerda/centro, por decisão de escopo — sem direita/justificado),
- * chamando `setTextAlign('left' | 'center')`. Não usa `toggleX()` como as
- * marcas simples porque `TextAlign` não expõe um comando de toggle — cada
- * botão define o alinhamento diretamente; como só há dois valores possíveis,
- * clicar no botão do valor já ativo simplesmente o reaplica (sem efeito
- * perceptível), então não há necessidade de um terceiro estado "nenhum
- * alinhamento" na UI. O estado ativo vem de `ed.isActive({ textAlign:
- * 'center' })` — como `defaultAlignment: 'left'` (configurado em
- * `EmailEditorRico.tsx`), a ausência de `'center'` já implica `'left'`.
+ * Alinhamento (Etapa 8, completada aqui; direita/justificado adicionados na
+ * revisão — Etapa 2): quatro botões de toggle simples (esquerda/centro/
+ * direita/justificado), chamando `setTextAlign('left' | 'center' | 'right' |
+ * 'justify')`. Não usa `toggleX()` como as marcas simples porque `TextAlign`
+ * não expõe um comando de toggle — cada botão define o alinhamento
+ * diretamente; clicar no botão do valor já ativo simplesmente o reaplica
+ * (sem efeito perceptível), então não há necessidade de um estado "nenhum
+ * alinhamento" na UI. O estado ativo de cada botão vem de `ed.isActive({
+ * textAlign: <valor> })`; "esquerda" é o único calculado por exclusão (nenhum
+ * dos outros três ativo), já que `defaultAlignment: 'left'` (configurado em
+ * `EmailEditorRico.tsx`) não deixa o schema gravar `text-align: left`
+ * explicitamente no HTML.
  *
  * Limpar formatação (Etapa 11, completada aqui): botão de ação simples (não
  * um toggle — não tem estado ativo/inativo), chamando
@@ -154,6 +167,31 @@ function PainelCores({
  * projeto para "desfazer"/"restaurar") em vez de um ícone novo — a ação é,
  * em espírito, a mesma: reverter para o estado sem formatação.
  */
+/**
+ * Estado "tudo desligado" usado tanto para o primeiro render (editor ainda
+ * `null`, ver `Props`) quanto como fallback de `useEditorState` — a
+ * sobrecarga do Tiptap para `editor: Editor | null` sempre tipa o retorno
+ * como `TSelectorResult | null`, mesmo quando o seletor abaixo já trata o
+ * caso `null` e nunca retorna `null` de fato em tempo de execução.
+ */
+const ESTADO_EDITOR_INDISPONIVEL = {
+  negrito: false,
+  italico: false,
+  sublinhado: false,
+  tachado: false,
+  corAtiva: undefined as string | undefined,
+  realceAtivo: false,
+  realceCorAtiva: undefined as string | undefined,
+  linkAtivo: false,
+  linkHref: '',
+  listaNaoOrdenadaAtiva: false,
+  listaOrdenadaAtiva: false,
+  noBotaoAtivo: false,
+  alinhamentoCentro: false,
+  alinhamentoDireita: false,
+  alinhamentoJustificado: false,
+};
+
 export function EmailEditorToolbar({ editor }: Props) {
   const [painelAberto, setPainelAberto] = useState<'cor' | 'realce' | 'link' | null>(null);
   const [linkValorInput, setLinkValorInput] = useState('');
@@ -168,21 +206,7 @@ export function EmailEditorToolbar({ editor }: Props) {
     selector: (contexto) => {
       const ed = contexto.editor;
       if (!ed) {
-        return {
-          negrito: false,
-          italico: false,
-          sublinhado: false,
-          tachado: false,
-          corAtiva: undefined as string | undefined,
-          realceAtivo: false,
-          realceCorAtiva: undefined as string | undefined,
-          linkAtivo: false,
-          linkHref: '',
-          listaNaoOrdenadaAtiva: false,
-          listaOrdenadaAtiva: false,
-          noBotaoAtivo: false,
-          alinhamentoCentro: false,
-        };
+        return ESTADO_EDITOR_INDISPONIVEL;
       }
       return {
         negrito: ed.isActive('bold'),
@@ -197,13 +221,16 @@ export function EmailEditorToolbar({ editor }: Props) {
         listaNaoOrdenadaAtiva: ed.isActive('bulletList'),
         listaOrdenadaAtiva: ed.isActive('orderedList'),
         noBotaoAtivo: ed.isActive('noBotao'),
-        // Etapa 8 — só existem dois valores (`left`/`center`); com
-        // `defaultAlignment: 'left'`, "não está em `center`" já basta para
-        // saber que o botão "esquerda" deve aparecer ativo.
+        // Etapa 8 (revisão — Etapa 2 adiciona direita/justificado): cada
+        // botão calcula seu próprio estado ativo; "esquerda" (abaixo, no
+        // botão) é o único obtido por exclusão dos outros três, já que
+        // `defaultAlignment: 'left'` não grava `text-align: left` no HTML.
         alinhamentoCentro: ed.isActive({ textAlign: 'center' }),
+        alinhamentoDireita: ed.isActive({ textAlign: 'right' }),
+        alinhamentoJustificado: ed.isActive({ textAlign: 'justify' }),
       };
     },
-  });
+  }) ?? ESTADO_EDITOR_INDISPONIVEL;
 
   // Fecha o painel aberto ao clicar fora dele (Etapa 4/5) — mesmo padrão já
   // usado em outros dropdowns do projeto (ex.: menu de configurações do
@@ -236,18 +263,23 @@ export function EmailEditorToolbar({ editor }: Props) {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [painelAberto]);
 
-  // Ao abrir o popover de link, pré-preenche com a URL do link atual (se o
-  // cursor estiver sobre um) e foca o campo.
+  // Foca (e seleciona) o campo de URL ao abrir o popover de link. Só DOM,
+  // sem setState — o pré-preenchimento do valor acontece em `alternarPainel`,
+  // no clique que abre o painel, não aqui.
   useEffect(() => {
     if (painelAberto !== 'link') return;
-    setLinkValorInput(estado.linkHref);
     linkInputRef.current?.focus();
     linkInputRef.current?.select();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- só ao abrir
   }, [painelAberto]);
 
   function alternarPainel(painel: 'cor' | 'realce' | 'link') {
-    setPainelAberto((atual) => (atual === painel ? null : painel));
+    const abrindo = painelAberto !== painel;
+    setPainelAberto(abrindo ? painel : null);
+    // Pré-preenche com a URL do link atual (se o cursor estiver sobre um) ao
+    // abrir o painel de link — feito aqui, no clique, não num efeito.
+    if (abrindo && painel === 'link') {
+      setLinkValorInput(estado.linkHref);
+    }
   }
 
   function aplicarCorTexto(cor: string) {
@@ -296,234 +328,266 @@ export function EmailEditorToolbar({ editor }: Props) {
 
   return (
     <div className="email-editor-toolbar" role="toolbar" aria-label="Formatação do corpo do e-mail">
-      <button
-        type="button"
-        className={`email-editor-toolbar-botao ${estado.negrito ? 'ativo' : ''}`}
-        onClick={() => editor?.chain().focus().toggleBold().run()}
-        disabled={!editor}
-        title="Negrito"
-        aria-label="Negrito"
-        aria-pressed={estado.negrito}
-      >
-        <IconeNegrito />
-      </button>
+      <ToolbarGrupo titulo="Funções Básicas">
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${estado.negrito ? 'ativo' : ''}`}
+          onClick={() => editor?.chain().focus().toggleBold().run()}
+          disabled={!editor}
+          title="Negrito"
+          aria-label="Negrito"
+          aria-pressed={estado.negrito}
+        >
+          <IconeNegrito />
+        </button>
 
-      <button
-        type="button"
-        className={`email-editor-toolbar-botao ${estado.italico ? 'ativo' : ''}`}
-        onClick={() => editor?.chain().focus().toggleItalic().run()}
-        disabled={!editor}
-        title="Itálico"
-        aria-label="Itálico"
-        aria-pressed={estado.italico}
-      >
-        <IconeItalico />
-      </button>
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${estado.italico ? 'ativo' : ''}`}
+          onClick={() => editor?.chain().focus().toggleItalic().run()}
+          disabled={!editor}
+          title="Itálico"
+          aria-label="Itálico"
+          aria-pressed={estado.italico}
+        >
+          <IconeItalico />
+        </button>
 
-      <button
-        type="button"
-        className={`email-editor-toolbar-botao ${estado.sublinhado ? 'ativo' : ''}`}
-        onClick={() => editor?.chain().focus().toggleUnderline().run()}
-        disabled={!editor}
-        title="Sublinhado"
-        aria-label="Sublinhado"
-        aria-pressed={estado.sublinhado}
-      >
-        <IconeSublinhado />
-      </button>
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${estado.sublinhado ? 'ativo' : ''}`}
+          onClick={() => editor?.chain().focus().toggleUnderline().run()}
+          disabled={!editor}
+          title="Sublinhado"
+          aria-label="Sublinhado"
+          aria-pressed={estado.sublinhado}
+        >
+          <IconeSublinhado />
+        </button>
 
-      <button
-        type="button"
-        className={`email-editor-toolbar-botao ${estado.tachado ? 'ativo' : ''}`}
-        onClick={() => editor?.chain().focus().toggleStrike().run()}
-        disabled={!editor}
-        title="Tachado"
-        aria-label="Tachado"
-        aria-pressed={estado.tachado}
-      >
-        <IconeTachado />
-      </button>
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${estado.tachado ? 'ativo' : ''}`}
+          onClick={() => editor?.chain().focus().toggleStrike().run()}
+          disabled={!editor}
+          title="Tachado"
+          aria-label="Tachado"
+          aria-pressed={estado.tachado}
+        >
+          <IconeTachado />
+        </button>
+      </ToolbarGrupo>
 
       <div className="email-editor-toolbar-separador" role="separator" />
 
-      <div className="email-editor-toolbar-grupo" ref={painelCorRef}>
-        <button
-          type="button"
-          className={`email-editor-toolbar-botao ${estado.corAtiva ? 'ativo' : ''}`}
-          onClick={() => alternarPainel('cor')}
-          disabled={!editor}
-          title="Cor do texto"
-          aria-label="Cor do texto"
-          aria-haspopup="true"
-          aria-expanded={painelAberto === 'cor'}
-        >
-          <IconeCorTexto />
-          {estado.corAtiva && (
-            <span className="email-editor-toolbar-indicador" style={{ backgroundColor: estado.corAtiva }} />
-          )}
-        </button>
-        {painelAberto === 'cor' && (
-          <PainelCores
-            paleta={PALETA_COR_TEXTO}
-            corAtiva={estado.corAtiva}
-            rotuloRemover="Remover cor"
-            onEscolher={aplicarCorTexto}
-            onRemover={removerCorTexto}
-          />
-        )}
-      </div>
-
-      <div className="email-editor-toolbar-grupo" ref={painelRealceRef}>
-        <button
-          type="button"
-          className={`email-editor-toolbar-botao ${estado.realceAtivo ? 'ativo' : ''}`}
-          onClick={() => alternarPainel('realce')}
-          disabled={!editor}
-          title="Realce (cor de fundo)"
-          aria-label="Realce"
-          aria-haspopup="true"
-          aria-expanded={painelAberto === 'realce'}
-        >
-          <IconeRealce />
-          {estado.realceCorAtiva && (
-            <span className="email-editor-toolbar-indicador" style={{ backgroundColor: estado.realceCorAtiva }} />
-          )}
-        </button>
-        {painelAberto === 'realce' && (
-          <PainelCores
-            paleta={PALETA_REALCE}
-            corAtiva={estado.realceCorAtiva}
-            rotuloRemover="Remover realce"
-            onEscolher={aplicarRealce}
-            onRemover={removerRealce}
-          />
-        )}
-      </div>
-
-      <div className="email-editor-toolbar-separador" role="separator" />
-
-      <div className="email-editor-toolbar-grupo" ref={painelLinkRef}>
-        <button
-          type="button"
-          className={`email-editor-toolbar-botao ${estado.linkAtivo ? 'ativo' : ''}`}
-          onClick={() => alternarPainel('link')}
-          disabled={!editor}
-          title="Link"
-          aria-label="Link"
-          aria-haspopup="true"
-          aria-expanded={painelAberto === 'link'}
-        >
-          <IconeLink />
-        </button>
-        {painelAberto === 'link' && (
-          <div className="email-editor-toolbar-popover email-editor-toolbar-popover-link">
-            <input
-              ref={linkInputRef}
-              type="text"
-              value={linkValorInput}
-              onChange={(e) => setLinkValorInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  aplicarLink();
-                }
-              }}
-              placeholder="https://exemplo.com"
-              className="email-editor-toolbar-popover-input"
-              aria-label="Endereço do link"
+      <ToolbarGrupo titulo="Extras">
+        <div className="email-editor-toolbar-grupo" ref={painelCorRef}>
+          <button
+            type="button"
+            className={`email-editor-toolbar-botao ${estado.corAtiva ? 'ativo' : ''}`}
+            onClick={() => alternarPainel('cor')}
+            disabled={!editor}
+            title="Cor do texto"
+            aria-label="Cor do texto"
+            aria-haspopup="true"
+            aria-expanded={painelAberto === 'cor'}
+          >
+            <IconeCorTexto />
+            {estado.corAtiva && (
+              <span className="email-editor-toolbar-indicador" style={{ backgroundColor: estado.corAtiva }} />
+            )}
+          </button>
+          {painelAberto === 'cor' && (
+            <PainelCores
+              paleta={PALETA_COR_TEXTO}
+              corAtiva={estado.corAtiva}
+              rotuloRemover="Remover cor"
+              onEscolher={aplicarCorTexto}
+              onRemover={removerCorTexto}
             />
-            <div className="email-editor-toolbar-popover-acoes">
-              <button type="button" className="email-editor-toolbar-popover-botao-aplicar" onClick={aplicarLink}>
-                Aplicar
-              </button>
-              {estado.linkAtivo && (
-                <button type="button" className="email-editor-toolbar-popover-remover" onClick={removerLink}>
-                  Remover link
+          )}
+        </div>
+
+        <div className="email-editor-toolbar-grupo" ref={painelRealceRef}>
+          <button
+            type="button"
+            className={`email-editor-toolbar-botao ${estado.realceAtivo ? 'ativo' : ''}`}
+            onClick={() => alternarPainel('realce')}
+            disabled={!editor}
+            title="Realce (cor de fundo)"
+            aria-label="Realce"
+            aria-haspopup="true"
+            aria-expanded={painelAberto === 'realce'}
+          >
+            <IconeRealce />
+            {estado.realceCorAtiva && (
+              <span className="email-editor-toolbar-indicador" style={{ backgroundColor: estado.realceCorAtiva }} />
+            )}
+          </button>
+          {painelAberto === 'realce' && (
+            <PainelCores
+              paleta={PALETA_REALCE}
+              corAtiva={estado.realceCorAtiva}
+              rotuloRemover="Remover realce"
+              onEscolher={aplicarRealce}
+              onRemover={removerRealce}
+            />
+          )}
+        </div>
+
+        <div className="email-editor-toolbar-grupo" ref={painelLinkRef}>
+          <button
+            type="button"
+            className={`email-editor-toolbar-botao ${estado.linkAtivo ? 'ativo' : ''}`}
+            onClick={() => alternarPainel('link')}
+            disabled={!editor}
+            title="Link"
+            aria-label="Link"
+            aria-haspopup="true"
+            aria-expanded={painelAberto === 'link'}
+          >
+            <IconeLink />
+          </button>
+          {painelAberto === 'link' && (
+            <div className="email-editor-toolbar-popover email-editor-toolbar-popover-link">
+              <input
+                ref={linkInputRef}
+                type="text"
+                value={linkValorInput}
+                onChange={(e) => setLinkValorInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    aplicarLink();
+                  }
+                }}
+                placeholder="https://exemplo.com"
+                className="email-editor-toolbar-popover-input"
+                aria-label="Endereço do link"
+              />
+              <div className="email-editor-toolbar-popover-acoes">
+                <button type="button" className="email-editor-toolbar-popover-botao-aplicar" onClick={aplicarLink}>
+                  Aplicar
                 </button>
-              )}
+                {estado.linkAtivo && (
+                  <button type="button" className="email-editor-toolbar-popover-remover" onClick={removerLink}>
+                    Remover link
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${estado.noBotaoAtivo ? 'ativo' : ''}`}
+          onClick={() => editor?.chain().focus().toggleNoBotao().run()}
+          disabled={!editor}
+          title="Transformar em botão"
+          aria-label="Transformar em botão"
+          aria-pressed={estado.noBotaoAtivo}
+        >
+          <IconeBotaoEmail />
+        </button>
+      </ToolbarGrupo>
 
       <div className="email-editor-toolbar-separador" role="separator" />
 
-      <button
-        type="button"
-        className={`email-editor-toolbar-botao ${estado.listaNaoOrdenadaAtiva ? 'ativo' : ''}`}
-        onClick={() => editor?.chain().focus().toggleBulletList().run()}
-        disabled={!editor}
-        title="Lista não ordenada"
-        aria-label="Lista não ordenada"
-        aria-pressed={estado.listaNaoOrdenadaAtiva}
-      >
-        <IconeListaNaoOrdenada />
-      </button>
+      <ToolbarGrupo titulo="Listas">
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${estado.listaNaoOrdenadaAtiva ? 'ativo' : ''}`}
+          onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          disabled={!editor}
+          title="Lista não ordenada"
+          aria-label="Lista não ordenada"
+          aria-pressed={estado.listaNaoOrdenadaAtiva}
+        >
+          <IconeListaNaoOrdenada />
+        </button>
 
-      <button
-        type="button"
-        className={`email-editor-toolbar-botao ${estado.listaOrdenadaAtiva ? 'ativo' : ''}`}
-        onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-        disabled={!editor}
-        title="Lista ordenada"
-        aria-label="Lista ordenada"
-        aria-pressed={estado.listaOrdenadaAtiva}
-      >
-        <IconeListaOrdenada />
-      </button>
-
-      <div className="email-editor-toolbar-separador" role="separator" />
-
-      <button
-        type="button"
-        className={`email-editor-toolbar-botao ${estado.noBotaoAtivo ? 'ativo' : ''}`}
-        onClick={() => editor?.chain().focus().toggleNoBotao().run()}
-        disabled={!editor}
-        title="Transformar em botão"
-        aria-label="Transformar em botão"
-        aria-pressed={estado.noBotaoAtivo}
-      >
-        <IconeBotaoEmail />
-      </button>
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${estado.listaOrdenadaAtiva ? 'ativo' : ''}`}
+          onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+          disabled={!editor}
+          title="Lista ordenada"
+          aria-label="Lista ordenada"
+          aria-pressed={estado.listaOrdenadaAtiva}
+        >
+          <IconeListaOrdenada />
+        </button>
+      </ToolbarGrupo>
 
       <div className="email-editor-toolbar-separador" role="separator" />
 
-      <button
-        type="button"
-        className={`email-editor-toolbar-botao ${!estado.alinhamentoCentro ? 'ativo' : ''}`}
-        onClick={() => editor?.chain().focus().setTextAlign('left').run()}
-        disabled={!editor}
-        title="Alinhar à esquerda"
-        aria-label="Alinhar à esquerda"
-        aria-pressed={!estado.alinhamentoCentro}
-      >
-        <IconeAlinharEsquerda />
-      </button>
+      <ToolbarGrupo titulo="Alinhamento">
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${
+            !estado.alinhamentoCentro && !estado.alinhamentoDireita && !estado.alinhamentoJustificado ? 'ativo' : ''
+          }`}
+          onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+          disabled={!editor}
+          title="Alinhar à esquerda"
+          aria-label="Alinhar à esquerda"
+          aria-pressed={!estado.alinhamentoCentro && !estado.alinhamentoDireita && !estado.alinhamentoJustificado}
+        >
+          <IconeAlinharEsquerda />
+        </button>
 
-      <button
-        type="button"
-        className={`email-editor-toolbar-botao ${estado.alinhamentoCentro ? 'ativo' : ''}`}
-        onClick={() => editor?.chain().focus().setTextAlign('center').run()}
-        disabled={!editor}
-        title="Centralizar"
-        aria-label="Centralizar"
-        aria-pressed={estado.alinhamentoCentro}
-      >
-        <IconeAlinharCentro />
-      </button>
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${estado.alinhamentoCentro ? 'ativo' : ''}`}
+          onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+          disabled={!editor}
+          title="Centralizar"
+          aria-label="Centralizar"
+          aria-pressed={estado.alinhamentoCentro}
+        >
+          <IconeAlinharCentro />
+        </button>
+
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${estado.alinhamentoDireita ? 'ativo' : ''}`}
+          onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+          disabled={!editor}
+          title="Alinhar à direita"
+          aria-label="Alinhar à direita"
+          aria-pressed={estado.alinhamentoDireita}
+        >
+          <IconeAlinharDireita />
+        </button>
+
+        <button
+          type="button"
+          className={`email-editor-toolbar-botao ${estado.alinhamentoJustificado ? 'ativo' : ''}`}
+          onClick={() => editor?.chain().focus().setTextAlign('justify').run()}
+          disabled={!editor}
+          title="Justificar"
+          aria-label="Justificar"
+          aria-pressed={estado.alinhamentoJustificado}
+        >
+          <IconeAlinharJustificado />
+        </button>
+      </ToolbarGrupo>
 
       <div className="email-editor-toolbar-separador" role="separator" />
 
-      <button
-        type="button"
-        className="email-editor-toolbar-botao"
-        onClick={limparFormatacao}
-        disabled={!editor}
-        title="Limpar formatação"
-        aria-label="Limpar formatação"
-      >
-        <IconeRestaurar />
-      </button>
+      <ToolbarGrupo titulo="Limpar Formatação">
+        <button
+          type="button"
+          className="email-editor-toolbar-botao"
+          onClick={limparFormatacao}
+          disabled={!editor}
+          title="Limpar formatação"
+          aria-label="Limpar formatação"
+        >
+          <IconeRestaurar />
+        </button>
+      </ToolbarGrupo>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import type { EmailConteudo } from '../types/email';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Dialog } from './Dialog';
+import { EmailEditorRico } from './EmailEditorRico';
 
 interface Props {
   /** Título/corpo atualmente salvos, usados para preencher os campos ao abrir. */
@@ -23,9 +24,12 @@ interface Props {
  * `Dialog` (mesmo padrão do `ExportarModal`) — não é um conflito real, então
  * não usa o template `ConflictDialog`.
  *
- * Só o campo `conteudo` é multilinha (textarea); `titulo` é um input de
- * texto simples. Por enquanto ambos são texto puro, sem WYSIWYG/HTML
- * (formatação rica fica como possível melhoria futura, conforme o plano).
+ * `titulo` é um input de texto simples. `conteudo` usa o editor de
+ * formatação rica (`EmailEditorRico`, baseado em Tiptap — ver
+ * refatoracaoEmailFormatado.md, Etapa 2), que produz/consome HTML em vez de
+ * texto puro; o contador de caracteres reflete o texto visível
+ * (`editor.getText().length`, via `onContagemChange`), não o tamanho da
+ * string HTML.
  *
  * "Salvar" persiste imediatamente e fecha o modal ao concluir com sucesso;
  * em caso de falha, o modal permanece aberto exibindo a mensagem de erro,
@@ -39,6 +43,12 @@ interface Props {
 export function EmailConteudoModal({ email, onFechar, onSalvar }: Props) {
   const [titulo, setTitulo] = useState(email.titulo);
   const [conteudo, setConteudo] = useState(email.conteudo);
+  // Contador de caracteres do corpo (Etapa 2 — "Atenção", refatoracaoEmailFormatado.md):
+  // precisa refletir o texto visível (`editor.getText().length`), não o
+  // tamanho da string HTML de `conteudo`. Inicializado com o tamanho do HTML
+  // salvo só como placeholder até o editor montar e reportar a contagem real
+  // via `onContagemChange` (`onCreate` do Tiptap já dispara isso no mount).
+  const [contagemCaracteres, setContagemCaracteres] = useState(email.conteudo.length);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [confirmandoFechamento, setConfirmandoFechamento] = useState(false);
@@ -126,14 +136,14 @@ export function EmailConteudoModal({ email, onFechar, onSalvar }: Props) {
         <label htmlFor="email-conteudo-corpo" className="modal-campo-label">
           Corpo
         </label>
-        <textarea
+        <EmailEditorRico
           id="email-conteudo-corpo"
-          className="campo-corpo-email"
           value={conteudo}
-          onChange={(evento) => setConteudo(evento.target.value)}
+          onChange={setConteudo}
+          onContagemChange={setContagemCaracteres}
           placeholder="Corpo do e-mail"
         />
-        <span className="modal-campo-contador">{conteudo.length} caracteres</span>
+        <span className="modal-campo-contador">{contagemCaracteres} caracteres</span>
       </div>
 
       {erro && <p className="erro-salvamento">{erro}</p>}

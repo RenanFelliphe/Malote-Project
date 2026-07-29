@@ -5,7 +5,7 @@ import type { EmailConteudo, EmailRecord } from '../types/email';
 import { ThemeToggle } from './ThemeToggle';
 import { ExportarModal } from './ExportarModal';
 import { EmailConteudoModal } from './EmailConteudoModal';
-import { copiarTexto } from './utils/clipboard';
+import { copiarHtml, copiarTexto } from './utils/clipboard';
 import {
   IconeAtualizarPlanilha,
   IconeConfiguracoes,
@@ -113,11 +113,22 @@ export function Header({ slug, registros, email, onSalvarEmail }: Props) {
    * Copia "Copiar título"/"Copiar corpo" (Etapa 2). Um clique cada, sem
    * etapas intermediárias — os botões ficam sempre visíveis no Header,
    * fora do dropdown de configurações (premissa confirmada no plano).
-   * Reaproveita `copiarTexto` (mesmo util usado pelos cabeçalhos de coluna
-   * "Nome"/"E-mail" da tabela).
+   *
+   * "Copiar título" reaproveita `copiarTexto` (mesmo util usado pelos
+   * cabeçalhos de coluna "Nome"/"E-mail" da tabela) — `titulo` sempre foi e
+   * continua sendo texto puro. "Copiar corpo" passou a usar `copiarHtml`
+   * (refatoracaoEmailFormatado.md — Etapa 13): `conteudo` agora é HTML
+   * (Etapa 1), e `copiarHtml` escreve tanto `text/html` (formatado,
+   * email-safe) quanto `text/plain` (fallback) na área de transferência,
+   * para que colar no Gmail/Outlook preserve negrito/cor/link/botão/
+   * listas/alinhamento.
    */
   async function copiarCampo(campo: 'titulo' | 'conteudo') {
-    await copiarTexto([emailAtual[campo]]);
+    if (campo === 'conteudo') {
+      await copiarHtml(emailAtual.conteudo);
+    } else {
+      await copiarTexto([emailAtual.titulo]);
+    }
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setCampoCopiado(campo);
