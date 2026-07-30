@@ -30,13 +30,27 @@ declare module '@tiptap/core' {
  * interno intacto — com suas próprias marcas e, a partir da Etapa 8, seu
  * próprio alinhamento — em vez de forçar um modelo de conteúdo novo.
  *
- * Sem atributo de URL: o nó é só um contêiner com estilo fixo (Etapa 7 não
- * pede link embutido). Se o botão precisar apontar para algum lugar, o link
- * é aplicado ao texto interno com a mark de link da Etapa 5, normalmente.
+ * Atributo de URL (`href`, Etapa 6): o nó passa a poder carregar seu próprio
+ * destino, além do que já era possível — aplicar a mark de link (Etapa 5)
+ * ao texto interno, normalmente. Os dois convivem sem conflito.
  *
- * Estilo (caixa arredondada, cor de fundo, padding, margin, centralizado)
- * fica inteiramente em CSS (`.email-botao`, em `index.css`) — o nó em si só
- * marca a estrutura (`data-tipo="botao-email"`).
+ * Estilo (caixa arredondada, padding, margin, centralizado) fica em CSS
+ * (`.email-botao`, em `index.css`) — o nó só marca a estrutura
+ * (`data-tipo="botao-email"`). A cor de fundo é exceção a partir desta
+ * etapa: quando o atributo `cor` está definido, ela vem inline (`style`),
+ * sobrepondo a cor padrão do CSS — ver `addAttributes()` abaixo.
+ *
+ * Atributos (Etapa 6 — refatoracaoEmailFormatado.md, revisão): `cor` e
+ * `href`. Mesma abordagem já usada no projeto para `Link` (atributo de
+ * marca) e `Highlight` (atributo `color`), só que aplicada a um node em vez
+ * de a uma mark. Nenhuma UI grava esses atributos ainda (isso é a Etapa 7);
+ * por ora eles só existem no schema, com `default: null` — sem valor
+ * definido, `renderHTML` de cada um devolve `{}` (nenhum atributo extra no
+ * HTML), então o botão continua exatamente como está hoje: cor fixa do CSS
+ * (`.email-botao`) e sem link. `parseHTML`/`renderHTML` fazem o round-trip
+ * via `data-cor`/`data-href` — mesmo padrão de `data-color` do `Highlight`
+ * (ver `sanitizarHtml.ts`: qualquer atributo `data-*` já é liberado por
+ * padrão pelo DOMPurify, então nenhuma mudança foi necessária lá).
  */
 export const NoBotao = Node.create<NoBotaoOptions>({
   name: 'noBotao',
@@ -47,6 +61,38 @@ export const NoBotao = Node.create<NoBotaoOptions>({
   addOptions() {
     return {
       HTMLAttributes: {},
+    };
+  },
+
+  addAttributes() {
+    return {
+      /** Cor de fundo do botão (Etapa 6). `null` = usa a cor padrão do CSS (`.email-botao`). */
+      cor: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-cor'),
+        renderHTML: (attributes) => {
+          if (!attributes.cor) {
+            return {};
+          }
+          return {
+            'data-cor': attributes.cor as string,
+            style: `background-color: ${attributes.cor}`,
+          };
+        },
+      },
+      /** Destino do botão (Etapa 6). `null` = sem link (comportamento atual). */
+      href: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-href'),
+        renderHTML: (attributes) => {
+          if (!attributes.href) {
+            return {};
+          }
+          return {
+            'data-href': attributes.href as string,
+          };
+        },
+      },
     };
   },
 

@@ -1,11 +1,11 @@
 {
   "projeto": "Projeto Teste",
   "criado_em": "2026-07-21T16:18:43.000Z",
-  "atualizado_em": "2026-07-29T18:45:14.664Z",
+  "atualizado_em": "2026-07-30T12:58:44.094Z",
   "email": {
     "titulo": "Parabéns pela conclusão do curso no Multiverso Rio Pomba Valley! 🎉",
-    "conteudo": "<p style=\"text-align: justify;\">Negrito - Itálico - Sublinhado - Tachado - Link</p><p style=\"text-align: left;\"><span style=\"color: rgb(220, 38, 38);\">Cor do Texto</span> - <mark data-color=\"#bfdbfe\" style=\"background-color: rgb(191, 219, 254); color: inherit;\">Realce</mark></p><ul><li><p style=\"text-align: left;\">Lista Desordenada</p><ul><li><p style=\"text-align: left;\">Sublista Desordenada</p></li></ul></li></ul><ol><li><p style=\"text-align: left;\">Lista Ordenada</p><ol><li><p style=\"text-align: left;\">Sublista Ordenada</p></li></ol></li></ol><div data-tipo=\"botao-email\" class=\"email-botao\" style=\"text-align: left;\"><p style=\"text-align: left;\"><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"a\"><span style=\"color: rgb(107, 114, 128);\">Botão</span></a></p></div><p style=\"text-align: left;\">Centralizado</p>",
-    "atualizado_em": "2026-07-29T18:45:14.650Z"
+    "conteudo": "<p style=\"text-align: justify;\"><strong><em><s><u>Negrito </u></s></em></strong>- Itálico - Sublinhado - Tachado - Link</p><p style=\"text-align: left;\"><span style=\"color: rgb(220, 38, 38);\">Cor do Texto</span> - <mark data-color=\"#bfdbfe\" style=\"background-color: rgb(191, 219, 254); color: inherit;\">Realce</mark></p><ul><li><p style=\"text-align: left;\">Lista Desordenada</p><ul><li><p style=\"text-align: left;\">Sublista Desordenada</p></li></ul></li></ul><ol><li><p style=\"text-align: left;\">Lista Ordenada</p><ol><li><p style=\"text-align: left;\">Sublista Ordenada</p></li></ol></li></ol><div data-tipo=\"botao-email\" class=\"email-botao\" style=\"text-align: left;\"><p style=\"text-align: left;\"><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"a\"><span style=\"color: rgb(107, 114, 128);\">Botão</span></a></p></div><p style=\"text-align: left;\">Centralizado</p>",
+    "atualizado_em": "2026-07-30T12:58:44.081Z"
   },
   "registros": [
     {

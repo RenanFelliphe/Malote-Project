@@ -10,6 +10,7 @@ import Underline from '@tiptap/extension-underline';
 
 import { NoBotao } from './editor/extensoes/NoBotao';
 import { EmailEditorToolbar } from './EmailEditorToolbar';
+import { EmojiPickerFlutuante } from './EmojiPickerFlutuante';
 import { sanitizarHtml } from './utils/sanitizarHtml';
 
 /**
@@ -187,6 +188,18 @@ interface Props {
  * textual válida (imagem, vídeo, formulário, script...). Ver a
  * documentação de `normalizarHtmlColado` para o detalhe de cada caso.
  *
+ * Botão flutuante de emojis (refatoracaoEmailFormatado.md, revisão — Etapa
+ * 10): `EmojiPickerFlutuante` (revisão — Etapa 9, ver o próprio arquivo) é
+ * renderizado aqui — e não em `EmailConteudoModal.tsx` — porque a inserção
+ * do emoji escolhido depende diretamente da instância do editor
+ * (`editor.chain().focus().insertContent(...)`), que só existe neste
+ * componente. O posicionamento visual (`position: absolute`, canto
+ * inferior direito) continua resolvendo contra `.modal-email-conteudo`
+ * normalmente: nem `.campo-corpo-email` nem nenhum elemento entre os dois
+ * declara `position`, então o "containing block" do botão flutuante segue
+ * sendo o modal, não este componente — só o `onSelecionarEmoji` precisava
+ * estar aqui.
+ *
  * Sanitização (Etapa 10 — refatoracaoEmailFormatado.md): `normalizarHtmlColado`
  * ajusta a *estrutura* do HTML colado ao schema do editor, mas não tem como
  * objetivo remover conteúdo malicioso — um `<a href="javascript:...">` ou um
@@ -279,10 +292,25 @@ export function EmailEditorRico({ id, value, onChange, onContagemChange, placeho
     onCreate: ({ editor }) => onContagemChange?.(editor.getText().length),
   });
 
+  // Botão flutuante de emojis (revisão — Etapa 10): insere o caractere
+  // Unicode escolhido no popover diretamente no cursor atual do editor.
+  // `insertContent` é a API padrão do Tiptap para isso; `focus()` antes
+  // garante que a inserção aconteça na posição em que o usuário estava
+  // editando, mesmo que o clique no botão/popover tenha tirado o foco do
+  // editor. Nenhum tratamento especial é necessário depois: o emoji é só
+  // texto Unicode dentro de um `<p>`, já coberto pela sanitização e pela
+  // exportação "email-safe" existentes.
+  function handleSelecionarEmoji(emoji: string) {
+    editor?.chain().focus().insertContent(emoji).run();
+  }
+
   return (
-    <div className="campo-corpo-email">
-      <EmailEditorToolbar editor={editor} />
-      <EditorContent editor={editor} />
-    </div>
+    <>
+      <div className="campo-corpo-email">
+        <EmailEditorToolbar editor={editor} />
+        <EditorContent editor={editor} />
+        <EmojiPickerFlutuante onSelecionarEmoji={handleSelecionarEmoji} />
+      </div>
+    </>
   );
 }

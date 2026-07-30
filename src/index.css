@@ -1648,6 +1648,70 @@ button.status-badge-clicavel:hover {
 
 .modal-email-conteudo {
   max-width: 560px;
+  /* Âncora de posicionamento do botão flutuante de emojis (Etapa 9,
+     revisão) — `.email-emoji-flutuante` usa `position: absolute` em
+     relação a este elemento. */
+  position: relative;
+}
+
+/* --- Botão flutuante de emojis (Etapa 9, revisão) ---
+   Ancorado no canto inferior direito de `.modal-email-conteudo` (que
+   declara `position: relative` acima), sobrepondo o conteúdo do modal em
+   vez de ocupar espaço no fluxo normal — mesmo racional de outros
+   elementos flutuantes já existentes no projeto. */
+.email-emoji-flutuante {
+  position: absolute;
+  right: .5rem;
+  bottom: .5rem;
+  z-index: 20;
+}
+
+.email-emoji-flutuante-gatilho {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: .8rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.email-emoji-flutuante-gatilho:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.email-emoji-flutuante-painel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  z-index: 30;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Sobrescreve as variáveis de tema do `emoji-picker-react` para acompanhar
+   o design system do projeto — inclusive dark mode, já que `--color-*`
+   trocam sozinhas via `[data-theme]` em `<html>` (não precisa duplicar
+   regra para `.epr-dark-theme` aqui, `var(--color-surface)` etc. já
+   resolvem para o valor certo em qualquer tema). */
+.email-emoji-flutuante-painel .EmojiPickerReact {
+  --epr-bg-color: var(--color-surface);
+  --epr-category-label-bg-color: var(--color-surface);
+  --epr-text-color: var(--color-text);
+  --epr-search-input-bg-color: var(--color-bg-subtle);
+  --epr-hover-bg-color: var(--color-surface-hover);
+  --epr-picker-border-color: var(--color-border);
+  border: 1px solid var(--color-border);
 }
 
 .modal-selecionar-todos {
@@ -2226,6 +2290,7 @@ li.marcado .exportar-lista-status-item {
    borda/raio/fundo próprios em vez de herdar o estilo de
    `.modal-campo textarea`. */
 .campo-corpo-email {
+  position: relative;
   min-height: 14rem;
   display: flex;
   flex-direction: column;
@@ -2288,26 +2353,62 @@ li.marcado .exportar-lista-status-item {
 }
 
 /* Etapa 7 (refatoracaoEmailFormatado.md) — "transformar em botão": nó de
-   bloco customizado (`NoBotao`, `data-tipo="botao-email"`), estilo fixo por
-   decisão de escopo (caixa arredondada, cor de fundo, padding, margin,
-   centralizado). Marcas internas (negrito, cor, alinhamento) continuam
-   aplicáveis ao(s) parágrafo(s) de dentro, sem conflito com este estilo. */
+   bloco customizado (`NoBotao`, `data-tipo="botao-email"`), caixa
+   arredondada com padding fixo por decisão de escopo. Cor de fundo (via
+   atributo `cor`, revisão — Etapa 6) e posição (margem, conforme
+   alinhamento, revisão — Etapa 7 abaixo) já não são mais fixas. Marcas
+   internas (negrito, cor, alinhamento) continuam aplicáveis ao(s)
+   parágrafo(s) de dentro, sem conflito com este estilo. */
 .email-botao {
-  margin: 0.6em auto;
   padding: 0.7em 1.4em;
   max-width: fit-content;
   border-radius: 6px;
   background-color: var(--color-accent);
   text-align: center;
+  /* Etapa 7 (revisão) — substitui o antigo `margin: 0.6em auto` fixo (que
+     centralizava a caixa sempre, ignorando o alinhamento escolhido). Sem
+     nenhum `style="text-align: ..."` inline no elemento, o valor é o padrão
+     da extensão `TextAlign` — `defaultAlignment: 'left'`, configurado em
+     `EmailEditorRico.tsx` — então o padrão aqui já é o de uma caixa alinhada
+     à esquerda (`margin-right: auto` empurra a caixa para a esquerda,
+     mantendo `max-width: fit-content`; sem o `margin-left: auto` do lado
+     oposto, que é o que centralizava antes). As três regras abaixo
+     sobrepõem esse padrão quando o `style` inline diz o contrário. */
+  margin: 0.6em auto 0.6em 0;
 }
 
-/* Etapa 8 (refatoracaoEmailFormatado.md) — a extensão `TextAlign` escreve o
-   alinhamento como `style="text-align: ..."` inline, direto no elemento
-   (parágrafo ou, dentro do botão, no próprio `.email-botao`). Isso já tem
-   prioridade sobre o `text-align: center` fixo acima sem precisar de nenhuma
-   regra extra aqui — o `center` acima é só o valor padrão visual da caixa,
-   não uma trava; o usuário pode alinhar à esquerda o texto de dentro do
-   botão normalmente pela toolbar. */
+/* Etapa 7 (revisão) — alinhamento do botão segue de fato a seleção feita na
+   seção Alinhamento da toolbar. A extensão `TextAlign` está configurada para
+   os tipos `paragraph` e `noBotao` (`EmailEditorRico.tsx`): ao aplicar um
+   alinhamento com o cursor dentro do botão, o atributo é gravado tanto no
+   parágrafo interno quanto no próprio nó `noBotao` (ambos são tipos
+   configurados e ambos são ancestrais da seleção), então o `style` inline
+   cai também no elemento `.email-botao` em si — daí vem o seletor de
+   atributo abaixo, sem precisar de nenhuma classe extra vinda do React.
+   "Esquerda" não tem regra própria porque é o padrão da extensão
+   (`defaultAlignment: 'left'`): a extensão não emite `style` nenhum quando o
+   valor já é o default, então "nenhum dos seletores abaixo bateu" já é o
+   caso de "esquerda", coberto pela regra base acima. */
+.email-botao[style*='text-align: center'] {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.email-botao[style*='text-align: right'] {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* Justificado não tem uma "posição" própria de caixa com largura fixa — a
+   caixa passa a ocupar toda a largura disponível em vez de manter
+   `max-width: fit-content`, para que o conceito de "justificar" faça sentido
+   (não há sobra de espaço lateral para posicionar). */
+.email-botao[style*='text-align: justify'] {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
 
 .email-botao p {
   margin: 0;
@@ -2336,34 +2437,35 @@ li.marcado .exportar-lista-status-item {
 }
 
 /* =========================================================================
-   Toolbar do corpo do e-mail (refatoracaoEmailFormatado.md — Etapa 3, com
-   Etapas 4 a 8 completadas aqui: cor/realce, link, listas, "transformar em
-   botão" e alinhamento. Todas reaproveitam as mesmas classes genéricas de
-   botão/grupo/separador definidas logo abaixo — nenhuma dessas etapas
-   precisou de estilo próprio além do que já existia).
+   Toolbar do corpo do e-mail (RefatoracaoToolbarEmail.md — Etapa 1:
+   estrutura reconstruída do zero. A revisão anterior organizava os botões
+   em seções (`ToolbarGrupo.tsx`) que colapsavam como grupo atrás de um
+   gatilho quando faltava espaço; isso foi descontinuado (diagnóstico da
+   Etapa 0) porque `overflow: hidden`, necessário para impedir que os
+   botões soltos quebrassem para uma segunda linha, também cortava e
+   deslocava os popovers (`.email-editor-toolbar-popover`), que eram
+   posicionados `absolute` em relação a um ancestral (`.email-editor-toolbar-
+   grupo`) dentro dessa mesma área cortada.
+   A partir desta etapa: (1) a toolbar é uma única faixa de botões
+   individuais, sem agrupamento visual funcional; (2) `overflow: hidden` foi
+   removido — não há mais nada para "amortecer" já que os popovers não
+   nascem mais dentro dela; (3) todo popover é renderizado via portal para
+   `document.body` (`editor/ToolbarPopover.tsx`), posicionado por
+   coordenadas calculadas a partir do botão-gatilho (`getBoundingClientRect`),
+   nunca mais como filho posicionado de um elemento com overflow cortado.
+   A responsividade por "Ver Mais" (Etapa 2) ainda não existe nesta etapa —
+   uma toolbar mais estreita que a soma dos botões pode, por ora, estourar a
+   largura do container; é o comportamento esperado até a Etapa 2.
    ========================================================================= */
 
 .email-editor-toolbar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 0.2rem;
   padding: 0.4rem 0.5rem;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-bg-subtle);
-}
-
-/* Seção fixa da toolbar (Funções Básicas/Extras/Listas/Alinhamento/Limpar
-   Formatação — refatoracaoEmailFormatado.md, revisão — Etapa 4). Mesmo
-   `gap` que os botões já tinham como filhos diretos da toolbar, agora
-   aplicado dentro de cada seção — o agrupamento em `ToolbarGrupo` não muda
-   o espaçamento visual entre os botões. `flex-wrap` evita que uma seção
-   force overflow horizontal antes que a Etapa 5 decida colapsá-la. */
-.email-editor-toolbar-grupo-secao {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.2rem;
 }
 
 .email-editor-toolbar-botao {
@@ -2416,20 +2518,17 @@ li.marcado .exportar-lista-status-item {
   background: var(--color-border-strong);
 }
 
-/* Âncora de posicionamento para os popovers (cor, realce, link) — cada
-   botão que abre um popover fica dentro de um grupo com `position:
-   relative`, para que o popover (`position: absolute`) se posicione em
-   relação a ele, não à toolbar inteira. */
-.email-editor-toolbar-grupo {
-  position: relative;
-  display: flex;
-}
-
+/* Popover de botão da toolbar (cor, realce, link, botão-e-mail) — Etapa 1
+   (RefatoracaoToolbarEmail.md): renderizado via portal para `document.body`
+   por `editor/ToolbarPopover.tsx`, não mais como filho posicionado de um
+   ancestral `position: relative` dentro da toolbar. `top`/`left` chegam
+   como estilo inline (coordenadas calculadas a partir do botão-gatilho),
+   por isso aqui só `position: fixed` mais a aparência visual (fundo,
+   borda, sombra, padding) — nunca mais sujeito ao `overflow` de nenhum
+   ancestral (toolbar ou `dialog-content`). */
 .email-editor-toolbar-popover {
-  position: absolute;
-  z-index: 30;
-  top: calc(100% + 6px);
-  left: 0;
+  position: fixed;
+  z-index: 130;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -2533,6 +2632,23 @@ li.marcado .exportar-lista-status-item {
 .email-editor-toolbar-popover-acoes .email-editor-toolbar-popover-remover {
   flex: 1;
   width: auto;
+}
+
+/* Popover de "Transformar em botão" (Etapa 7, revisão) — mais largo que
+   `.email-editor-toolbar-popover-cores`/`-link` porque acumula três blocos
+   empilhados (toggle, paleta de cor, campo de URL) em vez de só um. */
+.email-editor-toolbar-popover-botao {
+  width: 15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Separa visualmente os três blocos do popover acima (Etapa 7, revisão). */
+.email-editor-toolbar-popover-separador {
+  height: 1px;
+  margin: 0.15rem 0;
+  background: var(--color-border);
 }
 
 .modal-campo-contador {
@@ -3344,4 +3460,3 @@ li.marcado .exportar-lista-status-item {
     display: block;
   }
 }
-
