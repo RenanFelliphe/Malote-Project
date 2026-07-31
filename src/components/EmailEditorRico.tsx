@@ -9,6 +9,8 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline';
 
 import { NoBotao } from './editor/extensoes/NoBotao';
+import { FontSize } from './editor/extensoes/FontSize';
+import { Indentacao } from './editor/extensoes/Indentacao';
 import { EmailEditorToolbar } from './EmailEditorToolbar';
 import { EmojiPickerFlutuante } from './EmojiPickerFlutuante';
 import { sanitizarHtml } from './utils/sanitizarHtml';
@@ -152,12 +154,18 @@ interface Props {
  * (`EmailConteudoModal`).
  *
  * Nós do `StarterKit` fora do escopo do plano (título, citação, bloco de
- * código, linha horizontal, código inline) ficam desativados — o objetivo
- * declarado é um formatador simples, não um processador de texto completo.
+ * código, código inline) ficam desativados — o objetivo declarado é um
+ * formatador simples, não um processador de texto completo. Linha
+ * horizontal (RefatoracaoToolbarEmail.md — Etapa 6) é a exceção: veio
+ * desativada nesta mesma lista até esta etapa, mas o plano pede o botão na
+ * toolbar, então foi reabilitada — ver o comentário junto de
+ * `StarterKit.configure`, abaixo.
  *
- * Cor de texto e realce (Etapa 4) dependem de `TextStyle` como base — por
- * isso as três extensões (`TextStyle`, `Color`, `Highlight`) entram juntas.
- * `Highlight` usa `multicolor: true` para aceitar a paleta fixa definida em
+ * Cor de texto, realce e tamanho da fonte (Etapa 4 — refatoracaoEmailFormatado.md
+ * e RefatoracaoToolbarEmail.md) dependem de `TextStyle` como base — por isso
+ * `TextStyle`, `Color` e `FontSize` (`editor/extensoes/FontSize.ts`, que
+ * estende a mesma mark `textStyle` com o atributo `fontSize`) entram juntas,
+ * seguidas de `Highlight`. `Highlight` usa `multicolor: true` para aceitar a paleta fixa definida em
  * `EmailEditorToolbar.tsx`, em vez da cor única padrão da extensão.
  *
  * Link (Etapa 5): `openOnClick: false` evita navegar para fora do editor ao
@@ -174,6 +182,12 @@ interface Props {
  * Alinhamento (Etapa 8): `TextAlign` configurada para os tipos `paragraph` e
  * `noBotao` — precisa incluir `noBotao` para que o alinhamento continue
  * aplicável dentro do botão estilizado da Etapa 7, como o plano exige.
+ *
+ * Recuo (RefatoracaoToolbarEmail.md — Etapa 5): `Indentacao`
+ * (`editor/extensoes/Indentacao.ts`) acrescenta o atributo `indent` a
+ * `paragraph`/`listItem` (não há extensão oficial do Tiptap para isso — ver
+ * a seção 2 do plano), no mesmo mecanismo de atributo global que
+ * `TextAlign`, acima, já usa para `paragraph`/`noBotao`.
  *
  * Colar formatado (Etapa 9): `editorProps.transformPastedHTML` roda
  * `normalizarHtmlColado` (abaixo) sobre o HTML colado antes do Tiptap
@@ -221,11 +235,17 @@ export function EmailEditorRico({ id, value, onChange, onContagemChange, placeho
     // padrão quando não sabe se está rodando em ambiente com SSR.
     immediatelyRender: false,
     extensions: [
+      // Linha horizontal (RefatoracaoToolbarEmail.md — Etapa 6): o plano
+      // presumia que `horizontalRule` já vinha habilitado por padrão dentro
+      // do `StarterKit` — na prática, ao inspecionar esta configuração para
+      // começar a etapa, ela estava na mesma lista de nós desligados que
+      // heading/blockquote/codeBlock/code (linha removida abaixo). Reabilitada
+      // aqui; nenhuma extensão adicional foi instalada, só a remoção do
+      // `false` que já a desligava.
       StarterKit.configure({
         heading: false,
         blockquote: false,
         codeBlock: false,
-        horizontalRule: false,
         code: false,
       }),
       // Negrito, itálico e tachado já vêm do StarterKit; sublinhado precisa
@@ -234,6 +254,11 @@ export function EmailEditorRico({ id, value, onChange, onContagemChange, placeho
       // Cor de texto e realce (Etapa 4 — refatoracaoEmailFormatado.md).
       TextStyle,
       Color,
+      // Tamanho da fonte (Etapa 4 — RefatoracaoToolbarEmail.md): estende a
+      // mesma mark `textStyle` que `Color` já usa (ver
+      // `editor/extensoes/FontSize.ts`) — por isso entra logo depois dela,
+      // agrupada com o resto do que se apoia em `textStyle`.
+      FontSize,
       Highlight.configure({ multicolor: true }),
       // Link (Etapa 5 — refatoracaoEmailFormatado.md).
       Link.configure({
@@ -257,6 +282,11 @@ export function EmailEditorRico({ id, value, onChange, onContagemChange, placeho
         alignments: ['left', 'center', 'right', 'justify'],
         defaultAlignment: 'left',
       }),
+      // Recuo (RefatoracaoToolbarEmail.md — Etapa 5). Só `paragraph` e
+      // `listItem` (não `noBotao`) — o plano restringe o recuo a
+      // parágrafo/item de lista, sem pedir suporte dentro do botão
+      // estilizado.
+      Indentacao,
       Placeholder.configure({
         placeholder: placeholder ?? '',
       }),

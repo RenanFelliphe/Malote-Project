@@ -1,9 +1,21 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
 
 import type { EmailConteudo } from '../types/email';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Dialog } from './Dialog';
 import { EmailEditorRico } from './EmailEditorRico';
+import { IconeAnexar, IconeRemoverAnexo } from './Icons';
+
+/**
+ * Anexo selecionado localmente no modal (RefatoracaoToolbarEmail.md —
+ * Etapa 9). `id` é gerado na seleção só para servir de `key`/referência de
+ * remoção na lista — não tem relação com o arquivo em si nem é persistido.
+ */
+interface AnexoSelecionado {
+  id: string;
+  arquivo: File;
+}
 
 interface Props {
   /** Título/corpo atualmente salvos, usados para preencher os campos ao abrir. */
@@ -39,6 +51,22 @@ interface Props {
  * com `titulo`/`conteudo` diferentes dos valores originais de `email`
  * dispara uma confirmação (`ConfirmDialog`, reaproveitando o mesmo padrão
  * visual usado pelo `ImportWizardModal`) antes de descartar as alterações.
+ *
+ * Etapa 9 (RefatoracaoToolbarEmail.md): botão "Anexar arquivo" abaixo do
+ * editor, com lista dos arquivos escolhidos (cada um removível antes de
+ * salvar). É só UI local (`anexos` nunca é lido por `onSalvar` nem enviado
+ * a lugar nenhum) — preparação para quando o disparo automático de e-mails
+ * ganhar suporte a anexo. Por isso a lista de anexos também não entra em
+ * `alteracoesPendentes`: fechar o modal sem salvar não pede confirmação por
+ * causa só dos anexos, já que nada seria perdido que já não se perdesse ao
+ * reabrir o modal (nenhum arquivo é de fato retido em lugar nenhum).
+ *
+ * A mesma etapa corrige o overflow do modal: os campos de título/corpo (que
+ * podem crescer com a lista de anexos) ficam num wrapper interno rolável
+ * (`.modal-email-conteudo-corpo`), enquanto o header e o rodapé
+ * (Salvar/Cancelar), fornecidos pelo `Dialog`, permanecem fixos — em vez de
+ * todo o `.dialog-content` rolar junto, o que arrastaria os botões de ação
+ * para fora da vista.
  */
 export function EmailConteudoModal({ email, onFechar, onSalvar }: Props) {
   const [titulo, setTitulo] = useState(email.titulo);
@@ -52,8 +80,30 @@ export function EmailConteudoModal({ email, onFechar, onSalvar }: Props) {
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [confirmandoFechamento, setConfirmandoFechamento] = useState(false);
+  // Anexos selecionados localmente (Etapa 9) — ver comentário do componente.
+  const [anexos, setAnexos] = useState<AnexoSelecionado[]>([]);
+  const inputAnexoRef = useRef<HTMLInputElement>(null);
 
   const alteracoesPendentes = titulo !== email.titulo || conteudo !== email.conteudo;
+
+  function handleSelecionarAnexos(evento: ChangeEvent<HTMLInputElement>) {
+    const arquivosSelecionados = evento.target.files;
+    if (arquivosSelecionados && arquivosSelecionados.length > 0) {
+      const novos = Array.from(arquivosSelecionados).map((arquivo) => ({
+        id: crypto.randomUUID(),
+        arquivo,
+      }));
+      setAnexos((atuais) => [...atuais, ...novos]);
+    }
+    // Limpa o valor do input para permitir selecionar o mesmo arquivo de
+    // novo mais tarde (sem isso, o navegador não dispara `onChange` numa
+    // segunda seleção idêntica).
+    evento.target.value = '';
+  }
+
+  function removerAnexo(id: string) {
+    setAnexos((atuais) => atuais.filter((anexo) => anexo.id !== id));
+  }
 
   function solicitarFechamento() {
     if (salvando) return;
@@ -119,31 +169,74 @@ export function EmailConteudoModal({ email, onFechar, onSalvar }: Props) {
         </>
       }
     >
-      <div className="modal-campo">
-        <label htmlFor="email-conteudo-titulo" className="modal-campo-label">
-          Título
-        </label>
-        <input
-          id="email-conteudo-titulo"
-          type="text"
-          value={titulo}
-          onChange={(evento) => setTitulo(evento.target.value)}
-          placeholder="Assunto do e-mail"
-        />
-      </div>
+      <div className="modal-email-conteudo-corpo">
+        <div className="modal-campo">
+          <label htmlFor="email-conteudo-titulo" className="modal-campo-label">
+            Título
+          </label>
+          <input
+            id="email-conteudo-titulo"
+            type="text"
+            value={titulo}
+            onChange={(evento) => setTitulo(evento.target.value)}
+            placeholder="Assunto do e-mail"
+          />
+        </div>
 
-      <div className="modal-campo">
-        <label htmlFor="email-conteudo-corpo" className="modal-campo-label">
-          Corpo
-        </label>
-        <EmailEditorRico
-          id="email-conteudo-corpo"
-          value={conteudo}
-          onChange={setConteudo}
-          onContagemChange={setContagemCaracteres}
-          placeholder="Corpo do e-mail"
-        />
-        <span className="modal-campo-contador">{contagemCaracteres} caracteres</span>
+        <div className="modal-campo">
+          <label htmlFor="email-conteudo-corpo" className="modal-campo-label">
+            Corpo
+          </label>
+          <EmailEditorRico
+            id="email-conteudo-corpo"
+            value={conteudo}
+            onChange={setConteudo}
+            onContagemChange={setContagemCaracteres}
+            placeholder="Corpo do e-mail"
+          />
+          <span className="modal-campo-contador">{contagemCaracteres} caracteres</span>
+        </div>
+
+        <div className="modal-campo modal-anexo">
+          <span className="modal-campo-label">Anexos</span>
+          <div className="modal-anexo-acoes">
+            <button
+              type="button"
+              className="modal-anexo-botao"
+              onClick={() => inputAnexoRef.current?.click()}
+            >
+              <IconeAnexar />
+              Anexar arquivo
+            </button>
+            <input
+              ref={inputAnexoRef}
+              type="file"
+              multiple
+              hidden
+              onChange={handleSelecionarAnexos}
+            />
+          </div>
+
+          {anexos.length > 0 && (
+            <ul className="modal-anexo-lista">
+              {anexos.map(({ id, arquivo }) => (
+                <li key={id} className="modal-anexo-item">
+                  <span className="modal-anexo-nome" title={arquivo.name}>
+                    {arquivo.name}
+                  </span>
+                  <button
+                    type="button"
+                    className="modal-anexo-remover"
+                    onClick={() => removerAnexo(id)}
+                    aria-label={`Remover anexo ${arquivo.name}`}
+                  >
+                    <IconeRemoverAnexo />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       {erro && <p className="erro-salvamento">{erro}</p>}

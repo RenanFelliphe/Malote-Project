@@ -23,6 +23,12 @@
  *   fundo, arredondamento, padding, margin, texto branco por dentro — vem
  *   inteiramente de `.email-botao`/`.email-botao p`. Sem inline, o botão
  *   chega ao Gmail/Outlook como uma `<div>` sem nenhum estilo.
+ * - **Linha horizontal** (RefatoracaoToolbarEmail.md — Etapa 6): o `<hr>`
+ *   que o `StarterKit` gera não carrega nenhum atributo — toda a aparência
+ *   hoje vem de `.campo-corpo-email-editor hr` (`index.css`). Sem
+ *   tratamento aqui, o `<hr>` chegaria ao Gmail/Outlook com o estilo padrão
+ *   (bruto, tridimensional) do próprio cliente, em vez do traço fino usado
+ *   dentro do editor.
  *
  * **Botão — exportação bulletproof (refatoracaoEmailFormatado.md, revisão —
  * Etapa 8):** o tratamento anterior (só inlinar `style` num `<div>`) resolve
@@ -70,14 +76,18 @@
  * idêntico ao 0.6em do editor, não fica sem nenhum espaçamento.
  *
  * As cores abaixo são os valores fixos do tema **claro** de
- * `--color-accent`/`--color-accent-contrast` (`index.css`), resolvidos à
- * mão: um e-mail já enviado não tem como saber se quem lê está com o app
- * local em modo escuro, e não faz sentido um botão/link mudarem de cor
- * sozinhos dentro da caixa de entrada — por isso o e-mail sempre sai com a
- * paleta clara, independente do tema em que foi escrito.
+ * `--color-accent`/`--color-accent-contrast`/`--color-border` (`index.css`),
+ * resolvidos à mão: um e-mail já enviado não tem como saber se quem lê está
+ * com o app local em modo escuro, e não faz sentido um botão/link/linha
+ * horizontal mudarem de cor sozinhos dentro da caixa de entrada — por isso o
+ * e-mail sempre sai com a paleta clara, independente do tema em que foi
+ * escrito.
  */
 const COR_ACENTO = '#3452e0';
 const COR_BOTAO_TEXTO = '#ffffff';
+// Linha horizontal (Etapa 6) — mesmo valor de `--color-border` (tema claro)
+// usado por `.campo-corpo-email-editor hr` em `index.css`.
+const COR_BORDA = '#e2e5ec';
 
 /**
  * Funde um mapa de propriedades CSS no atributo `style` de um elemento,
@@ -229,6 +239,19 @@ export function converterParaHtmlEmailSeguro(html: string): string {
       color: COR_ACENTO,
       'text-decoration': 'underline',
       'text-underline-offset': '2px',
+    });
+  });
+
+  // Linha horizontal (RefatoracaoToolbarEmail.md — Etapa 6): mesmo traço
+  // fino de `.campo-corpo-email-editor hr` (`index.css`), inline. `border:
+  // none` primeiro, para depois `border-top` desenhar só o traço de cima —
+  // sem o `none` antes, alguns clientes de e-mail (Outlook incluso) caem no
+  // `border` padrão do `<hr>` do próprio user-agent nos outros três lados.
+  raiz.querySelectorAll('hr').forEach((linha) => {
+    mesclarEstiloInline(linha as HTMLElement, {
+      border: 'none',
+      'border-top': `1px solid ${COR_BORDA}`,
+      margin: '0.8em 0',
     });
   });
 

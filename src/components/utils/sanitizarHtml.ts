@@ -38,13 +38,23 @@ import DOMPurify from 'dompurify';
  * - `div`: usado exclusivamente pelo nó `noBotao` (Etapa 7) — identificado
  *   por `data-tipo="botao-email"`, não por `div` genérico (ver
  *   `ALLOWED_ATTR` e a validação adicional abaixo).
+ * - `hr`: linha horizontal (RefatoracaoToolbarEmail.md — Etapa 6). Sem
+ *   atributo próprio (não carrega `style`/`class` vindos do editor — a
+ *   aparência é só CSS do elemento em si, em `index.css`), mas precisa
+ *   constar em `ALLOWED_TAGS` mesmo assim, ou o DOMPurify descarta a tag
+ *   inteira.
  *
  * `ALLOWED_ATTR`:
- * - `style`: cor de texto/highlight (Etapa 4) e alinhamento (Etapa 8) saem
- *   como `style` inline (`color`, `background-color`, `text-align`). O
- *   próprio DOMPurify já sanitiza o valor do atributo contra vetores
- *   conhecidos (ex.: `url(javascript:...)`) — não é um "escape hatch" para
- *   CSS arbitrário perigoso.
+ * - `style`: cor de texto/highlight (Etapa 4), tamanho da fonte
+ *   (RefatoracaoToolbarEmail.md — Etapa 4), recuo (RefatoracaoToolbarEmail.md
+ *   — Etapa 5) e alinhamento (Etapa 8) saem como `style` inline (`color`,
+ *   `background-color`, `font-size`, `margin-left`, `text-align`). `style`
+ *   já libera o atributo inteiro — o DOMPurify não faz allowlist por
+ *   propriedade de CSS aqui (não é usado `ALLOWED_STYLES` nem equivalente),
+ *   só sanitiza o valor contra vetores conhecidos (ex.: `url(javascript:...)`);
+ *   por isso `font-size` e `margin-left` já passam sem precisar de nenhuma
+ *   entrada nova nesta configuração, do mesmo jeito que `color` e
+ *   `text-align` já passavam antes desta nota.
  * - `href`, `target`, `rel`: link (Etapa 5). `href` com esquema
  *   `javascript:` é removido pelo `ALLOWED_URI_REGEXP` padrão do DOMPurify.
  * - `class`: usada só pelo nó de botão (`email-botao`, Etapa 7) para
@@ -71,7 +81,7 @@ import DOMPurify from 'dompurify';
  * a uma futura expansão descuidada de `ALLOWED_TAGS`).
  */
 const CONFIGURACAO_SANITIZACAO: Parameters<typeof DOMPurify.sanitize>[1] = {
-  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'span', 'mark', 'a', 'ul', 'ol', 'li', 'div'],
+  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'span', 'mark', 'a', 'ul', 'ol', 'li', 'div', 'hr'],
   ALLOWED_ATTR: ['style', 'href', 'target', 'rel', 'class', 'data-tipo', 'data-color'],
   FORBID_TAGS: ['script', 'style', 'img', 'svg', 'iframe', 'object', 'embed', 'form'],
   FORBID_ATTR: [

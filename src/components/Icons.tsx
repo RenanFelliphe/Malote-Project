@@ -17,8 +17,12 @@ import {
   FiItalic,
   FiLink,
   FiMail,
+  FiMinus,
   FiMoon,
+  FiMoreHorizontal,
   FiMoreVertical,
+  FiPaperclip,
+  FiPlus,
   FiRefreshCw,
   FiRotateCcw,
   FiSearch,
@@ -35,7 +39,17 @@ import {
 // usa-se o conjunto Bootstrap Icons (react-icons/bi), que mantém o mesmo
 // estilo de contorno (outline) do Feather — evita misturar um estilo
 // preenchido (solid) no meio da toolbar.
-import { BiFontColor, BiHighlight, BiListOl, BiListUl, BiSquareRounded, BiStrikethrough } from 'react-icons/bi';
+import {
+  BiFontColor,
+  BiHighlight,
+  BiLeftIndent,
+  BiListOl,
+  BiListUl,
+  BiRightIndent,
+  BiSquareRounded,
+  BiStrikethrough,
+  BiTable,
+} from 'react-icons/bi';
 
 export function IconeCopiar() {
   return <FiCopy size={14} aria-hidden="true" />;
@@ -188,4 +202,69 @@ export function IconeAlinharDireita() {
 
 export function IconeAlinharJustificado() {
   return <FiAlignJustify size={14} aria-hidden="true" />;
+}
+
+/** Diminuir tamanho da fonte (RefatoracaoFonteGruposCores.md — Etapa 1):
+ * substitui o antigo botão único com ícone "A" (`IconeTamanhoFonte`,
+ * `FiType`) — o stepper `[ − ] N [ + ]` no padrão Word não tem mais um
+ * ícone só, cada botão de ação usa o sinal correspondente. Mesmo ícone
+ * (`FiMinus`) que `IconeLinhaHorizontal` usa para outro botão — reuso de
+ * símbolo em contexto diferente, sem conflito visual (não aparecem lado a
+ * lado). */
+export function IconeFonteDiminuir() {
+  return <FiMinus size={13} aria-hidden="true" />;
+}
+
+/** Aumentar tamanho da fonte (Etapa 1) — par de `IconeFonteDiminuir`. */
+export function IconeFonteAumentar() {
+  return <FiPlus size={13} aria-hidden="true" />;
+}
+
+/** Diminuir recuo (RefatoracaoToolbarEmail.md — Etapa 5). */
+export function IconeRecuoEsquerda() {
+  return <BiLeftIndent size={17} aria-hidden="true" />;
+}
+
+/** Aumentar recuo (Etapa 5). */
+export function IconeRecuoDireita() {
+  return <BiRightIndent size={17} aria-hidden="true" />;
+}
+
+/** Linha horizontal (RefatoracaoToolbarEmail.md — Etapa 6): traço simples,
+ * mesmo ícone que Word/Docs usam para esse comando. */
+export function IconeLinhaHorizontal() {
+  return <FiMinus size={15} aria-hidden="true" />;
+}
+
+/** Tabela — placeholder sem função (RefatoracaoToolbarEmail.md — Etapa 7):
+ * ícone reservado para a extensão de tabela de fato, que fica para uma
+ * revisão futura (ver plano, seção 2). Vem do conjunto Bootstrap Icons
+ * (como os demais ícones sem equivalente no Feather, acima) por não haver
+ * um ícone de tabela no conjunto Feather usado no resto do projeto. */
+export function IconeTabela() {
+  return <BiTable size={16} aria-hidden="true" />;
+}
+
+/** Gatilho "Ver Mais" da toolbar do editor de e-mail (RefatoracaoToolbarEmail.md
+ * — Etapa 2): reticências horizontais, padrão Word/Excel para menu de
+ * itens que não couberam na largura disponível. Distinto de `IconeArrastar`
+ * (`FiMoreVertical`, reticências verticais, usado como alça de arrasto em
+ * `OrdenacaoPrioridade`) — mesmo conceito de "mais opções", ícone e contexto
+ * diferentes. */
+export function IconeVerMais() {
+  return <FiMoreHorizontal size={15} aria-hidden="true" />;
+}
+
+/** Ícone do botão "Anexar arquivo" no modal "Editar e-mail"
+ * (RefatoracaoToolbarEmail.md — Etapa 9): clipe de papel, símbolo padrão
+ * para anexos em qualquer cliente de e-mail. */
+export function IconeAnexar() {
+  return <FiPaperclip size={14} aria-hidden="true" />;
+}
+
+/** Ícone do botão de remover um anexo já selecionado da lista (Etapa 9) —
+ * reaproveita o mesmo símbolo de "fechar" de `IconeFechar`, em tamanho
+ * reduzido para caber ao lado do nome do arquivo em cada item da lista. */
+export function IconeRemoverAnexo() {
+  return <FiX size={13} aria-hidden="true" />;
 }

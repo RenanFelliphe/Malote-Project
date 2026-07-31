@@ -1714,6 +1714,108 @@ button.status-badge-clicavel:hover {
   border: 1px solid var(--color-border);
 }
 
+/* --- Corpo rolável do modal "Editar e-mail" (Etapa 9, RefatoracaoToolbarEmail.md) ---
+   Corrige o overflow que a lista de anexos pode causar: em vez de deixar
+   `.dialog-content` inteiro rolar (o que arrastaria o header e o rodapé
+   Salvar/Cancelar junto, já que ambos são filhos diretos dele dentro do
+   mesmo flex-column — ver `Dialog.tsx`), só este wrapper interno, que
+   envolve título/corpo/anexos, ganha `overflow-y: auto`. `.dialog-content`
+   continua com `overflow: hidden` e `max-height: 85vh` (regra já
+   existente) como guarda de altura máxima; `flex: 1` + `min-height: 0`
+   aqui é o que permite este wrapper de fato encolher e rolar dentro
+   desse espaço fixo, em vez de empurrar o container inteiro para baixo. */
+.modal-email-conteudo-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modal-email-conteudo-corpo::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- Anexar arquivo (Etapa 9) ---
+   Só a UI de seleção local nesta etapa — nenhuma integração com
+   envio/persistência (ver plano, seção 2): preparação para quando o
+   disparo automático de e-mails ganhar suporte a anexo. */
+.modal-anexo-acoes {
+  display: flex;
+}
+
+.modal-anexo-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal-anexo-botao:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.modal-anexo-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.modal-anexo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+  font-size: 0.8rem;
+}
+
+.modal-anexo-nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+.modal-anexo-remover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal-anexo-remover:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
 .modal-selecionar-todos {
   display: flex;
   align-items: center;
@@ -2352,6 +2454,20 @@ li.marcado .exportar-lista-status-item {
   list-style-type: decimal;
 }
 
+/* Linha horizontal (RefatoracaoToolbarEmail.md — Etapa 6): traço fino,
+   consistente com a cor de borda já usada no resto da interface (evita um
+   `<hr>` cinza-padrão do navegador, que destoa do restante do editor). Sem
+   `style` inline aqui de propósito — a aparência dentro do próprio editor é
+   só CSS deste seletor; é o pipeline de exportação "email-safe"
+   (`emailHtmlInline.ts`) quem precisa gerar o `style` inline equivalente
+   para o `<hr>` sobreviver com a mesma aparência fora da aplicação, já que
+   CSS externo não é respeitado pelos clientes de e-mail. */
+.campo-corpo-email-editor hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0.8em 0;
+}
+
 /* Etapa 7 (refatoracaoEmailFormatado.md) — "transformar em botão": nó de
    bloco customizado (`NoBotao`, `data-tipo="botao-email"`), caixa
    arredondada com padding fixo por decisão de escopo. Cor de fundo (via
@@ -2438,24 +2554,27 @@ li.marcado .exportar-lista-status-item {
 
 /* =========================================================================
    Toolbar do corpo do e-mail (RefatoracaoToolbarEmail.md — Etapa 1:
-   estrutura reconstruída do zero. A revisão anterior organizava os botões
-   em seções (`ToolbarGrupo.tsx`) que colapsavam como grupo atrás de um
-   gatilho quando faltava espaço; isso foi descontinuado (diagnóstico da
-   Etapa 0) porque `overflow: hidden`, necessário para impedir que os
-   botões soltos quebrassem para uma segunda linha, também cortava e
-   deslocava os popovers (`.email-editor-toolbar-popover`), que eram
-   posicionados `absolute` em relação a um ancestral (`.email-editor-toolbar-
-   grupo`) dentro dessa mesma área cortada.
-   A partir desta etapa: (1) a toolbar é uma única faixa de botões
-   individuais, sem agrupamento visual funcional; (2) `overflow: hidden` foi
+   estrutura reconstruída do zero; Etapa 2: responsividade por "Ver Mais").
+   A revisão anterior organizava os botões em seções (`ToolbarGrupo.tsx`)
+   que colapsavam como grupo atrás de um gatilho quando faltava espaço;
+   isso foi descontinuado (diagnóstico da Etapa 0) porque `overflow:
+   hidden`, necessário para impedir que os botões soltos quebrassem para
+   uma segunda linha, também cortava e deslocava os popovers
+   (`.email-editor-toolbar-popover`), que eram posicionados `absolute` em
+   relação a um ancestral dentro dessa mesma área cortada.
+   A partir da Etapa 1: (1) a toolbar é uma única faixa de botões
+   individuais, sem agrupamento visual funcional (`overflow: hidden` foi
    removido — não há mais nada para "amortecer" já que os popovers não
-   nascem mais dentro dela; (3) todo popover é renderizado via portal para
+   nascem mais dentro dela); (2) todo popover é renderizado via portal para
    `document.body` (`editor/ToolbarPopover.tsx`), posicionado por
    coordenadas calculadas a partir do botão-gatilho (`getBoundingClientRect`),
    nunca mais como filho posicionado de um elemento com overflow cortado.
-   A responsividade por "Ver Mais" (Etapa 2) ainda não existe nesta etapa —
-   uma toolbar mais estreita que a soma dos botões pode, por ora, estourar a
-   largura do container; é o comportamento esperado até a Etapa 2.
+   Etapa 2: cada botão (`flex-shrink: 0`, nunca encolhe) que não couber na
+   largura disponível é removido do fluxo pelo componente (não por CSS) e
+   passa a existir só dentro do painel de "Ver Mais"
+   (`.email-editor-toolbar-popover-vermais`), acessível pelo gatilho de "3
+   pontos" fixo na ponta direita (`.email-editor-toolbar-item-vermais`,
+   `margin-left: auto`).
    ========================================================================= */
 
 .email-editor-toolbar {
@@ -2468,9 +2587,39 @@ li.marcado .exportar-lista-status-item {
   background: var(--color-bg-subtle);
 }
 
+/* Wrapper de um botão com popover companheiro (cor, realce, link, botão) —
+   só existe para que `ToolbarPopover` tenha um nó irmão do botão-gatilho
+   dentro do mesmo item (o próprio botão continua sendo o `anchorRef`); não
+   carrega posicionamento próprio, já que o popover é `position: fixed`
+   calculado via portal, nunca mais relativo a este wrapper. `flex-shrink: 0`
+   para nunca ser espremido pela faixa `nowrap` (Etapa 2). */
+.email-editor-toolbar-item {
+  display: flex;
+  flex-shrink: 0;
+}
+
+/* Gatilho de "Ver Mais" (Etapa 2): sempre o último filho da faixa quando
+   existe, empurrado para a ponta direita mesmo quando poucos botões estão
+   ocultos (não fica "grudado" no botão visível anterior). */
+.email-editor-toolbar-item-vermais {
+  margin-left: auto;
+}
+
+/* Painel de "Ver Mais" (Etapa 2): lista os botões que não couberam na
+   faixa principal. Layout em grade (não uma coluna única) para não ficar
+   excessivamente alto quando muitos botões estiverem ocultos; "sem scroll
+   interno" por decisão de escopo do plano — o painel cresce livremente. */
+.email-editor-toolbar-popover-vermais {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.3rem;
+  width: auto;
+}
+
 .email-editor-toolbar-botao {
   position: relative;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 1.9rem;
@@ -2513,6 +2662,7 @@ li.marcado .exportar-lista-status-item {
 
 .email-editor-toolbar-separador {
   width: 1px;
+  flex-shrink: 0;
   height: 1.3rem;
   margin: 0 0.25rem;
   background: var(--color-border-strong);
@@ -2536,8 +2686,12 @@ li.marcado .exportar-lista-status-item {
   padding: 0.5rem;
 }
 
+/* Wrapper dos popovers de cor de texto/realce — largura aumentada na Etapa
+   4 (RefatoracaoFonteGruposCores.md) para caber a grade 10×5 de
+   `PALETA_CORES_TONALIDADES` (antes, 9.5rem bastava para a grade de 4
+   colunas da paleta fixa da revisão anterior). */
 .email-editor-toolbar-popover-cores {
-  width: 9.5rem;
+  width: 14rem;
 }
 
 .email-editor-toolbar-popover-grade {
@@ -2545,6 +2699,20 @@ li.marcado .exportar-lista-status-item {
   grid-template-columns: repeat(4, 1fr);
   gap: 0.35rem;
   margin-bottom: 0.4rem;
+}
+
+/* Grade de cor unificada (Etapa 4): 10 colunas (matizes) × 5 tonalidades —
+   `grid-template-columns` próprio por cima de `.email-editor-toolbar-
+   popover-grade`, e amostras menores que a grade antiga de 4 colunas
+   (10 amostras de 1.5rem cada não caberiam num popover de toolbar). */
+.email-editor-toolbar-popover-grade-cores {
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.2rem;
+}
+
+.email-editor-toolbar-popover-grade-cores .email-editor-toolbar-amostra {
+  width: 1.05rem;
+  height: 1.05rem;
 }
 
 .email-editor-toolbar-amostra {
@@ -2581,6 +2749,242 @@ li.marcado .exportar-lista-status-item {
   background: var(--color-surface-hover);
   color: var(--color-danger);
   border-color: var(--color-danger);
+}
+
+/* Campo hexadecimal + quadrado de preview, abaixo da grade de tonalidades
+   (RefatoracaoFonteGruposCores.md — Etapa 4). */
+.email-editor-toolbar-popover-hex {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.email-editor-toolbar-popover-hex-preview {
+  flex-shrink: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.email-editor-toolbar-popover-input-hex {
+  flex: 1;
+  min-width: 0;
+  text-transform: lowercase;
+}
+
+/* Botão "Personalizar" (Etapa 4 — placeholder; o modal de color picker
+   completo com SV/matiz/RGB entra na Etapa 5). Mesmo padrão visual
+   secundário de `.email-editor-toolbar-popover-remover`, mas sem a cor de
+   destaque "perigo" no hover — não é uma ação destrutiva. */
+.email-editor-toolbar-popover-personalizar {
+  width: 100%;
+  margin-bottom: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-editor-toolbar-popover-personalizar:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+
+/* Modal "Personalizar" (RefatoracaoFonteGruposCores.md — Etapa 5): overlay
+   fixo cobrindo a tela inteira + caixa centralizada, acima de qualquer
+   popover da toolbar (`.email-editor-toolbar-popover` usa z-index: 130). */
+.email-editor-modal-personalizar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 45%);
+}
+
+.email-editor-modal-personalizar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+/* `HsvColorPicker` (react-colorful) injeta seu próprio CSS mínimo — só o
+   tamanho do quadrado SV + barra de matiz é ajustado aqui via a classe que
+   a biblioteca expõe. */
+.email-editor-modal-personalizar .react-colorful {
+  width: 13rem;
+  height: 13rem;
+}
+
+.email-editor-modal-personalizar-linha {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.email-editor-modal-personalizar-hex {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  text-transform: lowercase;
+}
+
+.email-editor-modal-personalizar-rgb {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.email-editor-modal-personalizar-rgb label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+
+.email-editor-modal-personalizar-rgb input {
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+.email-editor-modal-personalizar-rgb input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* Stepper de tamanho de fonte (RefatoracaoFonteGruposCores.md — Etapa 1):
+   substitui o antigo botão único + popover de lista curada por um controle
+   "[ − ] N [ + ]" no padrão Word — dois botões de ação direta lado a lado
+   com um campo numérico central. Mais compacto que `.email-editor-toolbar-
+   botao` sozinho, por isso tem wrapper próprio (além de
+   `.email-editor-toolbar-item`, para a medição de largura do "Ver Mais"
+   continuar funcionando do mesmo jeito — ver `refTamanhoFonteItem` em
+   `EmailEditorToolbar.tsx`). */
+.email-editor-toolbar-stepper-fonte {
+  align-items: center;
+  gap: 0.1rem;
+}
+
+/* Botões +/− do stepper: mesma altura de `.email-editor-toolbar-botao`
+   (para alinhar com o resto da faixa), só mais estreitos — não precisam do
+   quadrado 1.9×1.9rem de um botão com ícone sozinho no meio de espaço
+   livre, já que aqui vivem grudados ao campo numérico. */
+.email-editor-toolbar-stepper-botao {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.9rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-editor-toolbar-stepper-botao:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.email-editor-toolbar-stepper-botao:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Campo numérico central: largura fixa curta (cabe três dígitos — teto do
+   intervalo de segurança é 96, `TAMANHO_FONTE_MAX`) em vez de crescer com
+   o conteúdo digitado. */
+.email-editor-toolbar-stepper-campo {
+  width: 2rem;
+  height: 1.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+.email-editor-toolbar-stepper-campo:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.email-editor-toolbar-stepper-campo:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Popover de valores comuns de fonte, aberto ao focar o campo do stepper
+   acima (Etapa 1) — lista textual vertical (não uma grade como
+   `.email-editor-toolbar-popover-grade`, já que os rótulos são palavras,
+   não amostras quadradas de cor). */
+.email-editor-toolbar-popover-tamanhos {
+  width: 9rem;
+}
+
+.email-editor-toolbar-popover-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.email-editor-toolbar-popover-opcao {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-editor-toolbar-popover-opcao:hover {
+  background: var(--color-surface-hover);
+}
+
+.email-editor-toolbar-popover-opcao.ativa {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Popover de grupo com trigger único (RefatoracaoFonteGruposCores.md —
+   Etapa 2: Alinhamento; Etapa 3: Recuo e Lista, reaproveitando o mesmo
+   `PainelGrupoOpcoes`). Grade horizontal — os botões internos já são
+   `.email-editor-toolbar-botao` (mesma classe/tamanho de qualquer botão
+   simples da toolbar), então o wrapper só precisa do `display: flex` e do
+   espaçamento entre eles; não tem largura fixa própria (o popover cresce
+   com a quantidade de botões do grupo, no máximo 4 nesta revisão). */
+.email-editor-toolbar-popover-grupo {
+  display: flex;
+  gap: 0.25rem;
 }
 
 /* Popover de link (Etapa 5). */
@@ -2634,9 +3038,10 @@ li.marcado .exportar-lista-status-item {
   width: auto;
 }
 
-/* Popover de "Transformar em botão" (Etapa 7, revisão) — mais largo que
-   `.email-editor-toolbar-popover-cores`/`-link` porque acumula três blocos
-   empilhados (toggle, paleta de cor, campo de URL) em vez de só um. */
+/* Popover de "Botão" (RefatoracaoToolbarEmail.md — Etapa 8: sem toggle
+   textual separado, abre direto na cor + link) — mais largo que
+   `.email-editor-toolbar-popover-cores`/`-link` porque acumula dois blocos
+   empilhados (paleta de cor, campo de URL) em vez de só um. */
 .email-editor-toolbar-popover-botao {
   width: 15rem;
   display: flex;
@@ -2644,7 +3049,7 @@ li.marcado .exportar-lista-status-item {
   gap: 0.4rem;
 }
 
-/* Separa visualmente os três blocos do popover acima (Etapa 7, revisão). */
+/* Separa visualmente os blocos do popover acima. */
 .email-editor-toolbar-popover-separador {
   height: 1px;
   margin: 0.15rem 0;
