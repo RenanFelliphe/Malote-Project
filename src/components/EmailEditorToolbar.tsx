@@ -249,7 +249,7 @@ function hsvParaRgb(h: number, s: number, v: number): { r: number; g: number; b:
   else if (h < 180) [rP, gP, bP] = [0, c, x];
   else if (h < 240) [rP, gP, bP] = [0, x, c];
   else if (h < 300) [rP, gP, bP] = [x, 0, c];
-  else [rP, gP, bP] = [c, 0, x];
+  else[rP, gP, bP] = [c, 0, x];
   return { r: (rP + m) * 255, g: (gP + m) * 255, b: (bP + m) * 255 };
 }
 
@@ -404,6 +404,7 @@ function ModalPersonalizarCor({
       <div
         className="email-editor-modal-personalizar"
         onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Personalizar cor"
