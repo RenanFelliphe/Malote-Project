@@ -31,7 +31,7 @@ Vale registrar a natureza do projeto, porque ela limita o escopo mais do que num
 
 A Etapa 1 é pré-requisito de todas as demais. A Etapa 2 depende da 1 e é checkpoint — valida que a tabela nasce, edita linha/coluna e sobrevive à sanitização antes de empilhar o resto em cima. As Etapas 3–7 dependem da 2 pronta, mas são independentes entre si e podem ser feitas em qualquer ordem a partir dali.
 
-### Etapa 1 — Dependência, schema e sanitização
+### Etapa 1 — Dependência, schema e sanitização ✅ concluída
 
 **O que fazer:** instalar `@tiptap/extension-table`, `@tiptap/extension-table-row`, `@tiptap/extension-table-header`, `@tiptap/extension-table-cell`; registrar em `EmailEditorRico.tsx` junto das extensões já existentes, com `Table.configure({ resizable: true })`. Atualizar `sanitizarHtml.ts` conforme a seção 2 (tags de tabela + `colspan`/`rowspan`). Sem UI ainda — só o schema aceitando o nó e a sanitização deixando passar.
 
@@ -51,15 +51,22 @@ A Etapa 1 é pré-requisito de todas as demais. A Etapa 2 depende da 1 e é chec
 
 **Arquivos-fonte necessários:** `src/components/editor/ToolbarPopover.tsx` (reaproveitar o mecanismo de portal/posicionamento/clique-fora já pronto).
 
-### Etapa 3 — Mesclar/dividir células e cabeçalho
+### Etapa 3 — Mesclar/dividir células e cabeçalho ✅ concluída
 
 **O que fazer:** adicionar à barra contextual os controles de mesclar (`mergeCells`) e dividir (`splitCell`) a seleção de células atual, mais os toggles de linha/coluna de cabeçalho (`toggleHeaderRow`, `toggleHeaderColumn`), nativos da extensão.
 
 **Por quê:** completa a manipulação estrutural da tabela (o que sobra da lista original além de linha/coluna/exclusão, já cobertos na Etapa 2), e os toggles de cabeçalho são os extras de menor esforço confirmados — comandos prontos, só falta o botão.
 
-**Arquivos alterados:** `src/components/EmailEditorToolbar.tsx`, `src/components/Icons.tsx`, `src/index.css`.
+**Arquivos alterados:** `src/components/EmailEditorToolbar.tsx`, `src/components/Icons.tsx`.
 
 **Arquivos-fonte necessários:** nenhum adicional além do já visto na Etapa 2.
+
+**Notas de execução:**
+- Os 4 novos botões (mesclar, dividir, cabeçalho de linha, cabeçalho de coluna) entram na barra contextual existente, entre o grupo de coluna e "excluir tabela", cada um separado por `.email-editor-toolbar-separador`, mesmo padrão visual da Etapa 2.
+- Ícones: nem Feather, nem Bootstrap Icons, nem Tabler Icons (os três já usados no projeto) têm ícone dedicado de mesclar/dividir célula. Em vez de forçar um símbolo genérico, foi introduzido um quarto conjunto — Remix Icon (`react-icons/ri`, mesmo pacote `react-icons` já instalado, sem dependência nova) — que tem `RiMergeCellsHorizontal`/`RiSplitCellsHorizontal` dedicados, no mesmo estilo de contorno dos demais. Os toggles de cabeçalho reaproveitam o Tabler já usado na Etapa 2 (`TbTableRow`/`TbTableColumn`).
+- Estado "ativo" dos toggles de cabeçalho: `toggleHeaderRow`/`toggleHeaderColumn` gravam o mesmo tipo de nó (`tableHeader`) tanto para célula de cabeçalho de linha quanto de coluna — a extensão não distingue as duas depois de aplicadas. Por isso os dois botões compartilham uma única flag de estado (`celulaCabecalhoAtiva`, via `editor.isActive('tableHeader')`) para se destacar quando o cursor está numa célula já convertida em cabeçalho.
+- `mergeCells`/`splitCell` não ganharam gating extra (`can()`) além do já padrão `disabled={!editor}` — fora de uma seleção mesclável/divisível, os comandos simplesmente não fazem nada (mesmo comportamento de no-op que os comandos de linha/coluna da Etapa 2 já tinham fora de contexto válido).
+- `src/index.css` não precisou de nenhuma regra nova: `.email-editor-toolbar-botao`, `.email-editor-toolbar-botao.ativo` e `.email-editor-toolbar-separador` já são genéricas e cobrem os botões novos; a barra contextual já tinha `overflow-x: auto` desde a Etapa 2 para absorver o crescimento de itens.
 
 ### Etapa 4 — Cor de célula
 

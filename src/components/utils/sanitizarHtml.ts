@@ -43,6 +43,14 @@ import DOMPurify from 'dompurify';
  *   aparência é só CSS do elemento em si, em `index.css`), mas precisa
  *   constar em `ALLOWED_TAGS` mesmo assim, ou o DOMPurify descarta a tag
  *   inteira.
+ * - `table`, `thead`, `tbody`, `tr`, `td`, `th`: tabela (RefatoracaoTabela.md
+ *   — Etapa 1). Sem UI ainda nesta etapa, mas o schema do editor já aceita o
+ *   nó — sem essas tags aqui, o HTML de tabela seria descartado na
+ *   sanitização tanto ao reabrir um e-mail salvo quanto ao colar conteúdo de
+ *   fora. Cor de célula, altura de linha, borda e largura da tabela (etapas
+ *   futuras do mesmo plano) saem via `style` inline, que já é liberado sem
+ *   allowlist por propriedade CSS (ver nota de `style` logo abaixo) — não
+ *   exigem entrada adicional além das tags em si.
  *
  * `ALLOWED_ATTR`:
  * - `style`: cor de texto/highlight (Etapa 4), tamanho da fonte
@@ -70,6 +78,11 @@ import DOMPurify from 'dompurify';
  *   preservado mesmo sem constar aqui, porque o DOMPurify libera qualquer
  *   atributo `data-*` por padrão (`ALLOW_DATA_ATTR`) — listado mesmo assim
  *   pela mesma razão de `data-tipo`: deixar a intenção explícita.
+ * - `colspan`, `rowspan`: mesclagem de células de tabela (RefatoracaoTabela.md
+ *   — Etapa 1, usado a partir da Etapa 3 quando `mergeCells`/`splitCell`
+ *   ganharem UI) — sem essa entrada, mesclar células perderia o efeito ao
+ *   sanitizar, já que o `td`/`th` resultante voltaria a ocupar uma só
+ *   posição da grade.
  *
  * Deliberadamente fora da lista: `id` (não faz parte do HTML de e-mail —
  * o único uso de `id` no editor é no elemento raiz do `EditorContent`, fora
@@ -81,8 +94,11 @@ import DOMPurify from 'dompurify';
  * a uma futura expansão descuidada de `ALLOWED_TAGS`).
  */
 const CONFIGURACAO_SANITIZACAO: Parameters<typeof DOMPurify.sanitize>[1] = {
-  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'span', 'mark', 'a', 'ul', 'ol', 'li', 'div', 'hr'],
-  ALLOWED_ATTR: ['style', 'href', 'target', 'rel', 'class', 'data-tipo', 'data-color'],
+  ALLOWED_TAGS: [
+    'p', 'br', 'strong', 'em', 'u', 's', 'span', 'mark', 'a', 'ul', 'ol', 'li', 'div', 'hr',
+    'table', 'thead', 'tbody', 'tr', 'td', 'th',
+  ],
+  ALLOWED_ATTR: ['style', 'href', 'target', 'rel', 'class', 'data-tipo', 'data-color', 'colspan', 'rowspan'],
   FORBID_TAGS: ['script', 'style', 'img', 'svg', 'iframe', 'object', 'embed', 'form'],
   FORBID_ATTR: [
     'onerror',

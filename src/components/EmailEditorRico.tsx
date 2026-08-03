@@ -4,11 +4,14 @@ import Highlight from '@tiptap/extension-highlight';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import StarterKit from '@tiptap/starter-kit';
+import { Table } from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline';
 
 import { NoBotao } from './editor/extensoes/NoBotao';
+import { TableCellComCor, TableHeaderComCor } from './editor/extensoes/CorCelula';
 import { FontSize } from './editor/extensoes/FontSize';
 import { Indentacao } from './editor/extensoes/Indentacao';
 import { EmailEditorToolbar } from './EmailEditorToolbar';
@@ -214,6 +217,16 @@ interface Props {
  * sendo o modal, não este componente — só o `onSelecionarEmoji` precisava
  * estar aqui.
  *
+ * Tabela (RefatoracaoTabela.md — Etapa 1): `Table`/`TableRow`/`TableHeader`/
+ * `TableCell` registradas com `resizable: true` — só o schema aceitando o
+ * nó por enquanto, sem UI própria (o botão "Tabela" da toolbar continua
+ * placeholder até a Etapa 2 daquele plano). Ver `sanitizarHtml.ts` para as
+ * tags/atributos liberados em paralelo, ou HTML de tabela produzido aqui
+ * seria descartado na sanitização. Cor de célula (Etapa 4): `TableHeader`/
+ * `TableCell` entram como `TableHeaderComCor`/`TableCellComCor`
+ * (`editor/extensoes/CorCelula.ts`), que só acrescentam o atributo
+ * `corFundo` aos nós base — nenhuma outra configuração muda.
+ *
  * Sanitização (Etapa 10 — refatoracaoEmailFormatado.md): `normalizarHtmlColado`
  * ajusta a *estrutura* do HTML colado ao schema do editor, mas não tem como
  * objetivo remover conteúdo malicioso — um `<a href="javascript:...">` ou um
@@ -287,6 +300,21 @@ export function EmailEditorRico({ id, value, onChange, onContagemChange, placeho
       // parágrafo/item de lista, sem pedir suporte dentro do botão
       // estilizado.
       Indentacao,
+      // Tabela (RefatoracaoTabela.md — Etapa 1): só o schema por enquanto,
+      // sem UI — o botão "Tabela" na toolbar segue placeholder até a Etapa
+      // 2. `resizable: true` já habilitado aqui porque é a própria extensão
+      // que resolve largura de coluna por arraste nativamente (ver seção 2
+      // do plano); nenhuma UI adicional depende disso além do que a
+      // extensão já oferece sozinha.
+      Table.configure({ resizable: true }),
+      TableRow,
+      // Cor de célula (RefatoracaoTabela.md — Etapa 4): `TableHeaderComCor`/
+      // `TableCellComCor` (`editor/extensoes/CorCelula.ts`) estendem os nós
+      // base só para declarar o atributo `corFundo`, round-trip via
+      // `style="background-color"` — ver o próprio arquivo para o porquê de
+      // precisar dos dois.
+      TableHeaderComCor,
+      TableCellComCor,
       Placeholder.configure({
         placeholder: placeholder ?? '',
       }),

@@ -40,6 +40,7 @@ import {
 // estilo de contorno (outline) do Feather — evita misturar um estilo
 // preenchido (solid) no meio da toolbar.
 import {
+  BiColorFill,
   BiFontColor,
   BiHighlight,
   BiLeftIndent,
@@ -50,6 +51,33 @@ import {
   BiStrikethrough,
   BiTable,
 } from 'react-icons/bi';
+// A barra contextual de tabela (RefatoracaoTabela.md — Etapa 2) precisa de
+// ícones de inserir/excluir linha e coluna, que não existem nem no conjunto
+// Feather nem no Bootstrap Icons já usados acima. O conjunto Tabler Icons
+// (react-icons/tb) tem exatamente esses ícones, no mesmo estilo de contorno
+// (outline) dos demais — por isso um terceiro conjunto, em vez de forçar um
+// símbolo genérico (ex.: `FiPlus`/`FiMinus`) que não distinguiria linha de
+// coluna visualmente.
+import {
+  TbColumnInsertLeft,
+  TbColumnInsertRight,
+  TbColumnRemove,
+  TbRowInsertBottom,
+  TbRowInsertTop,
+  TbRowRemove,
+  TbTableColumn,
+  TbTableOff,
+  TbTableRow,
+} from 'react-icons/tb';
+// Mesclar/dividir células (RefatoracaoTabela.md — Etapa 3) não têm
+// equivalente nem no Feather, nem no Bootstrap Icons, nem no Tabler Icons já
+// usados acima (Tabler tem ícones de linha/coluna de tabela, mas não de
+// mesclagem de célula). O conjunto Remix Icon (react-icons/ri) tem
+// `MergeCells`/`SplitCells` dedicados, no mesmo estilo de contorno
+// (outline) dos demais — por isso um quarto conjunto, pelo mesmo motivo que
+// justificou o terceiro (Tabler) na Etapa 2: símbolo genérico não
+// distinguiria mesclar de dividir visualmente.
+import { RiMergeCellsHorizontal, RiSplitCellsHorizontal } from 'react-icons/ri';
 
 export function IconeCopiar() {
   return <FiCopy size={14} aria-hidden="true" />;
@@ -236,13 +264,83 @@ export function IconeLinhaHorizontal() {
   return <FiMinus size={15} aria-hidden="true" />;
 }
 
-/** Tabela — placeholder sem função (RefatoracaoToolbarEmail.md — Etapa 7):
- * ícone reservado para a extensão de tabela de fato, que fica para uma
- * revisão futura (ver plano, seção 2). Vem do conjunto Bootstrap Icons
- * (como os demais ícones sem equivalente no Feather, acima) por não haver
- * um ícone de tabela no conjunto Feather usado no resto do projeto. */
+/** Tabela (RefatoracaoToolbarEmail.md — Etapa 7, placeholder; RefatoracaoTabela.md
+ * — Etapa 2, função real: abre o popover de inserção). Vem do conjunto
+ * Bootstrap Icons (como os demais ícones sem equivalente no Feather, acima)
+ * por não haver um ícone de tabela no conjunto Feather usado no resto do
+ * projeto. */
 export function IconeTabela() {
   return <BiTable size={16} aria-hidden="true" />;
+}
+
+/** Inserir linha acima do cursor (RefatoracaoTabela.md — Etapa 2, barra
+ * contextual da tabela — comando `addRowBefore`). */
+export function IconeInserirLinhaAcima() {
+  return <TbRowInsertTop size={16} aria-hidden="true" />;
+}
+
+/** Inserir linha abaixo do cursor (Etapa 2 — comando `addRowAfter`). */
+export function IconeInserirLinhaAbaixo() {
+  return <TbRowInsertBottom size={16} aria-hidden="true" />;
+}
+
+/** Excluir a linha atual (Etapa 2 — comando `deleteRow`). */
+export function IconeExcluirLinha() {
+  return <TbRowRemove size={16} aria-hidden="true" />;
+}
+
+/** Inserir coluna à esquerda do cursor (Etapa 2 — comando `addColumnBefore`). */
+export function IconeInserirColunaEsquerda() {
+  return <TbColumnInsertLeft size={16} aria-hidden="true" />;
+}
+
+/** Inserir coluna à direita do cursor (Etapa 2 — comando `addColumnAfter`). */
+export function IconeInserirColunaDireita() {
+  return <TbColumnInsertRight size={16} aria-hidden="true" />;
+}
+
+/** Excluir a coluna atual (Etapa 2 — comando `deleteColumn`). */
+export function IconeExcluirColuna() {
+  return <TbColumnRemove size={16} aria-hidden="true" />;
+}
+
+/** Excluir a tabela inteira (Etapa 2 — comando `deleteTable`). Ícone
+ * distinto de `IconeTabela` (o "off"/barrado comunica remoção completa,
+ * não confundir com excluir linha/coluna, que operam dentro da tabela). */
+export function IconeExcluirTabela() {
+  return <TbTableOff size={16} aria-hidden="true" />;
+}
+
+/** Mesclar a seleção de células atual em uma só (Etapa 3 — comando
+ * `mergeCells`). */
+export function IconeMesclarCelulas() {
+  return <RiMergeCellsHorizontal size={16} aria-hidden="true" />;
+}
+
+/** Dividir de volta a célula mesclada sob o cursor (Etapa 3 — comando
+ * `splitCell`). */
+export function IconeDividirCelula() {
+  return <RiSplitCellsHorizontal size={16} aria-hidden="true" />;
+}
+
+/** Alternar a linha atual como linha de cabeçalho (Etapa 3 — comando
+ * `toggleHeaderRow`). */
+export function IconeAlternarLinhaCabecalho() {
+  return <TbTableRow size={16} aria-hidden="true" />;
+}
+
+/** Alternar a coluna atual como coluna de cabeçalho (Etapa 3 — comando
+ * `toggleHeaderColumn`). */
+export function IconeAlternarColunaCabecalho() {
+  return <TbTableColumn size={16} aria-hidden="true" />;
+}
+
+/** Cor de fundo da célula (RefatoracaoTabela.md — Etapa 4): balde de tinta,
+ * do mesmo conjunto Bootstrap Icons já usado por `IconeCorTexto`/
+ * `IconeRealce` — mantém o estilo de contorno consistente entre os três
+ * controles de cor da toolbar. */
+export function IconeCorCelula() {
+  return <BiColorFill size={17} aria-hidden="true" />;
 }
 
 /** Gatilho "Ver Mais" da toolbar do editor de e-mail (RefatoracaoToolbarEmail.md
