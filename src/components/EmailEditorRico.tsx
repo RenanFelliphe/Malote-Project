@@ -9,9 +9,6 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline';
 
 import { NoBotao } from './editor/extensoes/NoBotao';
-import { TableCellComCor, TableHeaderComCor } from './editor/extensoes/CorCelula';
-import { TableRowComAltura } from './editor/extensoes/AlturaLinha';
-import { TableComBordaLargura } from './editor/extensoes/BordaLarguraTabela';
 import { FontSize } from './editor/extensoes/FontSize';
 import { Indentacao } from './editor/extensoes/Indentacao';
 import { EmailEditorToolbar } from './EmailEditorToolbar';
@@ -81,10 +78,10 @@ function removerComentarios(raiz: Element) {
  *   por causa de uma tag que o navegador nem reconhece como HTML padrão.
  *
  * Qualquer outra tag não fica a cargo desta função: tags HTML padrão fora
- * do conjunto suportado pelo editor (`<h1>`, `<table>`, `<div>` sem os
- * atributos esperados etc.) já são resolvidas pelo próprio parser do
- * ProseMirror ao montar o documento a partir do HTML normalizado — ele
- * ignora a tag e tenta preservar o conteúdo de texto de dentro dela.
+ * do conjunto suportado pelo editor (`<h1>`, `<div>` sem os atributos
+ * esperados etc.) já são resolvidas pelo próprio parser do ProseMirror ao
+ * montar o documento a partir do HTML normalizado — ele ignora a tag e
+ * tenta preservar o conteúdo de texto de dentro dela.
  */
 function normalizarElemento(elemento: Element) {
   Array.from(elemento.childNodes).forEach((filho) => {
@@ -217,27 +214,6 @@ interface Props {
  * sendo o modal, não este componente — só o `onSelecionarEmoji` precisava
  * estar aqui.
  *
- * Tabela (RefatoracaoTabela.md — Etapa 1): `Table`/`TableRow`/`TableHeader`/
- * `TableCell` registradas com `resizable: true` — só o schema aceitando o
- * nó por enquanto, sem UI própria (o botão "Tabela" da toolbar continua
- * placeholder até a Etapa 2 daquele plano). Ver `sanitizarHtml.ts` para as
- * tags/atributos liberados em paralelo, ou HTML de tabela produzido aqui
- * seria descartado na sanitização. Cor de célula (Etapa 4): `TableHeader`/
- * `TableCell` entram como `TableHeaderComCor`/`TableCellComCor`
- * (`editor/extensoes/CorCelula.ts`), que só acrescentam o atributo
- * `corFundo` aos nós base — nenhuma outra configuração muda. Altura de
- * linha (Etapa 5): mesma ideia, `TableRow` entra como `TableRowComAltura`
- * (`editor/extensoes/AlturaLinha.ts`), que só acrescenta o atributo
- * `altura`, round-trip via `style="height"` no `<tr>`. Largura de coluna
- * (mesma Etapa 5) não precisou de nenhuma extensão nova — já é nativa via
- * `resizable: true`, configurado desde a Etapa 1 acima. Borda e largura da
- * tabela (Etapa 6): mesma ideia mais uma vez, `Table` entra como
- * `TableComBordaLargura` (`editor/extensoes/BordaLarguraTabela.ts`), que
- * acrescenta `corBorda`/`espessuraBorda` (round-trip via `border-color`/
- * `border-width` no `<table>`) e `largura` (round-trip via `width`,
- * `'100%'` ou `'<n>px'`) — `resizable: true` continua vindo do
- * `.configure()` original, só o nó em si trocou.
- *
  * Sanitização (Etapa 10 — refatoracaoEmailFormatado.md): `normalizarHtmlColado`
  * ajusta a *estrutura* do HTML colado ao schema do editor, mas não tem como
  * objetivo remover conteúdo malicioso — um `<a href="javascript:...">` ou um
@@ -311,27 +287,6 @@ export function EmailEditorRico({ id, value, onChange, onContagemChange, placeho
       // parágrafo/item de lista, sem pedir suporte dentro do botão
       // estilizado.
       Indentacao,
-      // Tabela (RefatoracaoTabela.md — Etapa 1): `resizable: true` já
-      // habilitado aqui porque é a própria extensão que resolve largura de
-      // coluna por arraste nativamente (ver seção 2 do plano); nenhuma UI
-      // adicional depende disso além do que a extensão já oferece sozinha.
-      // A partir da Etapa 6, o nó em si é `TableComBordaLargura`
-      // (`editor/extensoes/BordaLarguraTabela.ts`), que só acrescenta
-      // `corBorda`/`espessuraBorda`/`largura` — `resizable` continua vindo
-      // deste `.configure()`.
-      TableComBordaLargura.configure({ resizable: true }),
-      // Cor de célula (RefatoracaoTabela.md — Etapa 4): `TableHeaderComCor`/
-      // `TableCellComCor` (`editor/extensoes/CorCelula.ts`) estendem os nós
-      // base só para declarar o atributo `corFundo`, round-trip via
-      // `style="background-color"` — ver o próprio arquivo para o porquê de
-      // precisar dos dois.
-      TableHeaderComCor,
-      TableCellComCor,
-      // Altura de linha (RefatoracaoTabela.md — Etapa 5): `TableRowComAltura`
-      // (`editor/extensoes/AlturaLinha.ts`) estende `TableRow` só para
-      // declarar o atributo `altura`, round-trip via `style="height"` no
-      // `<tr>` — mesmo padrão de `corFundo`, acima.
-      TableRowComAltura,
       Placeholder.configure({
         placeholder: placeholder ?? '',
       }),
