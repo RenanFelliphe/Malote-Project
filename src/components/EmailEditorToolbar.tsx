@@ -1,4 +1,12 @@
 import { useEditorState, type Editor } from '@tiptap/react';
+// Duplicar célula (RefatoracaoTabela.md — Etapa 7): não há comando nativo da
+// extensão de tabela para "copiar conteúdo desta célula para a vizinha" —
+// `isInTable`/`selectedRect` são os mesmos utilitários de baixo nível que os
+// comandos nativos (`mergeCells`, `deleteRow` etc.) usam internamente para
+// resolver a célula/seleção atual dentro da tabela, reaproveitados aqui para
+// montar a transação diretamente em vez de encadear comandos prontos que não
+// existem para este caso.
+import { isInTable, selectedRect } from '@tiptap/pm/tables';
 import {
   useCallback,
   useEffect,
@@ -20,10 +28,13 @@ import {
   IconeAlinharJustificado,
   IconeAlternarColunaCabecalho,
   IconeAlternarLinhaCabecalho,
+  IconeBordaTabela,
   IconeBotaoEmail,
   IconeCorCelula,
   IconeCorTexto,
   IconeDividirCelula,
+  IconeDuplicarParaBaixo,
+  IconeDuplicarParaDireita,
   IconeExcluirColuna,
   IconeExcluirLinha,
   IconeExcluirTabela,
@@ -34,6 +45,7 @@ import {
   IconeInserirLinhaAbaixo,
   IconeInserirLinhaAcima,
   IconeItalico,
+  IconeLarguraTotalTabela,
   IconeLink,
   IconeLinhaHorizontal,
   IconeListaNaoOrdenada,
@@ -374,6 +386,38 @@ const TABELA_DIMENSAO_MAX = 20;
  * demais para ajustar depois via barra contextual). */
 const TABELA_LINHAS_PADRAO = 3;
 const TABELA_COLUNAS_PADRAO = 3;
+
+/**
+ * Limites do campo "Altura" da barra contextual de tabela
+ * (RefatoracaoTabela.md — Etapa 5). O plano não define um teto explícito;
+ * mesmo raciocínio de clamp silencioso já usado pelas outras dimensões
+ * numéricas desta toolbar (`TABELA_DIMENSAO_MIN`/`_MAX`,
+ * `TAMANHO_FONTE_MIN`/`_MAX`, acima) — evita uma linha com altura
+ * zero/negativa ou um valor absurdamente grande digitado por engano.
+ */
+const ALTURA_LINHA_MIN = 10;
+const ALTURA_LINHA_MAX = 500;
+
+/**
+ * Limites do campo "Espessura" (borda da tabela, RefatoracaoTabela.md —
+ * Etapa 6) — mesmo raciocínio de clamp silencioso das outras dimensões
+ * numéricas desta toolbar, acima. Teto baixo (`10`) de propósito: espessura
+ * de borda de tabela de e-mail é um detalhe fino, não uma moldura grossa —
+ * um valor maior que isso quase certamente foi engano de digitação.
+ */
+const ESPESSURA_BORDA_MIN = 1;
+const ESPESSURA_BORDA_MAX = 10;
+
+/**
+ * Limites do campo "Largura" (largura fixa da tabela, mesma Etapa 6) — teto
+ * generoso (`1200`) cobre confortavelmente o corpo de um e-mail largo sem
+ * permitir um valor fora de qualquer proporção razoável digitado por
+ * engano. Sem piso alto (`LARGURA_TABELA_FIXA_MIN`): uma tabela mais
+ * estreita que isso ainda é um caso de uso válido (ex.: só duas colunas de
+ * preço lado a lado).
+ */
+const LARGURA_TABELA_FIXA_MIN = 50;
+const LARGURA_TABELA_FIXA_MAX = 1200;
 
 /**
  * Modal "Personalizar" (RefatoracaoFonteGruposCores.md — Etapa 5): color
@@ -749,6 +793,10 @@ const ESTADO_EDITOR_INDISPONIVEL = {
   tabelaAtiva: false,
   celulaCabecalhoAtiva: false,
   corCelulaAtiva: undefined as string | undefined,
+  alturaLinhaAtiva: undefined as number | undefined,
+  corBordaAtiva: undefined as string | undefined,
+  espessuraBordaAtiva: undefined as number | undefined,
+  larguraTabelaAtiva: undefined as string | undefined,
 };
 
 /**
@@ -917,6 +965,7 @@ export function EmailEditorToolbar({ editor }: Props) {
     | 'recuo'
     | 'tabela'
     | 'corCelula'
+    | 'corBorda'
     | null
   >(null);
   // Ver Mais (Etapa 2) é um estado à parte de `painelAberto` — ver JSDoc do
@@ -948,6 +997,31 @@ export function EmailEditorToolbar({ editor }: Props) {
   const [tabelaLinhasInput, setTabelaLinhasInput] = useState(String(TABELA_LINHAS_PADRAO));
   const [tabelaColunasInput, setTabelaColunasInput] = useState(String(TABELA_COLUNAS_PADRAO));
   const tabelaLinhasInputRef = useRef<HTMLInputElement>(null);
+
+  // Buffer local do campo "Altura" da barra contextual de tabela
+  // (RefatoracaoTabela.md — Etapa 5) — mesmo padrão do campo de tamanho de
+  // fonte (`campoTamanhoFonte`, abaixo): aceita digitação livre, confirmada
+  // só no blur/Enter (`confirmarAlturaLinha`), sincronizado a partir do
+  // editor sempre que o campo não está focado (ver efeito logo abaixo de
+  // `estado`). Vazio quando a linha atual não tem altura customizada
+  // (`estado.alturaLinhaAtiva` indefinido) — o campo mostra o placeholder
+  // "Auto", não um valor numérico.
+  const [campoAlturaLinha, setCampoAlturaLinha] = useState('');
+  const campoAlturaLinhaFocadoRef = useRef(false);
+
+  // Buffers dos campos "Espessura" (borda) e "Largura" (fixa, em px) da
+  // barra contextual de tabela (RefatoracaoTabela.md — Etapa 6) — mesmo
+  // padrão de `campoAlturaLinha`, acima: digitação livre, confirmada só no
+  // blur/Enter (`confirmarEspessuraBorda`/`confirmarLarguraFixa`),
+  // sincronizada a partir do editor sempre que o campo correspondente não
+  // está focado (ver efeitos logo abaixo de `estado`). `campoLarguraFixa`
+  // fica vazio tanto quando a tabela não tem largura customizada quanto
+  // quando ela está em "largura total" (`largura === '100%'`) — nos dois
+  // casos não há um valor fixo em px para mostrar no campo.
+  const [campoEspessuraBorda, setCampoEspessuraBorda] = useState('');
+  const campoEspessuraBordaFocadoRef = useRef(false);
+  const [campoLarguraFixa, setCampoLarguraFixa] = useState('');
+  const campoLarguraFixaFocadoRef = useRef(false);
 
   // Buffer local do campo do stepper de tamanho de fonte
   // (RefatoracaoFonteGruposCores.md — Etapa 1) — precisa de um estado à
@@ -996,6 +1070,10 @@ export function EmailEditorToolbar({ editor }: Props) {
   // `SeletorCor`, mesmo papel que `refCor`/`refRealce` cumprem na faixa
   // principal.
   const refCorCelula = useRef<HTMLButtonElement>(null);
+  // Barra contextual de tabela — cor da borda (RefatoracaoTabela.md — Etapa
+  // 6): mesmo papel de `refCorCelula`, acima, para o popover de `SeletorCor`
+  // do controle de borda.
+  const refCorBorda = useRef<HTMLButtonElement>(null);
 
   // `HTMLElement` (não `HTMLButtonElement`) porque `tamanhoFonte` agora
   // referencia o div-wrapper do stepper, não um único botão — só
@@ -1194,6 +1272,23 @@ export function EmailEditorToolbar({ editor }: Props) {
         corCelulaAtiva: (ed.isActive('tableHeader')
           ? ed.getAttributes('tableHeader').corFundo
           : ed.getAttributes('tableCell').corFundo) as string | undefined,
+        // Altura customizada da linha atual (Etapa 5): lê o atributo
+        // `altura` do nó `tableRow` mais próximo da seleção
+        // (`TableRowComAltura`, `editor/extensoes/AlturaLinha.ts`). Fora de
+        // uma tabela, `getAttributes('tableRow')` devolve o default do
+        // schema (`null`), normalizado aqui para `undefined` pelo mesmo
+        // motivo de `noBotaoHrefAtiva` mais acima: mantém o tipo do campo
+        // consistente com "sem valor definido" em vez de propagar `null`.
+        alturaLinhaAtiva: (ed.getAttributes('tableRow').altura ?? undefined) as number | undefined,
+        // Borda e largura da tabela (Etapa 6): lê os atributos do nó
+        // `table` mais próximo da seleção (`TableComBordaLargura`,
+        // `editor/extensoes/BordaLarguraTabela.ts`). Fora de uma tabela,
+        // `getAttributes('table')` devolve os defaults do schema (`null`),
+        // normalizados aqui para `undefined` pelo mesmo motivo de
+        // `alturaLinhaAtiva`, acima.
+        corBordaAtiva: (ed.getAttributes('table').corBorda ?? undefined) as string | undefined,
+        espessuraBordaAtiva: (ed.getAttributes('table').espessuraBorda ?? undefined) as number | undefined,
+        larguraTabelaAtiva: (ed.getAttributes('table').largura ?? undefined) as string | undefined,
       };
     },
   }) ?? ESTADO_EDITOR_INDISPONIVEL;
@@ -1245,6 +1340,29 @@ export function EmailEditorToolbar({ editor }: Props) {
     tabelaLinhasInputRef.current?.select();
   }, [painelAberto]);
 
+  // Resincroniza o campo "Altura" com o valor vigente do editor (troca de
+  // célula/linha, undo/redo etc.) — mesmo padrão do campo de tamanho de
+  // fonte: só enquanto o campo não está focado, para não sobrescrever
+  // digitação em andamento a cada transação do editor.
+  useEffect(() => {
+    if (campoAlturaLinhaFocadoRef.current) return;
+    setCampoAlturaLinha(estado.alturaLinhaAtiva != null ? String(estado.alturaLinhaAtiva) : '');
+  }, [estado.alturaLinhaAtiva]);
+
+  useEffect(() => {
+    if (campoEspessuraBordaFocadoRef.current) return;
+    setCampoEspessuraBorda(estado.espessuraBordaAtiva != null ? String(estado.espessuraBordaAtiva) : '');
+  }, [estado.espessuraBordaAtiva]);
+
+  useEffect(() => {
+    if (campoLarguraFixaFocadoRef.current) return;
+    setCampoLarguraFixa(
+      estado.larguraTabelaAtiva && estado.larguraTabelaAtiva !== '100%'
+        ? String(Number.parseFloat(estado.larguraTabelaAtiva))
+        : ''
+    );
+  }, [estado.larguraTabelaAtiva]);
+
   const alternarPainel = useCallback(
     (
       painel:
@@ -1258,6 +1376,7 @@ export function EmailEditorToolbar({ editor }: Props) {
         | 'recuo'
         | 'tabela'
         | 'corCelula'
+        | 'corBorda'
     ) => {
       const abrindo = painelAberto !== painel;
       setPainelAberto(abrindo ? painel : null);
@@ -1573,6 +1692,191 @@ export function EmailEditorToolbar({ editor }: Props) {
 
   function alternarColunaCabecalho() {
     editor?.chain().focus().toggleHeaderColumn().run();
+  }
+
+  /**
+   * Cor de fundo da célula atual (RefatoracaoTabela.md — Etapa 4) —
+   * `setCellAttribute`, comando nativo da extensão de tabela que já resolve
+   * sozinho a seleção atual (célula única ou intervalo, mesmo mesclando
+   * célula comum e de cabeçalho — ver `editor/extensoes/CorCelula.ts` para
+   * o porquê de o atributo `corFundo` existir nos dois tipos de nó).
+   */
+  function aplicarCorCelula(cor: string) {
+    editor?.chain().focus().setCellAttribute('corFundo', cor).run();
+    setPainelAberto(null);
+  }
+
+  /** Mesmo comando de `aplicarCorCelula`, sem fechar o popover — usada pelo
+   * campo hex de `SeletorCor`, que aplica a cada tecla válida digitada
+   * (mesmo raciocínio de `aplicarCorTextoLivre`, acima). */
+  function aplicarCorCelulaLivre(cor: string) {
+    editor?.chain().focus().setCellAttribute('corFundo', cor).run();
+  }
+
+  function removerCorCelula() {
+    editor?.chain().focus().setCellAttribute('corFundo', null).run();
+    setPainelAberto(null);
+  }
+
+  /**
+   * Altura da linha atual (RefatoracaoTabela.md — Etapa 5) — grava/atualiza
+   * o atributo `altura` do nó `tableRow` mais próximo da seleção
+   * (`updateAttributes`, mesmo comando genérico já usado por
+   * `aplicarCorBotao` para o nó `noBotao`, acima; `TableRowComAltura` é
+   * quem declara o atributo, em `editor/extensoes/AlturaLinha.ts`). Campo
+   * vazio remove a altura customizada (`altura: null`), voltando a linha à
+   * altura automática do conteúdo — mesmo raciocínio de "campo vazio limpa
+   * o atributo" já usado por `aplicarLink`. Um valor não numérico ou
+   * menor/igual a zero reverte o campo para o último valor válido, sem
+   * aplicar nada ao editor — mesmo padrão de `confirmarCampoTamanhoFonte`.
+   */
+  function confirmarAlturaLinha() {
+    const texto = campoAlturaLinha.trim();
+    if (!texto) {
+      editor?.chain().focus().updateAttributes('tableRow', { altura: null }).run();
+      return;
+    }
+    const numero = Number.parseFloat(texto.replace(',', '.'));
+    if (!Number.isFinite(numero) || numero <= 0) {
+      setCampoAlturaLinha(estado.alturaLinhaAtiva != null ? String(estado.alturaLinhaAtiva) : '');
+      return;
+    }
+    const alturaClampada = Math.min(ALTURA_LINHA_MAX, Math.max(ALTURA_LINHA_MIN, Math.round(numero)));
+    editor?.chain().focus().updateAttributes('tableRow', { altura: alturaClampada }).run();
+    setCampoAlturaLinha(String(alturaClampada));
+  }
+
+  /**
+   * Cor da borda da tabela (RefatoracaoTabela.md — Etapa 6) — mesmo padrão
+   * de `aplicarCorCelula`, mas via `updateAttributes('table', ...)` em vez
+   * de `setCellAttribute` (específico de célula): `table` é o nó ancestral
+   * mais próximo da seleção quando o cursor está em qualquer célula/linha
+   * da tabela, mesma resolução que `updateAttributes('tableRow', ...)` já
+   * usa para altura (Etapa 5, acima).
+   */
+  function aplicarCorBorda(cor: string) {
+    editor?.chain().focus().updateAttributes('table', { corBorda: cor }).run();
+    setPainelAberto(null);
+  }
+
+  /** Mesmo comando de `aplicarCorBorda`, sem fechar o popover — usada pelo
+   * campo hex de `SeletorCor`, mesmo raciocínio de `aplicarCorCelulaLivre`. */
+  function aplicarCorBordaLivre(cor: string) {
+    editor?.chain().focus().updateAttributes('table', { corBorda: cor }).run();
+  }
+
+  function removerCorBorda() {
+    editor?.chain().focus().updateAttributes('table', { corBorda: null }).run();
+    setPainelAberto(null);
+  }
+
+  /**
+   * Espessura da borda da tabela (mesma Etapa 6) — mesmo padrão de
+   * `confirmarAlturaLinha`: campo vazio remove a espessura customizada, um
+   * valor não numérico ou ≤ 0 reverte o campo sem aplicar nada, e um valor
+   * válido é clampado (`ESPESSURA_BORDA_MIN`/`_MAX`) antes de aplicado.
+   */
+  function confirmarEspessuraBorda() {
+    const texto = campoEspessuraBorda.trim();
+    if (!texto) {
+      editor?.chain().focus().updateAttributes('table', { espessuraBorda: null }).run();
+      return;
+    }
+    const numero = Number.parseFloat(texto.replace(',', '.'));
+    if (!Number.isFinite(numero) || numero <= 0) {
+      setCampoEspessuraBorda(estado.espessuraBordaAtiva != null ? String(estado.espessuraBordaAtiva) : '');
+      return;
+    }
+    const espessuraClampada = Math.min(ESPESSURA_BORDA_MAX, Math.max(ESPESSURA_BORDA_MIN, Math.round(numero)));
+    editor?.chain().focus().updateAttributes('table', { espessuraBorda: espessuraClampada }).run();
+    setCampoEspessuraBorda(String(espessuraClampada));
+  }
+
+  /**
+   * Largura da tabela (mesma Etapa 6) — toggle "largura total" (100%) e
+   * campo de largura fixa em px escrevem no mesmo atributo `largura`
+   * (`editor/extensoes/BordaLarguraTabela.ts`), nunca os dois de uma vez:
+   * ativar "largura total" substitui qualquer valor fixo já definido, e
+   * confirmar um valor no campo de largura fixa desliga "largura total"
+   * automaticamente (o atributo passa a guardar `'<n>px'`, não mais
+   * `'100%'`) — refletido sozinho no toggle porque os dois lêem o mesmo
+   * `estado.larguraTabelaAtiva`.
+   */
+  function alternarLarguraTotal() {
+    const novaLargura = estado.larguraTabelaAtiva === '100%' ? null : '100%';
+    editor?.chain().focus().updateAttributes('table', { largura: novaLargura }).run();
+  }
+
+  function confirmarLarguraFixa() {
+    const texto = campoLarguraFixa.trim();
+    if (!texto) {
+      editor?.chain().focus().updateAttributes('table', { largura: null }).run();
+      return;
+    }
+    const numero = Number.parseFloat(texto.replace(',', '.'));
+    if (!Number.isFinite(numero) || numero <= 0) {
+      setCampoLarguraFixa(
+        estado.larguraTabelaAtiva && estado.larguraTabelaAtiva !== '100%'
+          ? String(Number.parseFloat(estado.larguraTabelaAtiva))
+          : ''
+      );
+      return;
+    }
+    const larguraClampada = Math.min(LARGURA_TABELA_FIXA_MAX, Math.max(LARGURA_TABELA_FIXA_MIN, Math.round(numero)));
+    editor?.chain().focus().updateAttributes('table', { largura: `${larguraClampada}px` }).run();
+    setCampoLarguraFixa(String(larguraClampada));
+  }
+
+  /**
+   * Duplicar célula (RefatoracaoTabela.md — Etapa 7) — copia conteúdo +
+   * `corFundo` da célula onde o cursor está para a célula vizinha na direção
+   * escolhida, como uma única transação (um só passo de undo). Não há
+   * comando nativo para isso, então a operação é montada diretamente com
+   * `selectedRect`/`TableMap` (mesmo utilitário de baixo nível que os
+   * comandos nativos de linha/coluna já usam por baixo dos panos) em vez de
+   * uma sequência de comandos do Tiptap encadeados.
+   *
+   * `direita`: célula vizinha na mesma linha, coluna imediatamente depois da
+   * atual (`rect.right`, já considerando eventual colspan da célula de
+   * origem). `baixo`: célula vizinha na linha imediatamente depois
+   * (`rect.bottom`, considerando eventual rowspan). Fora da última
+   * coluna/linha da tabela — ou quando a célula "vizinha" na verdade é a
+   * mesma célula mesclada cobrindo as duas posições — não há para onde
+   * duplicar; a função não faz nada, mesmo no-op silencioso que
+   * `mesclarCelulas`/`dividirCelula` (Etapa 3) já têm fora de contexto
+   * válido.
+   */
+  function duplicarCelula(direcao: 'direita' | 'baixo') {
+    editor
+      ?.chain()
+      .focus()
+      .command(({ tr, state }) => {
+        if (!isInTable(state)) return false;
+
+        const rect = selectedRect(state);
+        const { map, table, tableStart } = rect;
+        const colunaDestino = direcao === 'direita' ? rect.right : rect.left;
+        const linhaDestino = direcao === 'baixo' ? rect.bottom : rect.top;
+        if (colunaDestino >= map.width || linhaDestino >= map.height) return false;
+
+        const origemPos = map.map[rect.top * map.width + rect.left];
+        const destinoPos = map.map[linhaDestino * map.width + colunaDestino];
+        if (origemPos === destinoPos) return false;
+
+        const celulaOrigem = table.nodeAt(origemPos);
+        const celulaDestino = table.nodeAt(destinoPos);
+        if (!celulaOrigem || !celulaDestino) return false;
+
+        const corFundo = (celulaOrigem.attrs as { corFundo?: string | null }).corFundo ?? null;
+        tr.setNodeMarkup(tableStart + destinoPos, null, { ...celulaDestino.attrs, corFundo });
+
+        const destinoInicio = tableStart + destinoPos + 1;
+        const destinoFim = destinoInicio + celulaDestino.content.size;
+        tr.replaceWith(destinoInicio, destinoFim, celulaOrigem.content);
+
+        return true;
+      })
+      .run();
   }
 
   // --- Botões individuais (Etapa 1) ----------------------------------------
@@ -2334,6 +2638,204 @@ export function EmailEditorToolbar({ editor }: Props) {
             aria-pressed={estado.celulaCabecalhoAtiva}
           >
             <IconeAlternarColunaCabecalho />
+          </button>
+          <div className="email-editor-toolbar-separador" role="separator" />
+          {/* Cor da célula (RefatoracaoTabela.md — Etapa 4): mesmo padrão de
+              "botão com popover de `SeletorCor`" já usado por cor do
+              texto/realce na faixa principal, só que aplicando à seleção de
+              células atual (`setCellAttribute`) em vez de a uma marca de
+              texto — ver `aplicarCorCelula` e `editor/extensoes/CorCelula.ts`. */}
+          <button
+            type="button"
+            ref={refCorCelula}
+            className={`email-editor-toolbar-botao ${estado.corCelulaAtiva ? 'ativo' : ''}`}
+            onClick={() => alternarPainel('corCelula')}
+            disabled={!editor}
+            title="Cor da célula"
+            aria-label="Cor da célula"
+            aria-haspopup="true"
+            aria-expanded={painelAberto === 'corCelula'}
+          >
+            <IconeCorCelula />
+            {estado.corCelulaAtiva && (
+              <span className="email-editor-toolbar-indicador" style={{ backgroundColor: estado.corCelulaAtiva }} />
+            )}
+          </button>
+          {painelAberto === 'corCelula' && (
+            <ToolbarPopover
+              anchorRef={refCorCelula}
+              onClose={() => setPainelAberto(null)}
+              className="email-editor-toolbar-popover-cores"
+            >
+              <SeletorCor
+                corAtiva={estado.corCelulaAtiva}
+                rotuloRemover="Remover cor"
+                onEscolherAmostra={aplicarCorCelula}
+                onAplicarHex={aplicarCorCelulaLivre}
+                onRemover={removerCorCelula}
+              />
+            </ToolbarPopover>
+          )}
+          <div className="email-editor-toolbar-separador" role="separator" />
+          {/* Altura da linha (RefatoracaoTabela.md — Etapa 5): campo direto
+              na faixa, não atrás de um popover — o plano pede o campo
+              "visível com o cursor em qualquer célula da linha", igual ao
+              resto dos controles desta barra contextual. Largura de coluna
+              (mesma etapa) não tem controle próprio aqui: já é nativa via
+              `resizable: true` (arrastar a borda da coluna), confirmado
+              visualmente ao concluir a etapa, sem UI adicional. */}
+          <label className="email-editor-toolbar-contextual-campo-altura">
+            <span>Altura</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={campoAlturaLinha}
+              onChange={(e) => setCampoAlturaLinha(e.target.value)}
+              onFocus={() => {
+                campoAlturaLinhaFocadoRef.current = true;
+              }}
+              onBlur={() => {
+                campoAlturaLinhaFocadoRef.current = false;
+                confirmarAlturaLinha();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
+              disabled={!editor}
+              placeholder="Auto"
+              aria-label="Altura da linha, em pixels"
+            />
+          </label>
+          <div className="email-editor-toolbar-separador" role="separator" />
+          {/* Borda da tabela (RefatoracaoTabela.md — Etapa 6): mesmo padrão
+              de "botão com popover de `SeletorCor`" já usado por cor da
+              célula, acima — ver `aplicarCorBorda` e
+              `editor/extensoes/BordaLarguraTabela.ts`. */}
+          <button
+            type="button"
+            ref={refCorBorda}
+            className={`email-editor-toolbar-botao ${estado.corBordaAtiva ? 'ativo' : ''}`}
+            onClick={() => alternarPainel('corBorda')}
+            disabled={!editor}
+            title="Cor da borda"
+            aria-label="Cor da borda da tabela"
+            aria-haspopup="true"
+            aria-expanded={painelAberto === 'corBorda'}
+          >
+            <IconeBordaTabela />
+            {estado.corBordaAtiva && (
+              <span className="email-editor-toolbar-indicador" style={{ backgroundColor: estado.corBordaAtiva }} />
+            )}
+          </button>
+          {painelAberto === 'corBorda' && (
+            <ToolbarPopover
+              anchorRef={refCorBorda}
+              onClose={() => setPainelAberto(null)}
+              className="email-editor-toolbar-popover-cores"
+            >
+              <SeletorCor
+                corAtiva={estado.corBordaAtiva}
+                rotuloRemover="Remover borda"
+                onEscolherAmostra={aplicarCorBorda}
+                onAplicarHex={aplicarCorBordaLivre}
+                onRemover={removerCorBorda}
+              />
+            </ToolbarPopover>
+          )}
+          <label className="email-editor-toolbar-contextual-campo-altura">
+            <span>Espessura</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={campoEspessuraBorda}
+              onChange={(e) => setCampoEspessuraBorda(e.target.value)}
+              onFocus={() => {
+                campoEspessuraBordaFocadoRef.current = true;
+              }}
+              onBlur={() => {
+                campoEspessuraBordaFocadoRef.current = false;
+                confirmarEspessuraBorda();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
+              disabled={!editor}
+              placeholder="Auto"
+              aria-label="Espessura da borda da tabela, em pixels"
+            />
+          </label>
+          <div className="email-editor-toolbar-separador" role="separator" />
+          {/* Largura da tabela (mesma Etapa 6): toggle "largura total"
+              (100%) + campo de largura fixa em px — ver
+              `alternarLarguraTotal`/`confirmarLarguraFixa`, acima. */}
+          <button
+            type="button"
+            className={`email-editor-toolbar-botao ${estado.larguraTabelaAtiva === '100%' ? 'ativo' : ''}`}
+            onClick={alternarLarguraTotal}
+            disabled={!editor}
+            title="Largura total"
+            aria-label="Alternar largura total da tabela"
+            aria-pressed={estado.larguraTabelaAtiva === '100%'}
+          >
+            <IconeLarguraTotalTabela />
+          </button>
+          <label className="email-editor-toolbar-contextual-campo-altura">
+            <span>Largura</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={campoLarguraFixa}
+              onChange={(e) => setCampoLarguraFixa(e.target.value)}
+              onFocus={() => {
+                campoLarguraFixaFocadoRef.current = true;
+              }}
+              onBlur={() => {
+                campoLarguraFixaFocadoRef.current = false;
+                confirmarLarguraFixa();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
+              disabled={!editor}
+              placeholder="Auto"
+              aria-label="Largura fixa da tabela, em pixels"
+            />
+          </label>
+          <div className="email-editor-toolbar-separador" role="separator" />
+          {/* Duplicar célula (RefatoracaoTabela.md — Etapa 7): dois botões
+              simples, sem popover — cada um lê conteúdo + `corFundo` da
+              célula atual e escreve os dois na célula vizinha na direção
+              escolhida, como uma transação única (ver `duplicarCelula`,
+              acima). Sem alça de arraste estilo Excel, decisão já registrada
+              na seção 2 do plano. */}
+          <button
+            type="button"
+            className="email-editor-toolbar-botao"
+            onClick={() => duplicarCelula('direita')}
+            disabled={!editor}
+            title="Duplicar célula para a direita"
+            aria-label="Duplicar célula para a direita"
+          >
+            <IconeDuplicarParaDireita />
+          </button>
+          <button
+            type="button"
+            className="email-editor-toolbar-botao"
+            onClick={() => duplicarCelula('baixo')}
+            disabled={!editor}
+            title="Duplicar célula para baixo"
+            aria-label="Duplicar célula para baixo"
+          >
+            <IconeDuplicarParaBaixo />
           </button>
           <div className="email-editor-toolbar-separador" role="separator" />
           <button

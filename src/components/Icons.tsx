@@ -59,6 +59,8 @@ import {
 // símbolo genérico (ex.: `FiPlus`/`FiMinus`) que não distinguiria linha de
 // coluna visualmente.
 import {
+  TbArrowAutofitWidth,
+  TbBorderOuter,
   TbColumnInsertLeft,
   TbColumnInsertRight,
   TbColumnRemove,
@@ -77,7 +79,20 @@ import {
 // (outline) dos demais — por isso um quarto conjunto, pelo mesmo motivo que
 // justificou o terceiro (Tabler) na Etapa 2: símbolo genérico não
 // distinguiria mesclar de dividir visualmente.
-import { RiMergeCellsHorizontal, RiSplitCellsHorizontal } from 'react-icons/ri';
+// Duplicar célula (RefatoracaoTabela.md — Etapa 7) precisa de dois símbolos
+// direcionais ("copiar para a direita"/"para baixo") que não existem nem no
+// Feather, nem no Bootstrap Icons, nem no Tabler já usados acima (Tabler só
+// tem `Copyleft`/`Copyright`, símbolos de © sem relação com direção). O
+// mesmo conjunto Remix Icon já importado acima para mesclar/dividir célula
+// tem `ArrowRightBoxLine`/`ArrowDownBoxLine` — uma seta entrando numa caixa,
+// que comunica "copiar para dentro" na direção indicada — no mesmo estilo de
+// contorno dos demais, sem precisar de um quinto conjunto de ícones.
+import {
+  RiArrowDownBoxLine,
+  RiArrowRightBoxLine,
+  RiMergeCellsHorizontal,
+  RiSplitCellsHorizontal,
+} from 'react-icons/ri';
 
 export function IconeCopiar() {
   return <FiCopy size={14} aria-hidden="true" />;
@@ -341,6 +356,36 @@ export function IconeAlternarColunaCabecalho() {
  * controles de cor da toolbar. */
 export function IconeCorCelula() {
   return <BiColorFill size={17} aria-hidden="true" />;
+}
+
+/** Cor/espessura da borda da tabela (RefatoracaoTabela.md — Etapa 6): borda
+ * externa, do mesmo conjunto Tabler já usado pelo resto dos controles de
+ * linha/coluna/cabeçalho desta barra contextual — `BiColorFill` (balde de
+ * tinta, `IconeCorCelula` acima) não distinguiria "cor da célula" de "cor
+ * da borda" visualmente, por isso um ícone de borda dedicado em vez de
+ * reaproveitar o mesmo símbolo. */
+export function IconeBordaTabela() {
+  return <TbBorderOuter size={16} aria-hidden="true" />;
+}
+
+/** Alternar a tabela para largura total (100%) (RefatoracaoTabela.md —
+ * Etapa 6): mesmo conjunto Tabler, símbolo de "ajustar à largura"
+ * (`TbArrowAutofitWidth`) — não há um equivalente no Feather nem no
+ * Bootstrap Icons já usados no resto da toolbar. */
+export function IconeLarguraTotalTabela() {
+  return <TbArrowAutofitWidth size={16} aria-hidden="true" />;
+}
+
+/** Duplicar o conteúdo da célula atual para a célula à direita
+ * (RefatoracaoTabela.md — Etapa 7 — `duplicarCelula('direita')`). */
+export function IconeDuplicarParaDireita() {
+  return <RiArrowRightBoxLine size={16} aria-hidden="true" />;
+}
+
+/** Duplicar o conteúdo da célula atual para a célula abaixo
+ * (RefatoracaoTabela.md — Etapa 7 — `duplicarCelula('baixo')`). */
+export function IconeDuplicarParaBaixo() {
+  return <RiArrowDownBoxLine size={16} aria-hidden="true" />;
 }
 
 /** Gatilho "Ver Mais" da toolbar do editor de e-mail (RefatoracaoToolbarEmail.md

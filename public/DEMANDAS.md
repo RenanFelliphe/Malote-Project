@@ -89,3 +89,18 @@ Como um passo intermediário entre o manual atual e a automação completa (úti
 | 1. Atual | Guardar título/corpo na plataforma + botões de cópia separados | Manual (Outlook) | Baixo |
 | 2. Intermediária (opcional) | Link `mailto:` pré-preenchido em um clique | Manual (Outlook), mas 1 clique | Baixo/médio |
 | 3. Futura | Disparador automático em blocos com intervalo, via API de envio real | Automático (pelo próprio sistema) | Alto |
+
+
+(
+   Agora veja como não fica nada legal essa toolbar de tabela com scroll.
+Para facilitar, vamos usar a mesma estratégia que usamos na toolbar principal do modal: Seções + ver mais
+
+Vamos agrupar alguns botões:
+Inserir: A esquerda, a direita, acima, abaixo
+Excluir: linha, coluna, tabela
+Mesclar: Mesclar e dividir
+Cabeçalho: Linha e coluna
+Cor da célula
+Tamanho: Altura, espessura e largura (E não precisa do placeholder, apenas o ícone e o input)
+Duplicar: A direita, a esquerda
+)

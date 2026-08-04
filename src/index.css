@@ -3866,134 +3866,98 @@ li.marcado .exportar-lista-status-item {
   }
 }
 
-/**
-
- * ATENÇÃO — este NÃO é o `src/index.css` completo do projeto.
-
- *
-
- * `index.css` não fez parte dos "arquivos-fonte necessários" compartilhados
-
- * nem na Etapa 1 nem nesta Etapa 2 (RefatoracaoTabela.md), então o arquivo
-
- * real do projeto — com todas as classes já existentes
-
- * (`.email-editor-toolbar`, `.email-editor-toolbar-popover`,
-
- * `.email-editor-toolbar-botao` etc.) — não está disponível para edição
-
- * direta aqui. O que segue são só as regras NOVAS que a Etapa 2 precisa,
-
- * escritas para reaproveitar o mesmo vocabulário de classes já usado pelo
-
- * resto da toolbar (`.email-editor-toolbar-popover-link`,
-
- * `.email-editor-toolbar-popover-grupo`, `.email-editor-toolbar-separador`
-
- * etc.), presumindo os mesmos tokens visuais (cor de borda, sombra,
-
- * padding) que essas classes já devem ter.
-
- *
-
- * Ação necessária: colar este bloco dentro do `index.css` real do projeto
-
- * (por exemplo, logo depois das regras de `.email-editor-toolbar-popover-*`
-
- * já existentes) e, se as variáveis de cor/espaçamento abaixo não baterem
-
- * com os tokens reais do projeto (ex.: `--cor-borda`, `--cor-primaria`),
-
- * ajustar para os nomes corretos.
-
- */
-
-/* Popover de inserção de tabela (botão "Tabela" da faixa principal) — same
-
+/* Popover de inserção de tabela (botão "Tabela" da faixa principal) — mesmo
    shell do popover de link (`.email-editor-toolbar-popover-link`), só com
-
    layout próprio para os dois campos "Linhas"/"Colunas" lado a lado. */
-
 .email-editor-toolbar-popover-tabela-inserir {
-
   display: flex;
-
   flex-direction: column;
-
   gap: 0.5rem;
-
   padding: 0.75rem;
-
   min-width: 180px;
-
 }
 
 .email-editor-toolbar-popover-tabela-campos {
-
   display: flex;
-
   gap: 0.5rem;
-
 }
 
 .email-editor-toolbar-popover-tabela-campo {
-
   display: flex;
-
   flex-direction: column;
-
   gap: 0.25rem;
-
   flex: 1;
-
   font-size: 0.75rem;
-
-  color: var(--cor-texto-secundario, #555);
-
+  color: var(--color-text-secondary);
 }
 
 .email-editor-toolbar-popover-tabela-campo input {
-
   width: 100%;
-
   box-sizing: border-box;
-
 }
 
 /* Barra contextual de tabela (RefatoracaoTabela.md — Etapa 2, seção 2:
-
    "painel condicional", não menu de overflow) — segunda faixa, mesma altura
-
    e espírito visual de `.email-editor-toolbar`, mas só existe no DOM com o
-
    cursor dentro de uma tabela. Reaproveita `.email-editor-toolbar-botao`
-
    para cada controle e `.email-editor-toolbar-separador` entre os grupos
-
-   linha/coluna/tabela — nenhuma classe nova para os botões em si, só para o
-
-   contêiner da faixa. */
-
+   linha/coluna/mesclar/cabeçalho/cor/altura/borda/largura/duplicar/excluir —
+   nenhuma classe nova para os botões em si, só para o contêiner da faixa.
+   Os dois botões de "duplicar célula" (Etapa 7) entram nesse mesmo padrão,
+   sem exigir nenhuma regra própria. */
 .email-editor-toolbar-contextual {
-
   display: flex;
-
   align-items: center;
-
   gap: 0.25rem;
-
   padding: 0.375rem 0.5rem;
-
   margin-top: 0.25rem;
-
-  border: 1px solid var(--cor-borda, #e0e0e0);
-
-  border-radius: 6px;
-
-  background: var(--cor-fundo-secundario, #f7f7f8);
-
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
   flex-wrap: nowrap;
-
   overflow-x: auto;
+}
 
+/* Campo numérico inline da barra contextual de tabela — rótulo curto +
+   campo, no mesmo espírito visual de `.email-editor-toolbar-stepper-campo`
+   (campo de tamanho de fonte), mas sem os botões +/− (aqui a digitação
+   livre já basta, confirmada no blur/Enter). Nasceu com o campo "Altura"
+   (RefatoracaoTabela.md — Etapa 5, `confirmarAlturaLinha` em
+   `EmailEditorToolbar.tsx`) e é reaproveitada, sem alteração, pelos campos
+   "Espessura" e "Largura" da Etapa 6 (`confirmarEspessuraBorda`/
+   `confirmarLarguraFixa`) — os três têm a mesma forma (rótulo + número),
+   então nenhuma classe nova era necessária. Fica direto na faixa, não atrás
+   de um popover, porque o plano pede cada campo "visível" junto do resto
+   dos controles desta barra contextual, não escondido atrás de um clique
+   extra. */
+.email-editor-toolbar-contextual-campo-altura {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.email-editor-toolbar-contextual-campo-altura input {
+  width: 3rem;
+  height: 1.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+.email-editor-toolbar-contextual-campo-altura input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.email-editor-toolbar-contextual-campo-altura input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
