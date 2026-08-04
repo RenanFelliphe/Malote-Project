@@ -1,0 +1,3963 @@
+/* =========================================================================
+   Sistema de E-mails — Design System
+   -------------------------------------------------------------------------
+   Paleta cobalt sobre neutros frios, com uma fonte monoespaçada reservada
+   para dados numéricos (contadores, IDs, paginação) — um traço utilitário
+   que reforça a natureza operacional da tela sem virar decoração.
+   Tudo é dirigido por variáveis CSS, trocadas via [data-theme] em <html>
+   (ver src/contexts/ThemeContext.tsx), para que light/dark fiquem sempre
+   em um único lugar.
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-full: 999px;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+
+  color-scheme: light;
+
+  /* --- Superfícies e texto --- */
+  --color-bg: #f5f6fa;
+  --color-bg-subtle: #eceef3;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f8f9fc;
+  --color-border: #e2e5ec;
+  --color-border-strong: #cbd0dc;
+  --color-text: #14161e;
+  --color-text-secondary: #5a5f6e;
+  --color-text-tertiary: #8b8f9f;
+
+  /* --- Acento (cobalt) --- */
+  --color-accent: #3452e0;
+  --color-accent-hover: #2a41c2;
+  --color-accent-soft: #e8ecfd;
+  --color-accent-contrast: #ffffff;
+  --color-focus: #3452e0;
+
+  /* --- Semânticas de status --- */
+  --color-success: #147a4a;
+  --color-success-bg: #e0f4ea;
+  --color-danger: #c22f16;
+  --color-danger-bg: #fbe3de;
+  --color-warning: #93690a;
+  --color-warning-bg: #faefd2;
+  --color-neutral: #5a5f6e;
+  --color-neutral-bg: #eaecf1;
+  --color-info: #2551c9;
+  --color-info-bg: #e5ebfc;
+
+  /* --- Sombras --- */
+  --shadow-sm: 0 1px 2px rgba(20, 22, 30, 0.06);
+  --shadow-md: 0 6px 18px rgba(20, 22, 30, 0.08);
+  --shadow-lg: 0 20px 48px rgba(20, 22, 30, 0.16);
+  --overlay-bg: rgba(15, 17, 24, 0.5);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-bg: #0b0d13;
+  --color-bg-subtle: #11141c;
+  --color-surface: #171a24;
+  --color-surface-hover: #1d212c;
+  --color-border: #272c39;
+  --color-border-strong: #363c4d;
+  --color-text: #eef0f5;
+  --color-text-secondary: #9ba0b0;
+  --color-text-tertiary: #686e80;
+
+  --color-accent: #7a90ff;
+  --color-accent-hover: #93a5ff;
+  --color-accent-soft: #1e2547;
+  --color-accent-contrast: #0b0d13;
+  --color-focus: #7a90ff;
+
+  --color-success: #3fcb8c;
+  --color-success-bg: #103525;
+  --color-danger: #f37a63;
+  --color-danger-bg: #3a1d17;
+  --color-warning: #e6bb4c;
+  --color-warning-bg: #392c0e;
+  --color-neutral: #9ba0b0;
+  --color-neutral-bg: #1e222c;
+  --color-info: #7a9dff;
+  --color-info-bg: #16213f;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.55);
+  --overlay-bg: rgba(0, 0, 0, 0.65);
+}
+
+/* =========================================================================
+   Reset e base
+   ========================================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color var(--transition-base), color var(--transition-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* =========================================================================
+   Cabeçalho global (Header)
+   -------------------------------------------------------------------------
+   Barra fixa no topo de toda a aplicação (Logo — Home — Configurações),
+   renderizada por página (ver `components/Header.tsx`) já que o estado de
+   registros usado pela exportação é local a cada tela — mas visualmente
+   se comporta como um elemento único e consistente em qualquer rota.
+   ========================================================================= */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1rem 3rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+}
+
+.app-header-logo svg {
+  color: var(--color-accent);
+}
+
+.app-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.app-header-link {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.app-header-link:hover {
+  color: var(--color-text);
+}
+
+/* Botões "Copiar título"/"Copiar corpo" (Etapa 2 da refatoração descrita em
+   REFATORACAO-EMAIL-TITULO-CONTEUDO.md) — sempre visíveis no Header,
+   independentes do modal de edição estar aberto ou fechado (premissa
+   confirmada no plano: 1 clique = copiar). */
+
+.app-header-copiar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-header-copiar-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.app-header-copiar-botao:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.app-header-copiar-botao:disabled {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.app-header-copiar-botao.copiado {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.app-header-config {
+  position: relative;
+}
+
+.app-header-config-botao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.app-header-config-botao:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.app-header-config-dropdown {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.4rem;
+}
+
+.app-header-config-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.app-header-config-item-tema {
+  justify-content: space-between;
+  color: var(--color-text-secondary);
+}
+
+.app-header-config-item-botao {
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.app-header-config-item-botao:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+}
+
+.app-header-config-item-botao:disabled {
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.app-header-config-item-perigo:hover:not(:disabled) {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* =========================================================================
+   Página
+   ========================================================================= */
+
+.emails-page {
+  padding: 2.5rem 3rem;
+}
+
+.emails-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.emails-page-header-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.emails-page h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.emails-page-header-subtitulo {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.erro-salvamento {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 25%, transparent);
+}
+
+/* =========================================================================
+   Home / Dashboard de planilhas
+   -------------------------------------------------------------------------
+   Tela inicial (rota "/"): ponto de entrada antes de acessar qualquer
+   planilha. Reaproveita a mesma largura/paddings de `.emails-page` para
+   manter as duas telas visualmente alinhadas.
+   ========================================================================= */
+
+.home-page {
+  max-width: 1180px;
+  padding: 2.5rem 3rem;
+}
+
+.home-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.home-page-header-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.home-page h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.home-page-header-subtitulo {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.home-page-acoes {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem 0;
+}
+
+.botao-importar-planilha {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: filter var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.botao-importar-planilha:hover {
+  filter: brightness(0.94);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.botao-importar-planilha svg {
+  flex-shrink: 0;
+}
+
+.grid-cards-paginas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.1rem;
+}
+
+.card-pagina {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1.25rem 1.35rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.card-pagina:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-pagina-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.card-pagina-titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.card-pagina-descricao {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* =========================================================================
+   Theme Toggle
+   ========================================================================= */
+
+.theme-toggle {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+}
+
+.theme-toggle-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 3.1rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-strong);
+  padding: 0 0.3rem;
+  transition: background-color var(--transition-base), border-color var(--transition-base);
+}
+
+.theme-toggle:hover .theme-toggle-track {
+  border-color: var(--color-accent);
+}
+
+.theme-toggle-icon {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--color-text-tertiary);
+  transition: color var(--transition-base);
+}
+
+.theme-toggle[aria-checked='true'] .theme-toggle-icon-lua {
+  color: var(--color-accent-contrast);
+}
+
+.theme-toggle[aria-checked='false'] .theme-toggle-icon-sol {
+  color: var(--color-accent-contrast);
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base);
+}
+
+.theme-toggle[aria-checked='true'] .theme-toggle-thumb {
+  transform: translateX(1.35rem);
+}
+
+/* =========================================================================
+   Contadores
+   ========================================================================= */
+
+.counters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-bottom: 1.75rem;
+}
+
+.counter-card {
+  flex: 1 1 130px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-base), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.counter-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.counter-value {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.counter-label {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.counter-total {
+  border-left-color: var(--color-accent);
+}
+
+.counter-total .counter-value {
+  color: var(--color-accent);
+}
+
+.counter-válido {
+  border-left-color: var(--color-success);
+}
+
+.counter-válido .counter-value {
+  color: var(--color-success);
+}
+
+.counter-inválido {
+  border-left-color: var(--color-danger);
+}
+
+.counter-inválido .counter-value {
+  color: var(--color-danger);
+}
+
+.counter-duplicado {
+  border-left-color: var(--color-warning);
+}
+
+.counter-duplicado .counter-value {
+  color: var(--color-warning);
+}
+
+.counter-deletado {
+  border-left-color: var(--color-neutral);
+}
+
+.counter-deletado .counter-value {
+  color: var(--color-text-secondary);
+}
+
+.counter-enviado {
+  border-left-color: var(--color-info);
+}
+
+.counter-enviado .counter-value {
+  color: var(--color-info);
+}
+
+/* =========================================================================
+   Toolbar
+   ========================================================================= */
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.toolbar-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.toolbar-linha-2 {
+  justify-content: space-between;
+}
+.search-input-wrapper {
+  position: relative;
+  flex: 1 1 240px;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-icone {
+  position: absolute;
+  left: 0.75rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.6rem 2.2rem 0.6rem 2.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.search-input:hover {
+  border-color: var(--color-border-strong);
+}
+
+.search-input:focus-visible {
+  border-color: var(--color-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.search-input-limpar {
+  position: absolute;
+  right: 0.5rem;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.search-input-limpar:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+.sem-resultados {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+/* --- Filtros (pílulas) --- */
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.filtro-btn {
+  padding: 0.45rem 0.95rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.filtro-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.filtro-btn.ativo {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border-color: var(--color-accent);
+}
+
+/* --- Ordenação --- */
+.ordenacao {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  padding-left: .5rem;
+}
+
+.ordenacao-rotulo {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.ordenacao-select {
+  position: relative;
+  font-size: 0.85rem;
+}
+
+.ordenacao-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 150px;
+  padding: 0 0.7rem;
+  height: 1.95rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.ordenacao-trigger:hover {
+  border-color: var(--color-accent);
+}
+
+.ordenacao-trigger-texto {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ordenacao-trigger-seta {
+  color: var(--color-text-tertiary);
+  font-size: 0.7rem;
+  transition: transform var(--transition-fast);
+}
+
+.ordenacao-trigger-seta.aberta {
+  transform: rotate(180deg);
+}
+
+.ordenacao-dropdown {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 230px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.4rem;
+}
+
+.ordenacao-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ordenacao-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: var(--radius-sm);
+  cursor: grab;
+  user-select: none;
+  transition: background-color var(--transition-fast);
+}
+
+.ordenacao-item:hover {
+  background: var(--color-bg-subtle);
+}
+
+.ordenacao-item.arrastando {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.ordenacao-item.sobrevoado {
+  background: var(--color-accent-soft);
+}
+
+.ordenacao-alca {
+  color: var(--color-text-tertiary);
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: grab;
+}
+
+.ordenacao-label {
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+.ordenacao-botoes {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ordenacao-botoes button {
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: 0.6rem;
+  line-height: 1;
+  padding: 1px 2px;
+  cursor: pointer;
+}
+
+.ordenacao-botoes button:hover:not(:disabled) {
+  color: var(--color-accent);
+}
+
+.ordenacao-botoes button:disabled {
+  color: var(--color-border-strong);
+  cursor: default;
+}
+
+/* Utilitário de acessibilidade: some visualmente mas continua legível por
+   leitores de tela. Usado pelo aria-live do OrdenacaoPrioridade. Se seu
+   design system já tiver uma classe global equivalente, pode remover esta
+   e usar a existente. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Quantidade exibida (stepper) --- */
+
+.exibir-registros {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.quantidade-input {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-surface);
+}
+
+.quantidade-input-campo {
+  width: 3.2rem;
+  border: none;
+  padding: 0rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  background: transparent;
+  color: var(--color-text);
+  -moz-appearance: textfield;
+  height: 1.95rem;
+}
+
+.quantidade-input-campo:focus {
+  outline: none;
+}
+
+.quantidade-setas {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--color-border);
+}
+
+.quantidade-seta {
+  flex: 1;
+  width: 1.6rem;
+  border: none;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 0;
+  position: relative;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.quantidade-seta:not(:last-child) {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.quantidade-seta:hover:not(:disabled) {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.quantidade-seta:disabled {
+  color: var(--color-border-strong);
+  cursor: not-allowed;
+}
+
+.quantidade-seta::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 3px solid transparent;
+}
+
+.quantidade-seta-cima::before {
+  transform: translate(-50%, -70%);
+  border-bottom-color: currentColor;
+}
+
+.quantidade-seta-baixo::before {
+  transform: translate(-50%, -30%);
+  border-top-color: currentColor;
+}
+
+/* Setas duplas: mesmo visual do grupo simples, com dois "V" empilhados
+   para indicar "ir direto ao extremo" (máximo/mínimo). */
+.quantidade-seta-dupla-cima::before {
+  transform: translate(-50%, -95%);
+  border-bottom-color: currentColor;
+}
+
+.quantidade-seta-dupla-cima::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 3px solid transparent;
+  transform: translate(-50%, -45%);
+  border-bottom-color: currentColor;
+}
+
+.quantidade-seta-dupla-baixo::before {
+  transform: translate(-50%, -55%);
+  border-top-color: currentColor;
+}
+
+.quantidade-seta-dupla-baixo::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border: 3px solid transparent;
+  transform: translate(-50%, -5%);
+  border-top-color: currentColor;
+}
+
+/* --- Paginação --- */
+
+.paginacao {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.paginacao-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text);
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  transition: all var(--transition-fast);
+}
+
+.paginacao-btn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.paginacao-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.paginacao-btn.ativo:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.paginacao-atual {
+  border-radius: 6px;
+  min-width: 48px;
+  height: 36px;
+  text-align: center;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-accent);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-subtle);
+  outline: none;
+  cursor: text;
+  transition: all var(--transition-fast);
+}
+
+.paginacao-atual:focus {
+  border-color: var(--color-accent);
+  background-color: var(--color-surface);
+}
+
+/* =========================================================================
+   Tabela
+   ========================================================================= */
+
+/*
+ * Linha entre a toolbar e a tabela: contador de selecionados à esquerda,
+ * paginação à direita (mesma posição em que "Exibir Registros" e a
+ * paginação ficavam juntos antes — a paginação foi movida para cá para
+ * ficar ao lado do contador, ver `pages/emails.tsx`).
+ */
+ 
+.linha-selecao-paginacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding-left: .5rem;
+}
+
+.contador-selecionados {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-text-tertiary);
+}
+
+.email-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.email-table th,
+.email-table td {
+  text-align: left;
+  padding: 0.7rem 0.95rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.88rem;
+}
+
+.email-table th {
+  height: 4rem;
+  background: var(--color-bg-subtle);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.email-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.email-table tbody tr:hover {
+  background: var(--color-surface-hover);
+}
+
+.email-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.email-table td:nth-child(2) {
+  font-family: var(--font-mono);
+  color: var(--color-text-tertiary);
+  font-size: 0.82rem;
+}
+
+.email-table input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.th-com-copia {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: .7rem;
+}
+
+/* --- Botões de ícone do cabeçalho (copiar, editar status em massa,
+   deletar/restaurar) ---
+   Todos seguem o mesmo padrão visual: fundo transparente e cor neutra em
+   repouso, fundo suave + cor de destaque no hover. Tamanho de bloco, raio,
+   transição e posicionamento são idênticos entre eles — só a cor muda,
+   via modificador (padrão = accent, -perigo = vermelho, -info = azul).
+
+   São SEMPRE renderizados no DOM (mesmo sem seleção) e apenas ficam
+   `visibility: hidden` quando não há seleção — isso reserva o espaço no
+   cabeçalho permanentemente e evita que os títulos das colunas se
+   desloquem quando a seleção muda (ver `.botao-icone-th-invisivel`). */
+
+.botao-icone-th {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.botao-icone-th:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.botao-icone-th.botao-icone-th-perigo:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.botao-icone-th.botao-icone-th-info:hover {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.botao-icone-th.copiado {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.botao-icone-th-invisivel {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* --- Badges e selects de status --- */
+
+.status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-válido {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.status-inválido {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.status-duplicado {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.status-deletado {
+  background: var(--color-neutral-bg);
+  color: var(--color-text-secondary);
+}
+
+.status-enviado {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+/*
+ * Select inline de status individual. Reaproveita as cores dos badges
+ * acima (a cor de fundo vem da classe de status, que aparece antes no
+ * arquivo e por isso perde em caso de conflito de propriedade — mas não
+ * há conflito aqui: só background-image é redefinido). A seta é desenhada
+ * com dois gradientes lineares em `currentColor`, nascendo automaticamente
+ * na cor do texto de cada status.
+ */
+.status-select {
+  display: inline-block;
+  padding: 0.2rem 1.35rem 0.2rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-transform: capitalize;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 0.7rem) calc(50% - 1px),
+    calc(100% - 0.55rem) calc(50% - 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) inset;
+  transition: box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.status-select:hover {
+  filter: brightness(0.96);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.14) inset;
+}
+
+[data-theme='dark'] .status-select:hover {
+  filter: brightness(1.15);
+}
+
+.status-select:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Badge clicável do status "duplicado" — abre o modal com o grupo. */
+button.status-badge-clicavel {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-warning) 35%, transparent);
+}
+
+button.status-badge-clicavel:hover {
+  background: color-mix(in srgb, var(--color-warning-bg) 60%, var(--color-warning) 15%);
+  text-decoration: underline;
+}
+
+/* --- Edição de status em massa --- */
+
+.th-status-massa {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.select-atualizar-status-massa {
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  z-index: 5;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 400;
+  text-transform: none;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+
+/* --- Coluna de ações --- */
+
+.th-acoes,
+.td-acoes {
+  width: 2.6rem;
+  text-align: right;
+}
+
+.th-acoes-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.botao-icone-th-menu {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.botao-icone-th-menu:hover,
+.botao-icone-th-menu-aberto {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-color: color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.acoes-dropdown {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 10.8rem;
+  padding: 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.acoes-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.62rem 0.72rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.acoes-dropdown-item:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  transform: translateX(1px);
+}
+
+.acoes-dropdown-item-perigo:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.acoes-dropdown-item-info:hover {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.acoes-dropdown-item-sucesso:hover {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.tabela-vazia {
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--color-text-tertiary);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+}
+
+/* =========================================================================
+   Dialog (componente base)
+
+   Casco genérico reutilizado por todos os modais do sistema (overlay,
+   container, header, rodapé). As antigas classes `modal-overlay`,
+   `modal-content`, `modal-header`, `modal-fechar` e `modal-rodape` foram
+   consolidadas aqui e removidas — todo modal do sistema já usa `Dialog`.
+   ========================================================================= */
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 100;
+}
+
+.dialog-content {
+  width: 100%;
+  max-width: 520px;
+  max-height: 85vh;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 1.35rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: hidden;
+  outline: none;
+}
+
+.importacao-corpo,
+.modal-lista,
+.coluna-seletora-lista,
+.preview-planilha-tabela-wrapper {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE/Edge legado */
+}
+
+.importacao-corpo::-webkit-scrollbar,
+.modal-lista::-webkit-scrollbar,
+.coluna-seletora-lista::-webkit-scrollbar,
+.preview-planilha-tabela-wrapper::-webkit-scrollbar {
+  display: none;                /* ou width: 0; height: 0; como já fizeram no bloco existente */
+}
+
+.dialog-content.modal-exportar,
+.dialog-content.dialog-rolavel {
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.dialog-content.modal-exportar::-webkit-scrollbar,
+.dialog-content.dialog-rolavel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dialog-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dialog-fechar {
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.dialog-fechar:hover {
+  color: var(--color-text);
+  background: var(--color-bg-subtle);
+}
+
+.dialog-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dialog-rodape-centralizado {
+  justify-content: center;
+}
+
+/* Botões de ação do rodapé, agora agrupados em um wrapper próprio dentro de
+   `.dialog-rodape`. Necessário para o `ConflictDialog` poder inserir o aviso
+   contextual (`.conflict-dialog-aviso`) acima dos botões sem quebrar o
+   `justify-content: space-between` original entre Cancelar/Confirmar —
+   `flex: 1` faz este wrapper ocupar toda a largura disponível mesmo sendo o
+   único filho direto de `.dialog-rodape` nos casos sem aviso. */
+.dialog-rodape-botoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex: 1;
+}
+
+/* Variante do rodapé usada pelo `ConflictDialog` quando há aviso contextual
+   de botão desabilitado (etapa 4): empilha o aviso acima da linha de
+   botões, em vez do layout padrão de uma única linha. */
+.dialog-rodape-com-aviso {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+}
+
+/* =========================================================================
+   ConflictDialog (template de conflitos reais)
+
+   Construído sobre o Dialog acima (título + rodapé cancelar/confirmar já
+   vêm do Dialog). Só a descrição de apoio e o aviso contextual precisam de
+   estilo próprio; o conteúdo de cada conflito (ex.: DeleteConflictContent)
+   traz suas próprias classes.
+   ========================================================================= */
+
+.conflict-dialog-descricao {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+/* Aviso contextual exibido quando o botão de confirmar está desabilitado
+   (ex.: "É necessário manter pelo menos um registro ativo neste grupo.").
+   Mesma linguagem visual de "atenção" já usada em `.status-duplicado` e no
+   ícone de alerta da confirmação de cancelamento do wizard de importação. */
+.conflict-dialog-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.conflict-dialog-aviso svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.1rem;
+}
+
+/* =========================================================================
+   Variantes de largura e conteúdo específico de cada Dialog
+
+   O casco (overlay, container, header, rodapé) já vem inteiramente do
+   `Dialog`/`ConflictDialog` (seção acima) — o que resta aqui são apenas
+   modificadores de largura por instância (`modal-duplicados`,
+   `modal-importacao`, `modal-confirmacao-cancelamento`) e as classes de
+   conteúdo interno (listas, campos, botões de rodapé) reaproveitadas por
+   vários modais.
+   ========================================================================= */
+
+.modal-duplicados {
+  max-width: 560px;
+}
+
+.modal-email-conteudo {
+  max-width: 560px;
+  /* Âncora de posicionamento do botão flutuante de emojis (Etapa 9,
+     revisão) — `.email-emoji-flutuante` usa `position: absolute` em
+     relação a este elemento. */
+  position: relative;
+}
+
+/* --- Botão flutuante de emojis (Etapa 9, revisão) ---
+   Ancorado no canto inferior direito de `.modal-email-conteudo` (que
+   declara `position: relative` acima), sobrepondo o conteúdo do modal em
+   vez de ocupar espaço no fluxo normal — mesmo racional de outros
+   elementos flutuantes já existentes no projeto. */
+.email-emoji-flutuante {
+  position: absolute;
+  right: .5rem;
+  bottom: .5rem;
+  z-index: 20;
+}
+
+.email-emoji-flutuante-gatilho {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: .8rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.email-emoji-flutuante-gatilho:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.email-emoji-flutuante-painel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  z-index: 30;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Sobrescreve as variáveis de tema do `emoji-picker-react` para acompanhar
+   o design system do projeto — inclusive dark mode, já que `--color-*`
+   trocam sozinhas via `[data-theme]` em `<html>` (não precisa duplicar
+   regra para `.epr-dark-theme` aqui, `var(--color-surface)` etc. já
+   resolvem para o valor certo em qualquer tema). */
+.email-emoji-flutuante-painel .EmojiPickerReact {
+  --epr-bg-color: var(--color-surface);
+  --epr-category-label-bg-color: var(--color-surface);
+  --epr-text-color: var(--color-text);
+  --epr-search-input-bg-color: var(--color-bg-subtle);
+  --epr-hover-bg-color: var(--color-surface-hover);
+  --epr-picker-border-color: var(--color-border);
+  border: 1px solid var(--color-border);
+}
+
+/* --- Corpo rolável do modal "Editar e-mail" (Etapa 9, RefatoracaoToolbarEmail.md) ---
+   Corrige o overflow que a lista de anexos pode causar: em vez de deixar
+   `.dialog-content` inteiro rolar (o que arrastaria o header e o rodapé
+   Salvar/Cancelar junto, já que ambos são filhos diretos dele dentro do
+   mesmo flex-column — ver `Dialog.tsx`), só este wrapper interno, que
+   envolve título/corpo/anexos, ganha `overflow-y: auto`. `.dialog-content`
+   continua com `overflow: hidden` e `max-height: 85vh` (regra já
+   existente) como guarda de altura máxima; `flex: 1` + `min-height: 0`
+   aqui é o que permite este wrapper de fato encolher e rolar dentro
+   desse espaço fixo, em vez de empurrar o container inteiro para baixo. */
+.modal-email-conteudo-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modal-email-conteudo-corpo::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- Anexar arquivo (Etapa 9) ---
+   Só a UI de seleção local nesta etapa — nenhuma integração com
+   envio/persistência (ver plano, seção 2): preparação para quando o
+   disparo automático de e-mails ganhar suporte a anexo. */
+.modal-anexo-acoes {
+  display: flex;
+}
+
+.modal-anexo-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal-anexo-botao:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.modal-anexo-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.modal-anexo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+  font-size: 0.8rem;
+}
+
+.modal-anexo-nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+
+.modal-anexo-remover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal-anexo-remover:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.modal-selecionar-todos {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.modal-selecionar-todos input,
+.modal-lista input,
+.conflito-lista input {
+  accent-color: var(--color-accent);
+}
+
+/* --- Conflito de exclusão --- */
+
+.conflito-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conflito-secao h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.conflito-descricao {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary);
+}
+
+/* --- Listas de conflito (Enviados / A Deletar) ---
+   Estrutura de `DeleteConflictContent.tsx` não muda: `.conflito-nome` e
+   `.conflito-email` continuam como `<span>` irmãos dentro do `<li>`
+   (Enviados) ou do `<label>` (A Deletar, que também contém o checkbox).
+   O empilhamento nome/e-mail e o alinhamento com o checkbox são resolvidos
+   só com CSS, sem exigir nenhum wrapper novo no componente. */
+
+.conflito-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.conflito-lista li {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.conflito-lista li:last-child {
+  border-bottom: none;
+}
+
+.conflito-lista-enviados li {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.75rem;
+}
+
+.conflito-lista-deletar li label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+/* A partir da Etapa 3, o checkbox nativo (`.checkbox-customizado-input`) fica
+   oculto visualmente — quem ocupa a primeira coluna da grade é a caixa
+   customizada, e a segunda coluna passa a ser o wrapper de conteúdo
+   (`.checkbox-customizado-conteudo`), que empilha nome/e-mail internamente
+   em flex-column (ver bloco "Checkbox customizado" abaixo). */
+.conflito-lista-deletar li label .checkbox-customizado-caixa {
+  grid-column: 1;
+}
+
+.conflito-lista-deletar li label .checkbox-customizado-conteudo {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.conflito-nome,
+.conflito-email {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conflito-nome {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.conflito-email {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+/* --- Checkbox customizado (Etapa 3) ---
+   Componente `CheckboxCustomizado.tsx`, inspirado nos cartões de formato do
+   `ExportarModal` (`.formato-card`). Usado hoje pelas listas de seleção do
+   `DeleteConflictContent` (individual e "Selecionar Todos"); pensado para
+   ser reaproveitado por qualquer outro modal com seleção múltipla.
+
+   O `<input type="checkbox">` real permanece no DOM e concentra toda a
+   semântica/interação (foco, teclado, `checked`, `disabled`) — apenas fica
+   oculto visualmente via clip (não `display: none`, que o tiraria da árvore
+   de acessibilidade). A caixa visível é decorativa (`aria-hidden`) e reage
+   ao estado do input via seletor `:checked ~`. */
+
+.checkbox-customizado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox-customizado.desabilitado {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.checkbox-customizado-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.checkbox-customizado-caixa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-accent-contrast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.checkbox-customizado:hover .checkbox-customizado-caixa {
+  border-color: var(--color-accent);
+}
+
+.checkbox-customizado-input:checked ~ .checkbox-customizado-caixa {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.checkbox-customizado-input:focus-visible ~ .checkbox-customizado-caixa {
+  box-shadow: 0 0 0 2px var(--color-accent-soft), 0 0 0 3px var(--color-accent);
+}
+
+.checkbox-customizado.desabilitado:hover .checkbox-customizado-caixa {
+  border-color: var(--color-border-strong);
+}
+
+.checkbox-customizado-input:disabled ~ .checkbox-customizado-caixa {
+  background: var(--color-surface);
+}
+
+.checkbox-customizado-conteudo {
+  min-width: 0;
+}
+
+/* --- Modal de exportação --- */
+/* =========================================================================
+   Modal de exportação
+   -------------------------------------------------------------------------
+   Substitui o antigo bloco "--- Modal de exportação ---" do design system.
+   A lista de status e o seletor de formato passam a ter classes próprias
+   (`.exportar-*`, `.formato-card`) em vez de reaproveitar `.modal-lista` e
+   `.modal-modo-botoes` — essas duas continuam servindo outros modais
+   (ConflitoExclusaoModal etc.), então ganhar uma variante dedicada evita
+   qualquer efeito colateral nos demais usos.
+   ========================================================================= */
+
+.modal-exportar {
+  max-width: 560px;
+}
+
+.exportar-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.exportar-secao:not(:first-child) {
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.exportar-secao-cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.exportar-selecionar-todos {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: max-content;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.exportar-selecionar-todos input {
+  accent-color: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.exportar-selecionar-todos:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+/* --- Lista de status --- */
+
+.exportar-lista-status {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.exportar-lista-status-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: var(--color-surface);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.exportar-lista-status-item:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+}
+
+.exportar-lista-status-item input {
+  accent-color: var(--color-accent);
+}
+
+.exportar-lista-status-indicador {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  background: var(--color-neutral);
+}
+
+.exportar-lista-status-texto {
+  flex: 1;
+  font-size: 0.86rem;
+  color: var(--color-text);
+}
+
+.exportar-lista-status-contador {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  min-width: 1.6rem;
+  text-align: right;
+}
+
+.exportar-lista-status-enviado .exportar-lista-status-indicador {
+  background: var(--color-info);
+}
+
+.exportar-lista-status-válido .exportar-lista-status-indicador {
+  background: var(--color-success);
+}
+
+.exportar-lista-status-inválido .exportar-lista-status-indicador {
+  background: var(--color-danger);
+}
+
+.exportar-lista-status-duplicado .exportar-lista-status-indicador {
+  background: var(--color-warning);
+}
+
+.exportar-lista-status-deletado .exportar-lista-status-indicador {
+  background: var(--color-neutral);
+}
+
+li.marcado .exportar-lista-status-item {
+  border-color: var(--color-border-strong);
+  background: var(--color-neutral-bg);
+}
+
+/* --- Cartões de formato --- */
+
+.exportar-grade-formatos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.55rem;
+}
+
+.formato-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.85rem 0.6rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.formato-card:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+}
+
+.formato-card.ativo {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+.formato-card-monograma {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.formato-card.ativo .formato-card-monograma {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.formato-card-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 1.25;
+}
+
+.formato-card.ativo .formato-card-label {
+  color: var(--color-text);
+}
+
+.formato-card-check {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--color-accent);
+}
+
+/* --- Rodapé --- */
+
+.exportar-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.exportar-rodape-aviso {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-danger);
+  text-align: right;
+  flex: 1;
+  min-width: 0;
+}
+
+.exportar-rodape-contagem {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.exportar-rodape-numero {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-accent);
+}
+
+.exportar-rodape-texto {
+  font-size: 0.78rem;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.exportar-rodape-barra {
+  flex-basis: 100%;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-subtle);
+  overflow: hidden;
+  margin-top: 0.15rem;
+}
+
+.exportar-rodape-barra-preenchida {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  transition: width var(--transition-base);
+}
+
+@media (max-width: 720px) {
+  .exportar-grade-formatos {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* =========================================================================
+   Componentes legados (não usados na página atual, mantidos estilizados
+   para o caso de voltarem a ser montados em outro fluxo)
+   ========================================================================= */
+
+.selecao-acoes,
+.atualizar-status-bar,
+.deletar-restaurar-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.9rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.selecao-acoes-contagem {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.selecao-acoes-atualizar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.select-atualizar-status {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.botao-restaurar,
+.botao-deletar {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.botao-restaurar {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.botao-deletar {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.botao-status {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.modal-controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.modal-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.modal-campo input,
+.modal-campo select,
+.modal-campo textarea {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.modal-campo textarea {
+  resize: vertical;
+  min-height: 8rem;
+  line-height: 1.5;
+}
+
+.modal-campo-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* Etapa 5 (RefatoracaoModais.md) — corpo do e-mail (`EmailConteudoModal`):
+   antes usava `rows={10}` fixo; a altura mínima equivalente agora vem
+   daqui, e o redimensionamento vertical já vem de `.modal-campo textarea`
+   acima.
+
+   Etapa 2 (refatoracaoEmailFormatado.md) — o `<textarea>` deu lugar ao
+   editor Tiptap (`EmailEditorRico`); `.campo-corpo-email` passou a ser o
+   invólucro de todo o editor (toolbar + área editável), por isso ganhou
+   borda/raio/fundo próprios em vez de herdar o estilo de
+   `.modal-campo textarea`. */
+.campo-corpo-email {
+  position: relative;
+  min-height: 14rem;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.campo-corpo-email:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-soft);
+}
+
+/* Área editável do Tiptap (classe passada via `editorProps.attributes.class`
+   em `EmailEditorRico.tsx`). Tipografia básica para os nós/marcas do
+   StarterKit + extensões habilitadas (negrito, itálico, listas simples,
+   parágrafos) — sem estilos de heading/blockquote/code, já que esses nós
+   ficam desativados por decisão de escopo. */
+.campo-corpo-email-editor {
+  flex: 1;
+  min-height: 10rem;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  overflow-y: auto;
+}
+
+.campo-corpo-email-editor .tiptap {
+  outline: none;
+}
+
+.campo-corpo-email-editor p {
+  margin: 0 0 0.6em;
+}
+
+.campo-corpo-email-editor p:last-child {
+  margin-bottom: 0;
+}
+
+.campo-corpo-email-editor ul,
+.campo-corpo-email-editor ol {
+  margin: 0 0 0.6em;
+  padding-left: 1.4em;
+}
+
+/* Etapa 6 (refatoracaoEmailFormatado.md) — listas simples, sem numeração
+   aninhada: `disc` no primeiro nível, `circle` no segundo. */
+.campo-corpo-email-editor ul {
+  list-style-type: disc;
+}
+
+.campo-corpo-email-editor ul ul {
+  list-style-type: circle;
+}
+
+.campo-corpo-email-editor ol {
+  list-style-type: decimal;
+}
+
+/* Linha horizontal (RefatoracaoToolbarEmail.md — Etapa 6): traço fino,
+   consistente com a cor de borda já usada no resto da interface (evita um
+   `<hr>` cinza-padrão do navegador, que destoa do restante do editor). Sem
+   `style` inline aqui de propósito — a aparência dentro do próprio editor é
+   só CSS deste seletor; é o pipeline de exportação "email-safe"
+   (`emailHtmlInline.ts`) quem precisa gerar o `style` inline equivalente
+   para o `<hr>` sobreviver com a mesma aparência fora da aplicação, já que
+   CSS externo não é respeitado pelos clientes de e-mail. */
+.campo-corpo-email-editor hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 0.8em 0;
+}
+
+/* Etapa 7 (refatoracaoEmailFormatado.md) — "transformar em botão": nó de
+   bloco customizado (`NoBotao`, `data-tipo="botao-email"`), caixa
+   arredondada com padding fixo por decisão de escopo. Cor de fundo (via
+   atributo `cor`, revisão — Etapa 6) e posição (margem, conforme
+   alinhamento, revisão — Etapa 7 abaixo) já não são mais fixas. Marcas
+   internas (negrito, cor, alinhamento) continuam aplicáveis ao(s)
+   parágrafo(s) de dentro, sem conflito com este estilo. */
+.email-botao {
+  padding: 0.7em 1.4em;
+  max-width: fit-content;
+  border-radius: 6px;
+  background-color: var(--color-accent);
+  text-align: center;
+  /* Etapa 7 (revisão) — substitui o antigo `margin: 0.6em auto` fixo (que
+     centralizava a caixa sempre, ignorando o alinhamento escolhido). Sem
+     nenhum `style="text-align: ..."` inline no elemento, o valor é o padrão
+     da extensão `TextAlign` — `defaultAlignment: 'left'`, configurado em
+     `EmailEditorRico.tsx` — então o padrão aqui já é o de uma caixa alinhada
+     à esquerda (`margin-right: auto` empurra a caixa para a esquerda,
+     mantendo `max-width: fit-content`; sem o `margin-left: auto` do lado
+     oposto, que é o que centralizava antes). As três regras abaixo
+     sobrepõem esse padrão quando o `style` inline diz o contrário. */
+  margin: 0.6em auto 0.6em 0;
+}
+
+/* Etapa 7 (revisão) — alinhamento do botão segue de fato a seleção feita na
+   seção Alinhamento da toolbar. A extensão `TextAlign` está configurada para
+   os tipos `paragraph` e `noBotao` (`EmailEditorRico.tsx`): ao aplicar um
+   alinhamento com o cursor dentro do botão, o atributo é gravado tanto no
+   parágrafo interno quanto no próprio nó `noBotao` (ambos são tipos
+   configurados e ambos são ancestrais da seleção), então o `style` inline
+   cai também no elemento `.email-botao` em si — daí vem o seletor de
+   atributo abaixo, sem precisar de nenhuma classe extra vinda do React.
+   "Esquerda" não tem regra própria porque é o padrão da extensão
+   (`defaultAlignment: 'left'`): a extensão não emite `style` nenhum quando o
+   valor já é o default, então "nenhum dos seletores abaixo bateu" já é o
+   caso de "esquerda", coberto pela regra base acima. */
+.email-botao[style*='text-align: center'] {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.email-botao[style*='text-align: right'] {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* Justificado não tem uma "posição" própria de caixa com largura fixa — a
+   caixa passa a ocupar toda a largura disponível em vez de manter
+   `max-width: fit-content`, para que o conceito de "justificar" faça sentido
+   (não há sobra de espaço lateral para posicionar). */
+.email-botao[style*='text-align: justify'] {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.email-botao p {
+  margin: 0;
+  color: #ffffff;
+}
+
+/* Etapa 5 (refatoracaoEmailFormatado.md) — link aplicado pela toolbar.
+   Cor de acento para ficar consistente com o resto da interface, já que o
+   link ainda não tem estilo próprio definido pelo usuário. */
+.campo-corpo-email-editor a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: text;
+}
+
+/* Placeholder do editor vazio (extensão `Placeholder`, Etapa 2). O Tiptap
+   marca o primeiro parágrafo vazio com `is-editor-empty` e expõe o texto do
+   placeholder via atributo `data-placeholder`. */
+.campo-corpo-email-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--color-text-tertiary);
+}
+
+/* =========================================================================
+   Toolbar do corpo do e-mail (RefatoracaoToolbarEmail.md — Etapa 1:
+   estrutura reconstruída do zero; Etapa 2: responsividade por "Ver Mais").
+   A revisão anterior organizava os botões em seções (`ToolbarGrupo.tsx`)
+   que colapsavam como grupo atrás de um gatilho quando faltava espaço;
+   isso foi descontinuado (diagnóstico da Etapa 0) porque `overflow:
+   hidden`, necessário para impedir que os botões soltos quebrassem para
+   uma segunda linha, também cortava e deslocava os popovers
+   (`.email-editor-toolbar-popover`), que eram posicionados `absolute` em
+   relação a um ancestral dentro dessa mesma área cortada.
+   A partir da Etapa 1: (1) a toolbar é uma única faixa de botões
+   individuais, sem agrupamento visual funcional (`overflow: hidden` foi
+   removido — não há mais nada para "amortecer" já que os popovers não
+   nascem mais dentro dela); (2) todo popover é renderizado via portal para
+   `document.body` (`editor/ToolbarPopover.tsx`), posicionado por
+   coordenadas calculadas a partir do botão-gatilho (`getBoundingClientRect`),
+   nunca mais como filho posicionado de um elemento com overflow cortado.
+   Etapa 2: cada botão (`flex-shrink: 0`, nunca encolhe) que não couber na
+   largura disponível é removido do fluxo pelo componente (não por CSS) e
+   passa a existir só dentro do painel de "Ver Mais"
+   (`.email-editor-toolbar-popover-vermais`), acessível pelo gatilho de "3
+   pontos" fixo na ponta direita (`.email-editor-toolbar-item-vermais`,
+   `margin-left: auto`).
+   ========================================================================= */
+
+.email-editor-toolbar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+}
+
+/* Wrapper de um botão com popover companheiro (cor, realce, link, botão) —
+   só existe para que `ToolbarPopover` tenha um nó irmão do botão-gatilho
+   dentro do mesmo item (o próprio botão continua sendo o `anchorRef`); não
+   carrega posicionamento próprio, já que o popover é `position: fixed`
+   calculado via portal, nunca mais relativo a este wrapper. `flex-shrink: 0`
+   para nunca ser espremido pela faixa `nowrap` (Etapa 2). */
+.email-editor-toolbar-item {
+  display: flex;
+  flex-shrink: 0;
+}
+
+/* Gatilho de "Ver Mais" (Etapa 2): sempre o último filho da faixa quando
+   existe, empurrado para a ponta direita mesmo quando poucos botões estão
+   ocultos (não fica "grudado" no botão visível anterior). */
+.email-editor-toolbar-item-vermais {
+  margin-left: auto;
+}
+
+/* Painel de "Ver Mais" (Etapa 2): lista os botões que não couberam na
+   faixa principal. Layout em grade (não uma coluna única) para não ficar
+   excessivamente alto quando muitos botões estiverem ocultos; "sem scroll
+   interno" por decisão de escopo do plano — o painel cresce livremente. */
+.email-editor-toolbar-popover-vermais {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.3rem;
+  width: auto;
+}
+
+.email-editor-toolbar-botao {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-editor-toolbar-botao:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.email-editor-toolbar-botao.ativo {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.email-editor-toolbar-botao:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Pontinho indicador da cor atualmente aplicada, sob o ícone de "cor do
+   texto"/"realce" (Etapa 4). */
+.email-editor-toolbar-indicador {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.7rem;
+  height: 0.15rem;
+  border-radius: var(--radius-full);
+}
+
+.email-editor-toolbar-separador {
+  width: 1px;
+  flex-shrink: 0;
+  height: 1.3rem;
+  margin: 0 0.25rem;
+  background: var(--color-border-strong);
+}
+
+/* Popover de botão da toolbar (cor, realce, link, botão-e-mail) — Etapa 1
+   (RefatoracaoToolbarEmail.md): renderizado via portal para `document.body`
+   por `editor/ToolbarPopover.tsx`, não mais como filho posicionado de um
+   ancestral `position: relative` dentro da toolbar. `top`/`left` chegam
+   como estilo inline (coordenadas calculadas a partir do botão-gatilho),
+   por isso aqui só `position: fixed` mais a aparência visual (fundo,
+   borda, sombra, padding) — nunca mais sujeito ao `overflow` de nenhum
+   ancestral (toolbar ou `dialog-content`). */
+.email-editor-toolbar-popover {
+  position: fixed;
+  z-index: 130;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem;
+}
+
+/* Wrapper dos popovers de cor de texto/realce — largura aumentada na Etapa
+   4 (RefatoracaoFonteGruposCores.md) para caber a grade 10×5 de
+   `PALETA_CORES_TONALIDADES` (antes, 9.5rem bastava para a grade de 4
+   colunas da paleta fixa da revisão anterior). */
+.email-editor-toolbar-popover-cores {
+  width: 14rem;
+}
+
+.email-editor-toolbar-popover-grade {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Grade de cor unificada (Etapa 4): 10 colunas (matizes) × 5 tonalidades —
+   `grid-template-columns` próprio por cima de `.email-editor-toolbar-
+   popover-grade`, e amostras menores que a grade antiga de 4 colunas
+   (10 amostras de 1.5rem cada não caberiam num popover de toolbar). */
+.email-editor-toolbar-popover-grade-cores {
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.2rem;
+}
+
+.email-editor-toolbar-popover-grade-cores .email-editor-toolbar-amostra {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.email-editor-toolbar-amostra {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-surface);
+  outline: 1px solid var(--color-border);
+  cursor: pointer;
+  padding: 0;
+}
+
+.email-editor-toolbar-amostra:hover {
+  outline-color: var(--color-border-strong);
+}
+
+.email-editor-toolbar-amostra.ativa {
+  outline: 2px solid var(--color-accent);
+}
+
+.email-editor-toolbar-popover-remover {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-editor-toolbar-popover-remover:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+/* Campo hexadecimal + quadrado de preview, abaixo da grade de tonalidades
+   (RefatoracaoFonteGruposCores.md — Etapa 4). */
+.email-editor-toolbar-popover-hex {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.email-editor-toolbar-popover-hex-preview {
+  flex-shrink: 0;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.email-editor-toolbar-popover-input-hex {
+  flex: 1;
+  min-width: 0;
+  text-transform: lowercase;
+}
+
+/* Botão "Personalizar" (Etapa 4 — placeholder; o modal de color picker
+   completo com SV/matiz/RGB entra na Etapa 5). Mesmo padrão visual
+   secundário de `.email-editor-toolbar-popover-remover`, mas sem a cor de
+   destaque "perigo" no hover — não é uma ação destrutiva. */
+.email-editor-toolbar-popover-personalizar {
+  width: 100%;
+  margin-bottom: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-editor-toolbar-popover-personalizar:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+}
+
+/* Modal "Personalizar" (RefatoracaoFonteGruposCores.md — Etapa 5): overlay
+   fixo cobrindo a tela inteira + caixa centralizada, acima de qualquer
+   popover da toolbar (`.email-editor-toolbar-popover` usa z-index: 130). */
+.email-editor-modal-personalizar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 45%);
+}
+
+.email-editor-modal-personalizar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+/* `HsvColorPicker` (react-colorful) injeta seu próprio CSS mínimo — só o
+   tamanho do quadrado SV + barra de matiz é ajustado aqui via a classe que
+   a biblioteca expõe. */
+.email-editor-modal-personalizar .react-colorful {
+  width: 13rem;
+  height: 13rem;
+}
+
+.email-editor-modal-personalizar-linha {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.email-editor-modal-personalizar-hex {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  text-transform: lowercase;
+}
+
+.email-editor-modal-personalizar-rgb {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.email-editor-modal-personalizar-rgb label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+
+.email-editor-modal-personalizar-rgb input {
+  width: 100%;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+.email-editor-modal-personalizar-rgb input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* Stepper de tamanho de fonte (RefatoracaoFonteGruposCores.md — Etapa 1):
+   substitui o antigo botão único + popover de lista curada por um controle
+   "[ − ] N [ + ]" no padrão Word — dois botões de ação direta lado a lado
+   com um campo numérico central. Mais compacto que `.email-editor-toolbar-
+   botao` sozinho, por isso tem wrapper próprio (além de
+   `.email-editor-toolbar-item`, para a medição de largura do "Ver Mais"
+   continuar funcionando do mesmo jeito — ver `refTamanhoFonteItem` em
+   `EmailEditorToolbar.tsx`). */
+.email-editor-toolbar-stepper-fonte {
+  align-items: center;
+  gap: 0.1rem;
+}
+
+/* Botões +/− do stepper: mesma altura de `.email-editor-toolbar-botao`
+   (para alinhar com o resto da faixa), só mais estreitos — não precisam do
+   quadrado 1.9×1.9rem de um botão com ícone sozinho no meio de espaço
+   livre, já que aqui vivem grudados ao campo numérico. */
+.email-editor-toolbar-stepper-botao {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.9rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-editor-toolbar-stepper-botao:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.email-editor-toolbar-stepper-botao:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Campo numérico central: largura fixa curta (cabe três dígitos — teto do
+   intervalo de segurança é 96, `TAMANHO_FONTE_MAX`) em vez de crescer com
+   o conteúdo digitado. */
+.email-editor-toolbar-stepper-campo {
+  width: 2rem;
+  height: 1.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+.email-editor-toolbar-stepper-campo:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.email-editor-toolbar-stepper-campo:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Popover de valores comuns de fonte, aberto ao focar o campo do stepper
+   acima (Etapa 1) — lista textual vertical (não uma grade como
+   `.email-editor-toolbar-popover-grade`, já que os rótulos são palavras,
+   não amostras quadradas de cor). */
+.email-editor-toolbar-popover-tamanhos {
+  width: 9rem;
+}
+
+.email-editor-toolbar-popover-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.email-editor-toolbar-popover-opcao {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-editor-toolbar-popover-opcao:hover {
+  background: var(--color-surface-hover);
+}
+
+.email-editor-toolbar-popover-opcao.ativa {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Popover de grupo com trigger único (RefatoracaoFonteGruposCores.md —
+   Etapa 2: Alinhamento; Etapa 3: Recuo e Lista, reaproveitando o mesmo
+   `PainelGrupoOpcoes`). Grade horizontal — os botões internos já são
+   `.email-editor-toolbar-botao` (mesma classe/tamanho de qualquer botão
+   simples da toolbar), então o wrapper só precisa do `display: flex` e do
+   espaçamento entre eles; não tem largura fixa própria (o popover cresce
+   com a quantidade de botões do grupo, no máximo 4 nesta revisão). */
+.email-editor-toolbar-popover-grupo {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* Popover de link (Etapa 5). */
+.email-editor-toolbar-popover-link {
+  width: 15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.email-editor-toolbar-popover-input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+.email-editor-toolbar-popover-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.email-editor-toolbar-popover-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.email-editor-toolbar-popover-botao-aplicar {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.email-editor-toolbar-popover-botao-aplicar:hover {
+  background: var(--color-accent-hover);
+}
+
+.email-editor-toolbar-popover-acoes .email-editor-toolbar-popover-remover {
+  flex: 1;
+  width: auto;
+}
+
+/* Popover de "Botão" (RefatoracaoToolbarEmail.md — Etapa 8: sem toggle
+   textual separado, abre direto na cor + link) — mais largo que
+   `.email-editor-toolbar-popover-cores`/`-link` porque acumula dois blocos
+   empilhados (paleta de cor, campo de URL) em vez de só um. */
+.email-editor-toolbar-popover-botao {
+  width: 15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Separa visualmente os blocos do popover acima. */
+.email-editor-toolbar-popover-separador {
+  height: 1px;
+  margin: 0.15rem 0;
+  background: var(--color-border);
+}
+
+.modal-campo-contador {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+}
+
+.modal-modo-exibicao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.modal-modo-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.modal-modo-botoes button {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.modal-modo-botoes button.ativo {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  border-color: var(--color-accent);
+}
+
+.modal-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.modal-lista li {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-lista li:last-child {
+  border-bottom: none;
+}
+
+.modal-lista label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.modal-lista-texto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-lista-contador {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.modal-lista-vazia {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: 0.85rem;
+}
+
+.modal-contagem-selecionados {
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary);
+}
+
+.dialog-botao-copiar {
+  padding: 0.6rem 1.15rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter var(--transition-fast);
+}
+
+.dialog-botao-copiar:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.dialog-botao-copiar:disabled {
+  background: var(--color-border-strong);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+/* =========================================================================
+   Responsivo
+   ========================================================================= */
+
+@media (max-width: 720px) {
+  .app-header {
+    padding: 0.85rem 1rem;
+    gap: 0.85rem;
+  }
+
+  .app-header-logo span {
+    display: none;
+  }
+
+  .app-header-copiar-botao {
+    padding: 0.4rem 0.55rem;
+  }
+
+  .app-header-copiar-botao span {
+    display: none;
+  }
+
+  .emails-page,
+  .home-page {
+    padding: 1.5rem 1rem 3.5rem;
+  }
+
+  .emails-page-header,
+  .home-page-header {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .toolbar-linha-2 {
+    justify-content: flex-start;
+  }
+
+  .email-table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+/* =========================================================================
+   Assistente de Importação de Planilha
+   ========================================================================= */
+
+.input-arquivo-escondido {
+  display: none;
+}
+
+.modal-importacao {
+  max-width: 720px;
+  max-height: 90vh;
+}
+
+.importacao-status {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.importacao-erro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.importacao-erro p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius-md);
+  width: 100%;
+}
+
+/* --- Stepper --- */
+
+.importacao-stepper-resumo {
+  display: none;
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.importacao-stepper {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0 0.25rem;
+}
+
+.importacao-stepper-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1;
+  position: relative;
+}
+
+.importacao-stepper-item:not(:last-child)::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+  margin: 0 0.6rem;
+}
+
+.importacao-stepper-item.concluida:not(:last-child)::after {
+  background: var(--color-accent);
+}
+
+.importacao-stepper-bolha {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-tertiary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.importacao-stepper-item.ativa .importacao-stepper-bolha {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.importacao-stepper-item.concluida .importacao-stepper-bolha {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.importacao-stepper-rotulo {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.importacao-stepper-item.ativa .importacao-stepper-rotulo {
+  color: var(--color-text);
+}
+
+.importacao-stepper-item.concluida .importacao-stepper-rotulo {
+  color: var(--color-text-secondary);
+}
+
+/* --- Corpo (scrollável) --- */
+
+.importacao-corpo {
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  min-height: 0;
+}
+
+.etapa-importacao {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.campo-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.campo-formulario label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.campo-formulario input[type='text'] {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.campo-formulario input[type='text']:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.campo-formulario textarea {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 6rem;
+  line-height: 1.5;
+}
+
+.campo-formulario textarea:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.preview-url {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.preview-url strong {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* --- Badge "opcional" (reutilizado onde um campo/etapa não é obrigatório) --- */
+
+.badge-opcional {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+/* --- Prévia da planilha --- */
+
+.preview-planilha h3,
+.info-planilha h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.preview-planilha-tabela-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.preview-planilha-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.preview-planilha-tabela th,
+.preview-planilha-tabela td {
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.preview-planilha-tabela thead th {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.preview-planilha-tabela tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.preview-planilha-legenda {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-tertiary);
+}
+
+/* --- Informações da planilha --- */
+
+.info-planilha-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.info-planilha-grade dt {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  margin-bottom: 0.15rem;
+}
+
+.info-planilha-grade dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* --- Etapa de Mapeamento --- */
+
+.etapa-mapeamento-instrucao {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.etapa-mapeamento-secoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.coluna-seletora {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.coluna-seletora-cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.coluna-seletora-cabecalho h3 {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.coluna-seletora-contagem {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.coluna-seletora-busca input {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.82rem;
+}
+
+.coluna-seletora-busca input:focus {
+  outline: none;
+  border-color: var(--color-focus);
+}
+
+.coluna-seletora-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.coluna-seletora-lista li {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.coluna-seletora-lista li:last-child {
+  border-bottom: none;
+}
+
+.coluna-seletora-lista label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.coluna-seletora-lista label:hover {
+  background: var(--color-surface-hover);
+}
+
+.coluna-seletora-nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coluna-seletora-vazia {
+  padding: 0.7rem;
+  font-size: 0.8rem;
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+
+.texto-destacado {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+/* --- Prioridade (drag and drop) --- */
+
+.coluna-prioridade {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--color-border);
+}
+
+.coluna-prioridade h4 {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.coluna-prioridade-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.coluna-prioridade-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  cursor: grab;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.coluna-prioridade-item.arrastando {
+  opacity: 0.5;
+  border-color: var(--color-accent);
+}
+
+.coluna-prioridade-alca {
+  display: flex;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.coluna-prioridade-posicao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.coluna-prioridade-nome {
+  flex: 1;
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coluna-prioridade-setas {
+  display: flex;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.coluna-prioridade-setas button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.coluna-prioridade-setas button:hover:not(:disabled) {
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+}
+
+.coluna-prioridade-setas button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.coluna-prioridade-descricao {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--color-text-tertiary);
+  line-height: 1.4;
+}
+
+/* --- Etapa de Definição (título/corpo do e-mail, opcional) --- */
+
+.etapa-definicao-instrucao {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* --- Etapa de Revisão --- */
+
+.etapa-revisao-instrucao {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.revisao-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.revisao-lista dt {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  margin-bottom: 0.2rem;
+}
+
+.revisao-lista dd {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.revisao-lista dd code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.revisao-prioridade-lista {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 400;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+/* --- Botões do rodapé --- */
+
+.dialog-botao-cancelar,
+.dialog-botao-primario,
+.dialog-botao-deletar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dialog-botao-cancelar {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.dialog-botao-cancelar:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.dialog-botao-primario {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.dialog-botao-primario:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.dialog-botao-primario:disabled {
+  background: var(--color-border-strong);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.dialog-botao-deletar {
+  background: var(--color-danger-bg);
+  border-color: transparent;
+  color: var(--color-danger);
+}
+
+.dialog-botao-deletar:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.dialog-botao-cancelar:disabled,
+.dialog-botao-deletar:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* --- Confirmação de cancelamento --- */
+
+.modal-overlay-confirmacao {
+  z-index: 110;
+  background: var(--overlay-bg);
+}
+
+.modal-confirmacao-cancelamento {
+  max-width: 380px;
+  align-items: center;
+  text-align: center;
+  padding: 1.75rem 1.5rem;
+}
+
+.confirmacao-cancelamento-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.modal-confirmacao-cancelamento h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.modal-confirmacao-cancelamento p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 720px) {
+  .etapa-mapeamento-secoes {
+    grid-template-columns: 1fr;
+  }
+
+  .importacao-stepper-rotulo {
+    display: none;
+  }
+
+  .importacao-stepper-resumo {
+    display: block;
+  }
+}
+
+/* Popover de inserção de tabela (botão "Tabela" da faixa principal) — mesmo
+   shell do popover de link (`.email-editor-toolbar-popover-link`), só com
+   layout próprio para os dois campos "Linhas"/"Colunas" lado a lado. */
+.email-editor-toolbar-popover-tabela-inserir {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  min-width: 180px;
+}
+
+.email-editor-toolbar-popover-tabela-campos {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.email-editor-toolbar-popover-tabela-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.email-editor-toolbar-popover-tabela-campo input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Barra contextual de tabela (RefatoracaoTabela.md — Etapa 2, seção 2:
+   "painel condicional", não menu de overflow) — segunda faixa, mesma altura
+   e espírito visual de `.email-editor-toolbar`, mas só existe no DOM com o
+   cursor dentro de uma tabela. Reaproveita `.email-editor-toolbar-botao`
+   para cada controle e `.email-editor-toolbar-separador` entre os grupos
+   linha/coluna/mesclar/cabeçalho/cor/altura/borda/largura/duplicar/excluir —
+   nenhuma classe nova para os botões em si, só para o contêiner da faixa.
+   Os dois botões de "duplicar célula" (Etapa 7) entram nesse mesmo padrão,
+   sem exigir nenhuma regra própria. */
+.email-editor-toolbar-contextual {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  margin-top: 0.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+/* Campo numérico inline da barra contextual de tabela — rótulo curto +
+   campo, no mesmo espírito visual de `.email-editor-toolbar-stepper-campo`
+   (campo de tamanho de fonte), mas sem os botões +/− (aqui a digitação
+   livre já basta, confirmada no blur/Enter). Nasceu com o campo "Altura"
+   (RefatoracaoTabela.md — Etapa 5, `confirmarAlturaLinha` em
+   `EmailEditorToolbar.tsx`) e é reaproveitada, sem alteração, pelos campos
+   "Espessura" e "Largura" da Etapa 6 (`confirmarEspessuraBorda`/
+   `confirmarLarguraFixa`) — os três têm a mesma forma (rótulo + número),
+   então nenhuma classe nova era necessária. Fica direto na faixa, não atrás
+   de um popover, porque o plano pede cada campo "visível" junto do resto
+   dos controles desta barra contextual, não escondido atrás de um clique
+   extra. */
+.email-editor-toolbar-contextual-campo-altura {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.email-editor-toolbar-contextual-campo-altura input {
+  width: 3rem;
+  height: 1.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: center;
+  font-size: 0.8rem;
+  padding: 0;
+}
+
+.email-editor-toolbar-contextual-campo-altura input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.email-editor-toolbar-contextual-campo-altura input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

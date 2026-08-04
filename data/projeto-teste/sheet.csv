@@ -1,0 +1,101 @@
+﻿ID,Nome,Email
+1,Ana Souza,ana.souza1@exemplo.com
+2,Bruno Lima,bruno.lima2@exemplo.com
+3,Carla Mendes,carla.mendes3@exemplo.com
+4,Diego Alves,diego.alves4@exemplo.com
+5,Eduarda Rocha,eduarda.rocha5@exemplo.com
+6,Felipe Costa,felipe.costa6@exemplo.com
+7,Gabriela Dias,gabriela.dias7@exemplo.com
+8,Henrique Melo,henrique.melo8@exemplo.com
+9,Isabela Ramos,isabela.ramos9@exemplo.com
+10,João Pedro,joao.pedro10@exemplo.com
+11,Karina Silva,karina.silva11@exemplo.com
+12,Lucas Ferreira,lucas.ferreira12@exemplo.com
+13,Mariana Torres,mariana.torres13@exemplo.com
+14,Nicolas Barros,nicolas.barros14@exemplo.com
+15,Olívia Cardoso,olivia.cardoso15@exemplo.com
+16,Pedro Nunes,pedro.nunes16@exemplo.com
+17,Queila Freitas,queila.freitas17@exemplo.com
+18,Rafael Pinto,rafael.pinto18@exemplo.com
+19,Sabrina Castro,sabrina.castro19@exemplo.com
+20,Thiago Moreira,thiago.moreira20@exemplo.com
+21,Ursula Prado,ursula.prado21@exemplo.com
+22,Vitor Hugo,vitor.hugo22@exemplo.com
+23,Wesley Batista,wesley.batista23@exemplo.com
+24,Xênia Vieira,xenia.vieira24@exemplo.com
+25,Yasmin Duarte,yasmin.duarte25@exemplo.com
+26,Zeca Andrade,zeca.andrade26@exemplo.com
+27,Amanda Farias,amanda.farias27@exemplo.com
+28,Bernardo Teles,bernardo.teles28@exemplo.com
+29,Camila Reis,camila.reis29@exemplo.com
+30,Daniel Xavier,daniel.xavier30@exemplo.com
+31,Elaine Brito,elaine.brito31@exemplo.com
+32,Fábio Guedes,fabio.guedes32@exemplo.com
+33,Giovana Peixoto,giovana.peixoto33@exemplo.com
+34,Hugo Marques,hugo.marques34@exemplo.com
+35,Inês Coutinho,ines.coutinho35@exemplo.com
+36,Julio Sales,julio.sales36@exemplo.com
+37,Kelly Nogueira,kelly.nogueira37@exemplo.com
+38,Leonardo Assis,leonardo.assis38@exemplo.com
+39,Marina Tavares,marina.tavares39@exemplo.com
+40,Otávio Correia,otavio.correia40@exemplo.com
+41,Paula Siqueira,paula.siqueira41@exemplo.com
+42,Renato Aguiar,renato.aguiar42@exemplo.com
+43,Simone Bezerra,simone.bezerra43@exemplo.com
+44,Tarcísio Leal,tarcisio.leal44@exemplo.com
+45,Valentina Gama,valentina.gama45@exemplo.com
+46,William Cunha,william.cunha46@exemplo.com
+47,Ximena Rocha,ximena.rocha47@exemplo.com
+48,Yago Pimentel,yago.pimentel48@exemplo.com
+49,Zilda Monteiro,zilda.monteiro49@exemplo.com
+50,Alice Bastos,alice.bastos50@exemplo.com
+51,Caio Moura,caio.moura51@exemplo.com
+52,Débora Sant'Anna,debora.sant'anna52@exemplo.com
+53,Emerson Vaz,emerson.vaz53@exemplo.com
+54,Fernanda Lacerda,fernanda.lacerda54@exemplo.com
+55,Guilherme Pontes,guilherme.pontes55@exemplo.com
+56,Heloísa Braga,heloisa.braga56@exemplo.com
+57,Igor Salgado,igor.salgado57@exemplo.com
+58,Jaqueline Rêgo,jaqueline.rego58@exemplo.com
+59,Kauê Medeiros,kaue.medeiros59@exemplo.com
+60,Larissa Fagundes,larissa.fagundes60@exemplo.com
+61,Marcos Vinicius (1),marcos.vinicius@dominio.com
+62,Marcos Vinicius (2),MARCOS.VINICIUS@DOMINIO.COM
+63,Marcos Vinicius (3),  marcos.vinicius@dominio.com  
+64,Patrícia Gonçalves (1),patricia.goncalves@dominio.com
+65,Patrícia Gonçalves (2),PATRICIA.GONCALVES@DOMINIO.COM
+66,Patrícia Gonçalves (3),  patricia.goncalves@dominio.com  
+67,Rodrigo Sampaio (1),rodrigo.sampaio@dominio.com
+68,Rodrigo Sampaio (2),RODRIGO.SAMPAIO@DOMINIO.COM
+69,Rodrigo Sampaio (3),  rodrigo.sampaio@dominio.com  
+70,Cíntia Ferraz (1),cintia.ferraz@dominio.com
+71,Cíntia Ferraz (2),CINTIA.FERRAZ@DOMINIO.COM
+72,Cíntia Ferraz (3),  cintia.ferraz@dominio.com  
+73,Anderson Prado (1),anderson.prado@dominio.com
+74,Anderson Prado (2),ANDERSON.PRADO@DOMINIO.COM
+75,Anderson Prado (3),  anderson.prado@dominio.com  
+76,Beatriz Nascimento (1),beatriz.nascimento@corp.com
+77,Beatriz Nascimento (2),BEATRIZ.NASCIMENTO@CORP.COM
+78,Fabrício Andrade (1),fabricio.andrade@corp.com
+79,Fabrício Andrade (2),FABRICIO.ANDRADE@CORP.COM
+80,Juliana Prado (1),juliana.prado@corp.com
+81,Juliana Prado (2),JULIANA.PRADO@CORP.COM
+82,Sérgio Nakamura (1),sergio.nakamura@corp.com
+83,Sérgio Nakamura (2),SERGIO.NAKAMURA@CORP.COM
+84,Vanessa Righi (1),vanessa.righi@corp.com
+85,Vanessa Righi (2),VANESSA.RIGHI@CORP.COM
+86,Sem Arroba,semarrobadominio.com
+87,Sem Dominio,usuario@dominiosemponto
+88,Espaco No Meio,nome sobrenome@dominio.com
+89,Email Vazio,
+90,Somente Arroba Dominio,@dominio.com
+91,Sem Dominio Apos Arroba,usuario@
+92,Arroba Duplo,usuario@@dominio.com
+93,Ponto Final Sem Extensao,usuario@dominio.
+94,Texto Puro,istoNaoEUmEmail
+95,Somente Numeros,123456789
+96,Espaco Antes Arroba,usuario @dominio.com
+97,Dominio So Ponto,usuario@.
+98,Multiplos Espacos,   
+99,Sem Usuario V2,@outrodominio.com
+100,Caracteres Invalidos,"usuário#dominio,com"
