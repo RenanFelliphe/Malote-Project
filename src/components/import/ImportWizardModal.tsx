@@ -9,7 +9,11 @@ import { EtapaDefinicao } from './EtapaDefinicao';
 import { EtapaRevisao } from './EtapaRevisao';
 import { parsearPlanilha, type PlanilhaParseada } from './utils/parseSheetBrowser';
 import { calcularEstatisticasPreliminares } from './utils/statsPreliminares';
+import { construirRegistros } from './utils/construirRegistros';
 import { ESTADO_IMPORTACAO_INICIAL, type EstadoImportacao, type TEtapaImportacao } from './types';
+import { PROJETOS } from '../../data/projetos';
+import { EMAIL_CONTEUDO_VAZIO } from '../../types/email';
+import { criarProjeto, ProjetoSlugDuplicadoError } from '../../services/projetosApi';
 
 interface Props {
   arquivo: File;
@@ -24,9 +28,12 @@ const ETAPAS: { numero: TEtapaImportacao; rotulo: string }[] = [
 ];
 
 /**
- * Assistente de importação de planilha (4 etapas). Implementação apenas de
- * interface/navegação — ver descrição da tarefa: nenhuma importação real é
- * realizada aqui. "Confirmar Importação" apenas fecha o modal.
+ * Assistente de importação de planilha (4 etapas). A partir da Etapa 7 de
+ * `implementacaoImportacao.md`, "Confirmar Importação" persiste de verdade:
+ * converte as linhas mapeadas em `EmailRecord[]` (`construirRegistros`,
+ * Etapa 3) e cria o projeto via `criarProjeto` (`projetosApi`, Etapa 6).
+ * Em sucesso (Etapa 8), redireciona via reload completo para o projeto
+ * recém-criado, em vez de só fechar o modal.
  */
 export function ImportWizardModal({ arquivo, onFechar }: Props) {
   const [planilha, setPlanilha] = useState<PlanilhaParseada | null>(null);
@@ -36,6 +43,10 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
   const [etapa, setEtapa] = useState<TEtapaImportacao>(1);
   const [estado, setEstado] = useState<EstadoImportacao>(ESTADO_IMPORTACAO_INICIAL);
   const [confirmandoCancelamento, setConfirmandoCancelamento] = useState(false);
+  // Etapa 7 (implementacaoImportacao.md): estado da chamada real a
+  // `criarProjeto`, disparada por "Confirmar Importação".
+  const [importando, setImportando] = useState(false);
+  const [erroImportacao, setErroImportacao] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelado = false;
@@ -71,11 +82,23 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
     return calcularEstatisticasPreliminares(planilha.linhas, planilha.headers);
   }, [planilha]);
 
+  // Etapa 4 (implementacaoImportacao.md): checagem de unicidade do slug
+  // no client, contra os projetos ativos já descobertos em `PROJETOS`.
+  // Conveniência de UX — a garantia real fica com o servidor (Etapa 5).
+  const slugJaExiste = useMemo(() => {
+    const slugAtual = estado.nomeArquivoSlug.trim();
+    if (slugAtual === '') return false;
+    return PROJETOS.some((projeto) => projeto.slug === slugAtual);
+  }, [estado.nomeArquivoSlug]);
+
   function atualizarEstado(parcial: Partial<EstadoImportacao>) {
     setEstado((atual) => ({ ...atual, ...parcial }));
   }
 
   function solicitarFechamento() {
+    // Mesmo padrão de `EmailConteudoModal`: uma persistência em andamento
+    // não pode ser interrompida por Esc/clique fora/botão "X".
+    if (importando) return;
     setConfirmandoCancelamento(true);
   }
 
@@ -88,15 +111,51 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
     onFechar();
   }
 
-  function confirmarImportacao() {
-    // Etapa apenas de interface: nenhuma importação, persistência ou
-    // criação de projeto acontece aqui — só fecha o modal.
-    onFechar();
+  async function confirmarImportacao() {
+    if (importando || !planilha) return;
+
+    setImportando(true);
+    setErroImportacao(null);
+    try {
+      // Etapa 3: mesma regra de status (válido/inválido/duplicado) já usada
+      // por `sync.ts`, aplicada às colunas mapeadas manualmente pelo
+      // usuário nas Etapas 1/2 do wizard.
+      const registros = construirRegistros(planilha.linhas, estado.colunasNome, estado.colunasEmail);
+
+      // Título/corpo (Etapa 3 do wizard, `EtapaDefinicao`) são opcionais —
+      // se nenhum dos dois foi preenchido, o projeto nasce com o mesmo
+      // `EmailConteudo` "vazio" usado em qualquer outro lugar do sistema
+      // (inclusive `atualizado_em: ''`), em vez de um timestamp que
+      // sugeriria uma edição que não aconteceu.
+      const emailPreenchido = estado.titulo.trim() !== '' || estado.conteudo.trim() !== '';
+      const email = emailPreenchido
+        ? { titulo: estado.titulo, conteudo: estado.conteudo, atualizado_em: new Date().toISOString() }
+        : EMAIL_CONTEUDO_VAZIO;
+
+      // Etapa 6: persiste de verdade via `POST /api/projetos` (Etapa 5).
+      const slugCriado = await criarProjeto(estado.nomeArquivoSlug, estado.nomeProjeto, email, registros);
+
+      // Etapa 8: reload completo para o projeto recém-criado, não
+      // navegação client-side — `PROJETOS` só é resolvido uma vez, via
+      // `import.meta.glob({ eager: true })`, no carregamento do módulo
+      // (ver seção 2 do plano); navegar sem reload cairia na rota
+      // fallback, já que o slug novo não existe no array em memória até a
+      // página recarregar.
+      window.location.href = '/' + slugCriado;
+    } catch (erro) {
+      setErroImportacao(
+        erro instanceof ProjetoSlugDuplicadoError
+          ? 'Já existe um projeto com esse nome de arquivo. Volte à Etapa 1 e escolha outro.'
+          : 'Não foi possível concluir a importação. Tente novamente.'
+      );
+    } finally {
+      setImportando(false);
+    }
   }
 
   const nomeProjetoValido = estado.nomeProjeto.trim() !== '';
   const nomeArquivoValido = estado.nomeArquivoSlug.trim() !== '';
-  const etapa1Valida = nomeProjetoValido && nomeArquivoValido;
+  const etapa1Valida = nomeProjetoValido && nomeArquivoValido && !slugJaExiste;
   const etapa2Valida = estado.colunasNome.length > 0 && estado.colunasEmail.length > 0;
 
   const mostrarConteudo = Boolean(planilha) && !carregando && !erro;
@@ -121,6 +180,7 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
                 type="button"
                 className="dialog-botao-cancelar"
                 onClick={() => setEtapa((atual) => (atual - 1) as TEtapaImportacao)}
+                disabled={importando}
               >
                 Voltar
               </button>
@@ -155,8 +215,13 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
             )}
 
             {etapa === 4 && (
-              <button type="button" className="dialog-botao-primario" onClick={confirmarImportacao}>
-                Confirmar Importação
+              <button
+                type="button"
+                className="dialog-botao-primario"
+                onClick={() => void confirmarImportacao()}
+                disabled={importando}
+              >
+                {importando ? 'Importando…' : 'Confirmar Importação'}
               </button>
             )}
           </>
@@ -219,6 +284,7 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
                 formato={planilha.formato}
                 tamanhoBytes={planilha.tamanhoBytes}
                 estatisticas={estatisticas}
+                slugJaExiste={slugJaExiste}
               />
             )}
 
@@ -238,6 +304,8 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
               />
             )}
           </div>
+
+          {erroImportacao && <p className="erro-salvamento">{erroImportacao}</p>}
         </>
       )}
 

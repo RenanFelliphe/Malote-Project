@@ -1,0 +1,3060 @@
+{
+  "projeto": "Alunos Aprovados RPV",
+  "criado_em": "2026-08-05T19:25:48.568Z",
+  "atualizado_em": "2026-08-05T19:25:48.568Z",
+  "email": {
+    "titulo": "Testando título de e-mail",
+    "conteudo": "Testando corpo de e-mail",
+    "atualizado_em": "2026-08-05T19:25:48.560Z"
+  },
+  "registros": [
+    {
+      "id": 1,
+      "nome": "Jorge Bernardo Andrade fernandes",
+      "email": "jorgebernardo10gg@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 2,
+      "nome": "Isabella Raimondo e Silva",
+      "email": "Isabellaraimondo3@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 3,
+      "nome": "Isabella Raimondo e Silva",
+      "email": "Isabellaraimondo3@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 4,
+      "nome": "kaio Del'Penho Castro Gomes",
+      "email": "kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 5,
+      "nome": "kaio Del'Penho Castro Gomes",
+      "email": "kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 6,
+      "nome": "Kaio Del'Penho Castro Gomes",
+      "email": "kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 7,
+      "nome": "Gustavo",
+      "email": "gustavo028292@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 8,
+      "nome": "Antonella Durães Rezende",
+      "email": "antonelladuraes0@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 9,
+      "nome": "Jhuan Ramalho Tobias",
+      "email": "jhuanramalhotobia@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 10,
+      "nome": "Isabelli de Jesus Rodrigues Bento",
+      "email": "is4.rodrigu3sx@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 11,
+      "nome": "Beatriz de Souza Aleixo",
+      "email": "bbsouzaaleixo@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 12,
+      "nome": "Vitor Hugo Valadares de Oliveira",
+      "email": "hugovaladaresvitor@icloud.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 13,
+      "nome": "Nycollas Henryque Santos Ferreira",
+      "email": "nycohenrique23@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 14,
+      "nome": "kaique mattos da cruz",
+      "email": "kaique10.jf@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 15,
+      "nome": "Jeová Gabriel Martins dos Santos",
+      "email": "jeovamartins222@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 16,
+      "nome": "Vitor Hugo dos Santos Pereira",
+      "email": "vitorhugopereira4113@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 17,
+      "nome": "Leonardo Antonio Andrade da Silva",
+      "email": "leonardo_kta@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 18,
+      "nome": "Pedro Lucas Gonçalves Ferancini",
+      "email": "pepeferancini@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 19,
+      "nome": "Pedro Lucas Gonçalves Ferancini",
+      "email": "pepeferancini@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 20,
+      "nome": "João Vitor Pereira de Sousa",
+      "email": "joao.8217247@aluno.mg.gov.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 21,
+      "nome": "matheus brandao",
+      "email": "matheusbrandaorochakta@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 22,
+      "nome": "Luiz Felipe Rosa Santos",
+      "email": "luizfelipe653@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 23,
+      "nome": "Felipe Guimarães Roque",
+      "email": "simoneguimaraesgomes@yahoo.com.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 24,
+      "nome": "Thaís Amorim Magalhães",
+      "email": "thaisamorim1812@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 25,
+      "nome": "Echilen Eduarda Bernardes Carvalho",
+      "email": "echilenbernardes@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 26,
+      "nome": "Yasmin Amorim Amaral",
+      "email": "yasminamorimamaral7@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 27,
+      "nome": "Hellena Braga de Oliveira",
+      "email": "Hellenabraga930@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 28,
+      "nome": "Alice Gouvêa Cristino da Silva",
+      "email": "alicegouveia128@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 29,
+      "nome": "Alice Gouvêa Cristino da Silva",
+      "email": "alicegouveia128@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 30,
+      "nome": "carlos Henrique",
+      "email": "carloskta345@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 31,
+      "nome": "Daniel",
+      "email": "danielpcontato01@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 32,
+      "nome": "Vinicius Souza De Brito",
+      "email": "viniciussouzakta@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 33,
+      "nome": "Carlos henrique",
+      "email": "carloskta345@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 34,
+      "nome": "Tainá Martins Silva Oliveira",
+      "email": "taina2008oliveira@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 35,
+      "nome": "Carlos Henrique Cunha da silva",
+      "email": "Carlos.henrique1591@icloud.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 36,
+      "nome": "Kananda Gonçalves",
+      "email": "Kanandagon12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 37,
+      "nome": "Pedro Lucas Miranda Teixeira",
+      "email": "pedromagency@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 38,
+      "nome": "Pedro Lucas Miranda Teixeira",
+      "email": "pedromagency@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 39,
+      "nome": "Arthur Riquelme Silva",
+      "email": "Arthur57@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 40,
+      "nome": "João Paulo Ventura Gomes",
+      "email": "joaopauloventura14@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 41,
+      "nome": "Marcio Fernande da Silva",
+      "email": "marciofsilva48@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 42,
+      "nome": "Débora de Sousa Silva",
+      "email": "dededess15a@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 43,
+      "nome": "Lavinia Cristina Silva",
+      "email": "laviniasilva966@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 44,
+      "nome": "Maria Luiza Alves Elias",
+      "email": "marialuizarelias03@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 45,
+      "nome": "carlos Henrique",
+      "email": "carloskta345@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 46,
+      "nome": "carlos Henrique",
+      "email": "carloskta345@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 47,
+      "nome": "Helena",
+      "email": "helenaalvesha043675@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 48,
+      "nome": "Murilo Almeida Pinto Oliveira",
+      "email": "marcilenesiao@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 49,
+      "nome": "Ana Júlia Rodrigues de Souza",
+      "email": "anajuliarodriguesanajulia9@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 50,
+      "nome": "Ana Júlia Rodrigues de Souza",
+      "email": "anajuliarodriguesanajulia9@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 51,
+      "nome": "GABRIEL CERQUEIRA NEVES LIMA",
+      "email": "nevesgabriel834@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 52,
+      "nome": "Lara Rievert Ramos",
+      "email": "lararievertramos@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 53,
+      "nome": "Sarah de Souza Gomes",
+      "email": "sarahgomes0405@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 54,
+      "nome": "Guilherme Lima Werneck Pereira",
+      "email": "guilherme26481wig@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 55,
+      "nome": "Sarah de Souza Gomes",
+      "email": "Sarahgomes0405@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 56,
+      "nome": "Ana Clara Martins de Oliveira",
+      "email": "anaclaratt12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 57,
+      "nome": "Marcos Vinícius Lourenço Ferreira",
+      "email": "marcos101551@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 58,
+      "nome": "Carlos Daniel Magalhaes Lindolfo Carvalho",
+      "email": "magalhaescarlosdaniel90@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 59,
+      "nome": "Carolaine de Oliveira",
+      "email": "kkcarolainekk@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 60,
+      "nome": "Ana Carolina queiroz de oliveira",
+      "email": "carol123pit@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 61,
+      "nome": "ana carolina queiroz de oliveira",
+      "email": "carol123pit@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 62,
+      "nome": "Maria Gabriela Venâncio Breijão Ribeiro",
+      "email": "venanciomariagabriela@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 63,
+      "nome": "Marcos Otavio Da Silva Gonaçalves",
+      "email": "drackroolling@gmai.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 64,
+      "nome": "Paola Isabel Oliveira Silva",
+      "email": "Walquiriacaroa@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 65,
+      "nome": "Paola Isabel Oliveira Silva",
+      "email": "Walquiriacaroa@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 66,
+      "nome": "Gabriel Caetano da Silveira",
+      "email": "gcaetanodasilveira@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 67,
+      "nome": "Ruan",
+      "email": "Ruanbatista501@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 68,
+      "nome": "Ruan",
+      "email": "Ruanbatista501@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 69,
+      "nome": "Wliany Fonseca",
+      "email": "fonsecawliany@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 70,
+      "nome": "Cristiane Martins da Cruz Ferreira",
+      "email": "cristianeteologa2016@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 71,
+      "nome": "Eric Ribeiro de Souza Silva",
+      "email": "ericribeirodesouza.erss@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 72,
+      "nome": "Arthur Simões Lima",
+      "email": "arthursimoesa@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 73,
+      "nome": "Pedro Spindola Mury",
+      "email": "pedromury2011@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 74,
+      "nome": "Pedro Spindola Mury",
+      "email": "pedromury2011@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 75,
+      "nome": "Enzo Gabriel Peixoto Moreira Da Silva",
+      "email": "enzopeixoto12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 76,
+      "nome": "Asafe Escobar de Almeida Andrade",
+      "email": "Asafeezaza@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 77,
+      "nome": "Pedro Henrique Ferreira",
+      "email": "pedrohenriqueferreira0308@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 78,
+      "nome": "Débora Flores Gonçalves ferreira",
+      "email": "deboragoncalves0424@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 79,
+      "nome": "RAFAEL ESTEVÃO DA SILVA DE ASSIS",
+      "email": "restevao980@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 80,
+      "nome": "Amanda Dias Carvalho",
+      "email": "amandacarvalho19960@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 81,
+      "nome": "Carlos Henrique",
+      "email": "Carloskta345@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 82,
+      "nome": "Juan Carlos Silva de Oliveira",
+      "email": "juancarlos.12012011@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 83,
+      "nome": "Raphael Lanes Gonçalves",
+      "email": "lanesraphael75@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 84,
+      "nome": "carlos Henrique Cunha da silva",
+      "email": "carloskta345@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 85,
+      "nome": "Nycollas Henryque Santos Ferreira",
+      "email": "nycohenrique23@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 86,
+      "nome": "Asafe Escobar de Almeida Andrade",
+      "email": "asafeezaza@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 87,
+      "nome": "Antonella Durães Rezende",
+      "email": "antonelladuraes0@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 88,
+      "nome": "Kaio Del'Penho Castro Gomes",
+      "email": "Kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 89,
+      "nome": "Matheus Brandão Rocha",
+      "email": "matheusbrandaorochakta@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 90,
+      "nome": "Felipe Guimarães Roque",
+      "email": "simoneguimaraesgomes@yahoo.com.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 91,
+      "nome": "Luis felipe",
+      "email": "Vitorhugopereira41113@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 92,
+      "nome": "Vitor Hugo dos Santos Pereira",
+      "email": "vitorhugopereira4113@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 93,
+      "nome": "hemily santiago de moura",
+      "email": "hemilysantiago2006@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 94,
+      "nome": "Echilen Eduarda Bernardes Carvalho",
+      "email": "echilenbernardes@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 95,
+      "nome": "Yasmin Amorim Amaral",
+      "email": "yasminamorimamaral7@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 96,
+      "nome": "Yasmin Amorim Amaral",
+      "email": "yasminamorimamaral7@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 97,
+      "nome": "Isabella Raimondo e Silva",
+      "email": "Isabellaraimondo3@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 98,
+      "nome": "Isabella Raimondo e Silva",
+      "email": "Isabellaraimondo3@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 99,
+      "nome": "Thaís Amorim Magalhães",
+      "email": "thaisamorim1812@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 100,
+      "nome": "Murilo Almeida Pinto Oliveira",
+      "email": "marcilenesiao@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 101,
+      "nome": "Yngrid Almeida Matos",
+      "email": "yngridmatos16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 102,
+      "nome": "Andrey Mendes Da Silva Santana",
+      "email": "andreyzlxmendes@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 103,
+      "nome": "Leonardo Antonio Andrade da Silva",
+      "email": "leonardo_kta@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 104,
+      "nome": "Leonardo Antonio Andrade da Silva",
+      "email": "leonardo_kta@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 105,
+      "nome": "Paola Isabel Oliveira Silva",
+      "email": "Walquiriacaroa@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 106,
+      "nome": "Gabriel cerqueira neves lima",
+      "email": "Nevesgabriel834@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 107,
+      "nome": "João Vitor Pereira de Sousa",
+      "email": "joao.8217247@aluno.mg.gov.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 108,
+      "nome": "Arthur Riquelme Silva",
+      "email": "Arthur57@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 109,
+      "nome": "João Paulo Ventura Gomes",
+      "email": "joaopauloventura14@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 110,
+      "nome": "Lavinia Cristina Silva",
+      "email": "laviniasilva966@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 111,
+      "nome": "Eric Ribeiro de Souza Silva",
+      "email": "ericribeirodesouza@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 112,
+      "nome": "Daniel",
+      "email": "danielpcontato01@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 113,
+      "nome": "Pedro Spindola Mury",
+      "email": "pedromury2011@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 114,
+      "nome": "Ana Júlia Rodrigues de Souza",
+      "email": "anajuliarodriguesanajulia9@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 115,
+      "nome": "Ana Júlia Rodrigues de Souza",
+      "email": "anajuliarodriguesanajulia9@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 116,
+      "nome": "Gustavo",
+      "email": "gustavo028292@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 117,
+      "nome": "Lara Rievert",
+      "email": "lararievertramos@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 118,
+      "nome": "ISABELLI SIQUEIRA DE OLIVEIRA",
+      "email": "SIQUEIRADEOLIVEIRAISABELLI@GMAIL.COM",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 119,
+      "nome": "Cristiane Martins da Cruz Ferreira",
+      "email": "cristianeteologa2016@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 120,
+      "nome": "Débora de Sousa Silva",
+      "email": "dededess15a@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 121,
+      "nome": "Sarah de Souza Gomes",
+      "email": "Sarahgomes0405@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 122,
+      "nome": "Marcos Vinícius Lourenço Ferreira",
+      "email": "marcos101551@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 123,
+      "nome": "Jeová Gabriel Martins dos Santos",
+      "email": "jeovamartins222@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 124,
+      "nome": "Guilherme Martins da Costa Vilela",
+      "email": "guilhermemcv2018@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 125,
+      "nome": "Carlos Daniel Magalhaes Lindolfo Carvalho",
+      "email": "magalhaescarlosdaniel90@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 126,
+      "nome": "Alice Gouvêa Cristino da Silva",
+      "email": "alicegouveia128@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 127,
+      "nome": "Ana carolina Queiroz de oliveira",
+      "email": "carol123pit@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 128,
+      "nome": "Marcos Otavio Da Silva Gonçalves",
+      "email": "drackroolling@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 129,
+      "nome": "Pedro Lucas Gonçalves Ferancini",
+      "email": "pepeferancini@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 130,
+      "nome": "Tainá Martins Silva Oliveira",
+      "email": "taina2008oliveira@gmail.com.br",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 131,
+      "nome": "Ruan",
+      "email": "Ruanbatista501@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 132,
+      "nome": "Ana Clara Martins de Oliveira",
+      "email": "anaclaratt12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 133,
+      "nome": "kaique mattos da cruz",
+      "email": "kaique10.jf@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 134,
+      "nome": "Gabriela Soares Farinha",
+      "email": "gilmarasoares2018@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 135,
+      "nome": "Laura Dias Medina",
+      "email": "lauramedina98h@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 136,
+      "nome": "Inácio Cândido Lobo Almeida",
+      "email": "estefaniacandidoinacio@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 137,
+      "nome": "Enzo Gabriel Peixoto Moreira Da Silva",
+      "email": "enzopeixoto12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 138,
+      "nome": "Débora flores Gonçalves Ferreira",
+      "email": "deboragoncalves0424@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 139,
+      "nome": "Pedro Henrique Ferreira",
+      "email": "pedrohenriqueferreira0308@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 140,
+      "nome": "Kananda Gonçalves Pereira",
+      "email": "Kanandagon12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 141,
+      "nome": "Luiz Felipe das Neves regazi",
+      "email": "luizfeliperegaze311educacao@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 142,
+      "nome": "Juan Carlos Silva de Oliveira",
+      "email": "juancarlos.12012011@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 143,
+      "nome": "Hemily Santiago De Moura",
+      "email": "hemilysantiago2006@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 144,
+      "nome": "Hemily Santiago",
+      "email": "hemilysantiago2006@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 145,
+      "nome": "Isabelli de Jesus Rodrigues Bento",
+      "email": "is4.rodrigu3sx@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 146,
+      "nome": "Nycollas Henryque Santos Ferreira",
+      "email": "nycohenrique23@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 147,
+      "nome": "Jarbas Rocha Junior",
+      "email": "rochacgs@hotmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 148,
+      "nome": "Lavinia Cristina Silva",
+      "email": "laviniasilva966@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 149,
+      "nome": "Maria Alice",
+      "email": "liliagatha10@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 150,
+      "nome": "Feliphe",
+      "email": "Feliphegabrieldesouzafeliciano@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 151,
+      "nome": "Luiza dos santos Felisberto",
+      "email": "Luizafelisberto900@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 152,
+      "nome": "Laiza",
+      "email": "laizaales@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 153,
+      "nome": "Asafe Escobar de Almeida Andrade",
+      "email": "asafeezaza@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 154,
+      "nome": "Thaís Amorim Magalhães.",
+      "email": "thaisamorim1812@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 155,
+      "nome": "Thaís Amorim Magalhães.",
+      "email": "thaisamorim1812@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 156,
+      "nome": "Ana Júlia Rodrigues de Souza",
+      "email": "anajuliarodriguesanajulia9@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 157,
+      "nome": "Ana Júlia Rodrigues de Souza",
+      "email": "anajuliarodriguesanajulia9@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 158,
+      "nome": "kaio Del'Penho Castro Gomes",
+      "email": "kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 159,
+      "nome": "kaio Del'Penho Castro Gomes",
+      "email": "kaiodcg@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 160,
+      "nome": "kaio Del'Penho Castro Gomes",
+      "email": "kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 161,
+      "nome": "kaio Del'Penho Castro Gomes",
+      "email": "kaiodcg16gmail.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 162,
+      "nome": "Kaio Del'penho Castro Gomes",
+      "email": "kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 163,
+      "nome": "Kkaio Del'Penho Castro gomes",
+      "email": "Kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 164,
+      "nome": "Kaio Del'Penho Castro gomes",
+      "email": "Kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 165,
+      "nome": "Kauan Silvério",
+      "email": "kauansilverio40@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 166,
+      "nome": "Kauan Silvério",
+      "email": "kauansilverio40@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 167,
+      "nome": "Arthur Santos Durães",
+      "email": "arthur.sduraes@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 168,
+      "nome": "Bernardo de oliveira Werneck ribeiro",
+      "email": "bernardooliveira@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 169,
+      "nome": "Bernardo de oliveira Werneck ribeiro",
+      "email": "Bernardodeoliveirawr@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 170,
+      "nome": "Antonella Durães Rezende",
+      "email": "antonelladuraes0@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 171,
+      "nome": "João Paulo Ventura Gomes",
+      "email": "joaopauloventura08@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 172,
+      "nome": "Felipe Guimarães Roque",
+      "email": "simoneguimaraesgomes@yahoo.com.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 173,
+      "nome": "Jeová Gabriel Martins dos Santos",
+      "email": "jeovamartins222@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 174,
+      "nome": "Jeová Gabriel Martins dos Santos",
+      "email": "jeovamartins222@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 175,
+      "nome": "Vitor Hugo dos Santos Pereira",
+      "email": "vitorhugopereira4113@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 176,
+      "nome": "Vitor Hugo dos Santos Pereira",
+      "email": "vitorhugopereira4113@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 177,
+      "nome": "Gabriel cerqueira neves lima",
+      "email": "nevesgabriel834@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 178,
+      "nome": "Vitor Hugo dos Santos Pereira",
+      "email": "vitorhugopereira4113gmail.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 179,
+      "nome": "Vitor Hugo dos Santos Pereira",
+      "email": "vitorhugopereira41132gmail.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 180,
+      "nome": "Vinicius Souza De Brito",
+      "email": "viniciussouzakta@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 181,
+      "nome": "Diego Gomes Gonçalves Libéro da Silva",
+      "email": "diegogomesgoncalves2712@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 182,
+      "nome": "Diego Gomes Gonçalves Libéro da Silva",
+      "email": "diegogomesgoncalves2712@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 183,
+      "nome": "Echilen Eduarda Bernardes Carvalho",
+      "email": "echilenbernardes@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 184,
+      "nome": "Yasmin Amorim Amaral",
+      "email": "yasminamorimamaral7@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 185,
+      "nome": "Hellena Braga de Oliveira",
+      "email": "Hellenabraga930@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 186,
+      "nome": "Alice Gouvêa Cristino da Silva",
+      "email": "alicegouveia128@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 187,
+      "nome": "Daniel",
+      "email": "danielpcontato01@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 188,
+      "nome": "Eric Ribeiro de Souza Silva",
+      "email": "ericribeirodesouza.erss@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 189,
+      "nome": "Eric Ribeiro de Souza Silva",
+      "email": "ericribeirodesouza.erss@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 190,
+      "nome": "Maria Gabriela Venâncio Breijão Ribeiro",
+      "email": "venanciomariagabriela@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 191,
+      "nome": "Pedro Henrique Ferreira",
+      "email": "pedrohenriqueferreira0308@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 192,
+      "nome": "Pedro Henrique Ferreira",
+      "email": "pedrohenriqueferreira0308@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 193,
+      "nome": "Pedro Henrique Ferreira",
+      "email": "pedrohenriqueferreira0308@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 194,
+      "nome": "Raphael Lanes Gonçalves",
+      "email": "lanesraphael75@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 195,
+      "nome": "Luiz Felipe Rosa Santos",
+      "email": "luizfelipe653@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 196,
+      "nome": "Cristiane Martins da Cruz Ferreira",
+      "email": "cristianeteologa2016@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 197,
+      "nome": "Cristiane Martins da Cruz Ferreira",
+      "email": "cristianeteologa2016@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 198,
+      "nome": "Ana Clara Casal da Silva",
+      "email": "casalnatalia377@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 199,
+      "nome": "Guilherme Lima Werneck Pereira",
+      "email": "guilherme26481wig@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 200,
+      "nome": "Guilherme Lima Werneck Pereira",
+      "email": "guilherme26481wig@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 201,
+      "nome": "Tainá Martins Silva Oliveira",
+      "email": "taina2008oliveira@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 202,
+      "nome": "Leonardo Antonio Andrade da Silva",
+      "email": "leonardo_kta@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 203,
+      "nome": "Leonardo Antonio Andrade da Silva",
+      "email": "leonardo_kta@ hotmail.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 204,
+      "nome": "Gabriel Da Silva Pereira",
+      "email": "Gabrielsp677@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 205,
+      "nome": "Gabriel Da Silva Pereira",
+      "email": "Gabrielsp677@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 206,
+      "nome": "Gabriel Da Silva Pereira",
+      "email": "Gabrielsp677@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 207,
+      "nome": "arthur riquelme silva",
+      "email": "Arthur57@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 208,
+      "nome": "João Paulo Ventura Gomes",
+      "email": "joaopauloventura14@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 209,
+      "nome": "Vitória Freesz Luiz",
+      "email": "cr7lindo050285@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 210,
+      "nome": "Vitória Freesz Luiz",
+      "email": "vitoriafreesz18@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 211,
+      "nome": "vitoria freesz luiz",
+      "email": "cr7lindo050285@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 212,
+      "nome": "Débora de Sousa Silva",
+      "email": "dededess15a@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 213,
+      "nome": "Murilo Almeida Pinto Oliveira",
+      "email": "marcilenesiao@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 214,
+      "nome": "João Vitor Pereira de Sousa",
+      "email": "joao.8217247@aluno.mg.gov.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 215,
+      "nome": "João Vitor Pereira de Sousa",
+      "email": "joao.8217247@aluno.mg.gov.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 216,
+      "nome": "João Vitor Pereira de Sousa",
+      "email": "joao.8217247@aluno.mg.gov.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 217,
+      "nome": "Gabriella Oliveira Carneiro",
+      "email": "gabycarneiro1003@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 218,
+      "nome": "Ana Clara Martins de Oliveira",
+      "email": "anaclaratt12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 219,
+      "nome": "Carlos Daniel Magalhaes Lindolfo Carvalho",
+      "email": "magalhaescarlosdaniel90@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 220,
+      "nome": "Carlos Daniel Magalhaes Lindolfo Carvalho",
+      "email": "magalhaescarlosdaniel90@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 221,
+      "nome": "Sthefany Garcia Piobelo",
+      "email": "aluno.sthefany.piobelo@doctum.edu.br",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 222,
+      "nome": "Paola Isabel Oliveira Silva",
+      "email": "Walquiriacaroa@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 223,
+      "nome": "Lara Rievert Ramos",
+      "email": "lararievertramos@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 224,
+      "nome": "Sarah de Souza Gomes",
+      "email": "Sarahgomes0405@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 225,
+      "nome": "Alice Gouvêa Cristino da Silva",
+      "email": "alicegouveia128@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 226,
+      "nome": "Alice Gouvêa Cristino da Silva",
+      "email": "alicegouveia128@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 227,
+      "nome": "Pedro Lucas Gonçalves Ferancini",
+      "email": "pepeferancini@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 228,
+      "nome": "Pedro Lucas Gonçalves Ferancini",
+      "email": "pepeferancini@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 229,
+      "nome": "Marcos Otavio Da Silva Gonçalves",
+      "email": "drackroolling@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 230,
+      "nome": "Isadora Vaz Marciano",
+      "email": "larissavaz670@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 231,
+      "nome": "Isadora Vaz Marciano",
+      "email": "larissavaz670@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 232,
+      "nome": "Marcos Vinícius Lourenço Ferreira",
+      "email": "marcos101551@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 233,
+      "nome": "Marcos Vinícius Lourenço Ferreira",
+      "email": "marcos101551@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 234,
+      "nome": "Sofia Vitória",
+      "email": "sofiavitoriameloalves@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 235,
+      "nome": "Gustavo Lima Da Cunha Barros",
+      "email": "gustavo028292@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 236,
+      "nome": "Lavinia da Costa Nascimento",
+      "email": "clavinia434@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 237,
+      "nome": "Gabriella Oliveira Carneiro",
+      "email": "gabycarneiro1003@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 238,
+      "nome": "Ruan",
+      "email": "Ruanbatista501@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 239,
+      "nome": "Inácio Cândido Lobo Almeida",
+      "email": "estefaniacandidoinacio@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 240,
+      "nome": "Inácio Cândido Lobo Almeida",
+      "email": "estefaniacandidoinacio@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 241,
+      "nome": "Inácio Cândido Lobo Almeida",
+      "email": "estefaniacandidoinacio@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 242,
+      "nome": "Enzo Gabriel Peixoto Moreira Da Silva",
+      "email": "enzopeixoto12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 243,
+      "nome": "Débora Flores Gonçalves Ferreira",
+      "email": "deboragoncalves0424@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 244,
+      "nome": "Nycollas Henryque Santos Ferreira",
+      "email": "nycohenrique23@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 245,
+      "nome": "Amanda Dias Carvalho",
+      "email": "amandacarvalho19960@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 246,
+      "nome": "Antonella Durães Rezende",
+      "email": "antonelladuraes0@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 247,
+      "nome": "Beatriz de Souza Aleixo",
+      "email": "bbsouzaaleixo@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 248,
+      "nome": "Jorge Bernardo Andrade Fernandes",
+      "email": "jorgebernardo10gg@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 249,
+      "nome": "Carlos Henrique Cunha da silva",
+      "email": "carloskta345@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 250,
+      "nome": "Asafe Escobar de Almeida Andrade",
+      "email": "asafeezaza@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 251,
+      "nome": "Carlos Henrique",
+      "email": "carloskta345@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 252,
+      "nome": "Matheus Brandão Rocha",
+      "email": "matheusbrandaorochakta@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 253,
+      "nome": "Felipe Guimarães Roque",
+      "email": "simoneguimaraesgomes@yahoo.com.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 254,
+      "nome": "Thaís Amorim Magalhães",
+      "email": "thaisamorim1812@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 255,
+      "nome": "Ana Júlia Rodrigues de Souza",
+      "email": "anajuliarodriguesanajulia9@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 256,
+      "nome": "Raphael Lanes Gonçalves",
+      "email": "lanesraphael75@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 257,
+      "nome": "Kaio Del'Penho Castro Gomes",
+      "email": "kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 258,
+      "nome": "Amanda Dias Carvalho",
+      "email": "amandacarvalho19960@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 259,
+      "nome": "Luis felipe",
+      "email": "Vitorhugopereira41113@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 260,
+      "nome": "Vitor Hugo dos Santos Pereira",
+      "email": "vitorhugopereira4113gmail.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 261,
+      "nome": "Juan Carlos Silva de Oliveira",
+      "email": "juancarlos.12012011@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 262,
+      "nome": "Hemily Santiago De Moura",
+      "email": "hemilysantiago2006@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 263,
+      "nome": "Echilen Eduarda Bernardes Carvalho",
+      "email": "echilenbernardes@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 264,
+      "nome": "Yasmin Amorim Amaral",
+      "email": "yasminamorimamaral7@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 265,
+      "nome": "Alice dos santos Inácio",
+      "email": "aliceinacio201010@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 266,
+      "nome": "Vitor Reis Ario de Sousa",
+      "email": "Vitorario2810@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 267,
+      "nome": "Jeová Gabriel Martins dos Santos",
+      "email": "jeovamartins222@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 268,
+      "nome": "Arthur Simoes Lima",
+      "email": "arthursimoesa@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 269,
+      "nome": "Paola Isabel Oliveira Silva",
+      "email": "Walquiriacaroa@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 270,
+      "nome": "Alice dos santos Inácio",
+      "email": "aliceinacio201010@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 271,
+      "nome": "Vinicius Souza De Brito",
+      "email": "viniciussouzakta@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 272,
+      "nome": "GABRIEL CERQUEIRA NEVES LIMA",
+      "email": "nevesgabriel834@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 273,
+      "nome": "Tainá Martins Silva Oliveira",
+      "email": "taina2008oliveira@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 274,
+      "nome": "Lara  Rievert Ramos",
+      "email": "lararievertramos@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 275,
+      "nome": "Pedro Lucas Gonçalves Ferancini",
+      "email": "Pepeferancini@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 276,
+      "nome": "Pedro Lucas Gonçalves Ferancini",
+      "email": "Pepeferancini@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 277,
+      "nome": "Pedro Lucas Gonçalves Ferancini",
+      "email": "Pepeferancini@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 278,
+      "nome": "Pedro Lucas Gonçalves Ferancini",
+      "email": "Pepeferancini@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 279,
+      "nome": "Kananda Gonçalves",
+      "email": "Kanandagon12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 280,
+      "nome": "Arthur Riquelme Silva",
+      "email": "Arthur57@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 281,
+      "nome": "João Paulo Ventura Gomes",
+      "email": "joaopauloventura14@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 282,
+      "nome": "Pedro spindola Mury",
+      "email": "pedromury2011@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 283,
+      "nome": "Murilo Almeida Pinto Oliveira",
+      "email": "marcilenesiao@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 284,
+      "nome": "Lavinia Cristina Silva",
+      "email": "laviniasilva966@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 285,
+      "nome": "Carolaine de Oliveira",
+      "email": "kkcarolainekk@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 286,
+      "nome": "João Vitor Pereira de Sousa",
+      "email": "joao.8217247@aluno.mg.gov.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 287,
+      "nome": "Isabella Raimondo e Silva",
+      "email": "Isabellaraimondo3@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 288,
+      "nome": "Daniel",
+      "email": "danielpcontato01@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 289,
+      "nome": "Carlos Daniel Magalhaes Lindolfo Carvalho",
+      "email": "magalhaescarlosdaniel90@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 290,
+      "nome": "Gustavo Lima Da Cunha Barros",
+      "email": "gustavo028292@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 291,
+      "nome": "Cristiane Martins da Cruz Ferreira",
+      "email": "cristianeteologa2016@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 292,
+      "nome": "Ana Clara Martins de Oliveira",
+      "email": "anaclaratt12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 293,
+      "nome": "Ana Clara Martins de Oliveira",
+      "email": "anaclaratt12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 294,
+      "nome": "Débora de Sousa Silva",
+      "email": "dededess15a@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 295,
+      "nome": "Sarah de Souza Gomes",
+      "email": "Sarahgomes0405@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 296,
+      "nome": "Alice Gouvêa Cristino da Silva",
+      "email": "alicegouveia128@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 297,
+      "nome": "Marcos Otavio Da Silva Gonçalves",
+      "email": "drackroolling@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 298,
+      "nome": "Ruan",
+      "email": "Ruanbatista501@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 299,
+      "nome": "Arthur Andrade Coelho de Carvalho",
+      "email": "arthuracc65@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 300,
+      "nome": "Gabriela Soares Farinha",
+      "email": "gilmarasoares2018@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 301,
+      "nome": "Inácio Cândido Lobo Almeida",
+      "email": "estefaniacandidoinacio@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 302,
+      "nome": "Enzo Gabriel Peixoto Moreira Da Silva",
+      "email": "enzopeixoto12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 303,
+      "nome": "Eric Ribeiro de Souza Silva",
+      "email": "ericribeirodesouza.erss@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 304,
+      "nome": "Débora Flores Gonçalves Ferreira",
+      "email": "deboragoncalves0424@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 305,
+      "nome": "Pedro Henrique Ferreira",
+      "email": "pedrohenriqueferreira0308@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 306,
+      "nome": "Guilherme Lima Werneck Pereira",
+      "email": "guilherme26481wig@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 307,
+      "nome": "Lavinia Cristina Silva",
+      "email": "laviniasilva966@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 308,
+      "nome": "Isabelli Siqueira de Oliveira",
+      "email": "siqueiradeoliveiraisabelli@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 309,
+      "nome": "Nycollas Henryque Santos Ferreira",
+      "email": "nycohenrique23@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 310,
+      "nome": "kaio Del'Penho Castro Gomes",
+      "email": "kaiodcg16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 311,
+      "nome": "Andrey Mendes Da Silva Santana",
+      "email": "andreyzlxmendes@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 312,
+      "nome": "Alice dos santos Inácio",
+      "email": "aliceinacio201010@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 313,
+      "nome": "Inácio Cândido Lobo Almeida",
+      "email": "inaciocandido09@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 314,
+      "nome": "Jhuan Ramalho Tobias",
+      "email": "jhuanramalhotobia@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 315,
+      "nome": "Isabella Raimondo e Silva",
+      "email": "Isabellaraimondo3@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 316,
+      "nome": "matheus Brandão Rocha",
+      "email": "matheusbrandaorochakta@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 317,
+      "nome": "Sara sena Lucas da Silva",
+      "email": "sarasena650@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 318,
+      "nome": "Sara sena Lucas da Silva",
+      "email": "sarasena650@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 319,
+      "nome": "Asafe Escobar de Almeida Andrade",
+      "email": "asafeezaza@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 320,
+      "nome": "Jhonatan Lopes Corrêa",
+      "email": "Jhonatanlc1@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 321,
+      "nome": "Jhonatan Lopes Corrêa",
+      "email": "Jhonatanlc1@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 322,
+      "nome": "Thaís AmorimMagalhães",
+      "email": "thaisamorim1812@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 323,
+      "nome": "Kauan silvério",
+      "email": "kauansilverio40@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 324,
+      "nome": "Felipe Guimarães Roque",
+      "email": "simoneguimaraesgomes@yahoo.com.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 325,
+      "nome": "Pedro Lucas Gonçalves Ferancini",
+      "email": "pepeferancini@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 326,
+      "nome": "Denis",
+      "email": "Amorimdenis777@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 327,
+      "nome": "Arthur Santos Durães",
+      "email": "arthur.sduraes@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 328,
+      "nome": "Bernardo de oliveira Werneck Ribeiro",
+      "email": "Bernardoolivierawr@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 329,
+      "nome": "Bernardo de oliveira Werneck Ribeiro",
+      "email": "Bernardooliveirawr@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 330,
+      "nome": "Juan Carlos Silva de Oliveira",
+      "email": "juancarlos.12012011@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 331,
+      "nome": "João Paulo Ventura Gomes",
+      "email": "joaopauloventura08@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 332,
+      "nome": "DAVI SILVA RODRIGUES",
+      "email": "davisilvarodrigues303@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 333,
+      "nome": "Ana Clara Martins de Oliveira",
+      "email": "anaclaramartinsgaby@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 334,
+      "nome": "Raphael Lanes Gonçalves",
+      "email": "lanesraphael75@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 335,
+      "nome": "Raphael Lanes Gonçalves",
+      "email": "lanesraphael75@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 336,
+      "nome": "Yan Máximo Medeiros",
+      "email": "yanmaximomedeiros@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 337,
+      "nome": "Yan Máximo Medeiros",
+      "email": "yanmaximomedeiros@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 338,
+      "nome": "Beatriz de Souza Aleixo",
+      "email": "bbsouzaaleixo@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 339,
+      "nome": "Jeová Gabriel Martins dos Santos",
+      "email": "jeovamartins222@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 340,
+      "nome": "Vitor Hugo dos Santos Pereira",
+      "email": "vitorhugopereira4113@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 341,
+      "nome": "Pedro spindola Mury",
+      "email": "pedromury2011@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 342,
+      "nome": "Débora Flores Gonçalves Ferreira",
+      "email": "deboragoncalves0424@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 343,
+      "nome": "Echilen Eduarda Bernardes Carvalho",
+      "email": "echilenbernardes@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 344,
+      "nome": "Yasmin Amorim Amaral",
+      "email": "yasminamorimamaral7@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 345,
+      "nome": "Samá isac carneiro martins rosa",
+      "email": "Samamartins796@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 346,
+      "nome": "Ana Carolina",
+      "email": "carol123pit@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 347,
+      "nome": "Marcos Otavio Da Silva Gonçalves",
+      "email": "drackroolling@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 348,
+      "nome": "Cristiane Martins da Cruz Ferreira",
+      "email": "cristianeteologa2016@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 349,
+      "nome": "Paola Isabel Oliveira Silva",
+      "email": "Walquiriacaroa@hotmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 350,
+      "nome": "Helena Alves Aleixo",
+      "email": "helenaalvesha043675@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 351,
+      "nome": "Luiz Felipe Rosa Santos",
+      "email": "luizfelipe653@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 352,
+      "nome": "Vinicius Souza De Brito",
+      "email": "viniciussouzakta@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 353,
+      "nome": "Gabriel cerqueira neves lima",
+      "email": "@nevesgabriel834@gmail.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 354,
+      "nome": "Lara Rievert Ramos",
+      "email": "lararievertramos@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 355,
+      "nome": "Kananda Gonçalves",
+      "email": "Kanandagon12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 356,
+      "nome": "Arthur Riquelme Silva",
+      "email": "Arthur57@gail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 357,
+      "nome": "João Paulo Ventura Gomes",
+      "email": "joaopauloventura14@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 358,
+      "nome": "Marcio Fernande da Silva",
+      "email": "marciofsilva48@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 359,
+      "nome": "Murilo Almeida Pinto Oliveira",
+      "email": "marcilenesiao@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 360,
+      "nome": "João Vitor Pereira de Sousa",
+      "email": "joao.8217247@aluno.mg.gov.br",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 361,
+      "nome": "Yngrid Almeida Matos",
+      "email": "yngridmatos16@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 362,
+      "nome": "Daniel",
+      "email": "danielpcontato01@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 363,
+      "nome": "Ana Clara Martins de Oliveira",
+      "email": "anaclaratt12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 364,
+      "nome": "Carlos Daniel Magalhaes Lindolfo Carvalho",
+      "email": "magalhaescarlosdaniel90@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 365,
+      "nome": "Sarah de Souza Gomes",
+      "email": "sarahgomes0405@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 366,
+      "nome": "Eric Ribeiro",
+      "email": "ericribeirodesouza.erss@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 367,
+      "nome": "marcelo dias sousa",
+      "email": "rio pomba valley",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 368,
+      "nome": "Marcos Vinícius Lourenço Ferreira",
+      "email": "marcos101551@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 369,
+      "nome": "Alice Gouvêa Cristino Da Silva",
+      "email": "alicegouveia128@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 370,
+      "nome": "Rian Rodrigues Pereira",
+      "email": "rianrodriguespereira170409@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.556Z"
+    },
+    {
+      "id": 371,
+      "nome": "Gabriel Caetano da Silveira",
+      "email": "gcaetanodasilveira@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 372,
+      "nome": "Pedro Henrique Ferreira",
+      "email": "pedrohenriqueferreira0308@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 373,
+      "nome": "Lavinia da Costa Nascimento",
+      "email": "clavinia434@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 374,
+      "nome": "Gabriella Oliveira Carneiro",
+      "email": "gabycarneiro1003@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 375,
+      "nome": "Maria Gabriela Venâncio Breijão Ribeiro",
+      "email": "venanciomariagabriela@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 376,
+      "nome": "Ruan",
+      "email": "Ruanbatista501@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 377,
+      "nome": "Arthur Andrade Coelho de Carvalho",
+      "email": "arthuracc65@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 378,
+      "nome": "Arthur Andrade Coelho de Carvalho",
+      "email": "arthuracc65@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 379,
+      "nome": "Arthur Simoes Lima",
+      "email": "arthursimoesa@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 380,
+      "nome": "Enzo Gabriel Peixoto Moreira Da Silva",
+      "email": "enzopeixoto12@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    },
+    {
+      "id": 381,
+      "nome": "Guilherme Lima Werneck Pereira",
+      "email": "guilherme26481wig@gmail.com",
+      "status": "duplicado",
+      "status_alterado": false,
+      "last_updated": "2026-08-05T19:25:48.559Z"
+    }
+  ]
+}

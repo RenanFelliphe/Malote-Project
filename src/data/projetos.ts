@@ -24,11 +24,16 @@ export interface Projeto {
 }
 
 /**
- * Módulos descobertos em `data/*\/emails.json`. Cada chave é o caminho do
- * arquivo (ex.: `../../data/projeto-teste/emails.json`); `eager: true` faz
- * com que os dados já venham resolvidos (sem import dinâmico assíncrono).
+ * Módulos descobertos em `data/active/*\/emails.json`. Cada chave é o
+ * caminho do arquivo (ex.: `../../data/active/projeto-teste/emails.json`);
+ * `eager: true` faz com que os dados já venham resolvidos (sem import
+ * dinâmico assíncrono).
+ *
+ * A partir da migração descrita em `implementacaoImportacao.md` (Etapa 1),
+ * os projetos ativos vivem em `data/active/`, irmã de `data/trash/`
+ * (usada pela funcionalidade de Lixeira).
  */
-const modulos = import.meta.glob<EmailsData>('../../data/*/emails.json', {
+const modulos = import.meta.glob<EmailsData>('../../data/active/*/emails.json', {
   eager: true,
   import: 'default',
 });
@@ -36,7 +41,7 @@ const modulos = import.meta.glob<EmailsData>('../../data/*/emails.json', {
 /**
  * Extrai o slug do projeto a partir do nome da pasta no path do glob —
  * não do campo `dados.projeto`, que é só o nome de exibição (seção 3.2).
- * Ex.: `../../data/projeto-teste/emails.json` → `projeto-teste`.
+ * Ex.: `../../data/active/projeto-teste/emails.json` → `projeto-teste`.
  */
 function extrairSlug(caminho: string): string {
   const partes = caminho.split('/');

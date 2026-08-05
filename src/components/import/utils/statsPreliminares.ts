@@ -9,7 +9,7 @@
  * (usando as colunas que o usuário efetivamente escolher) fica para a
  * lógica de importação real, implementada em uma etapa futura.
  */
-import { isValidEmail, normalizeEmail } from '../../../scripts/utils/validateEmail';
+import { isValidEmail, normalizeEmail } from '../../EmailStatus';
 import type { LinhaPlanilha } from './parseSheetBrowser';
 
 export interface EstatisticasPreliminares {

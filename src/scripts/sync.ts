@@ -3,7 +3,14 @@
  *
  * Uso (terminal, fora do bundle do Vite):
  *   node --loader ts-node/esm src/scripts/sync.ts data/planilha.csv
- *   node --loader ts-node/esm src/scripts/sync.ts data/planilha.xlsx --out=data/emails.json
+ *   node --loader ts-node/esm src/scripts/sync.ts data/planilha.xlsx --slug=projeto-teste
+ *
+ * A partir da migração descrita em implementacaoImportacao.md (Etapa 2), o
+ * destino não é mais um caminho de arquivo fixo: é sempre
+ * `data/active/<slug>/emails.json`. O slug vem de `--slug=` quando
+ * informado; na ausência do argumento, é derivado do nome do arquivo da
+ * planilha. Se o projeto (pasta `data/active/<slug>/`) ainda não existir,
+ * é criado nesta execução.
  *
  * Fluxo (seção 2.3):
  *   Rodar script → Identificar colunas → Sincronizar com JSON (por id) →
@@ -12,7 +19,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { basename, dirname, extname, resolve } from 'node:path';
 
 import { readSheet } from './utils/readSheet.js';
 import { identifyColumns, pickFirstFilled, EMAIL_COLUMNS } from './utils/identifyColumns.js';
@@ -24,28 +31,54 @@ import { EMAIL_CONTEUDO_VAZIO } from '../types/email.js';
 // 1. Argumentos da linha de comando
 // ---------------------------------------------------------------------------
 
+/**
+ * Versão local mínima de slugify — mesma normalização usada do lado browser
+ * em `src/components/import/utils/slugify.ts`, reimplementada aqui em vez de
+ * importada para não criar uma dependência de `src/scripts/` (Node) sobre
+ * `src/components/` (browser), mantendo os dois lados desacoplados.
+ */
+function slugifyNomeArquivo(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '') // remove caracteres inválidos para URL
+    .replace(/[\s_]+/g, '-') // espaços/underscore -> hífen
+    .replace(/-{2,}/g, '-') // colapsa hífens repetidos
+    .replace(/^-+|-+$/g, ''); // apara hífens nas pontas
+}
+
+/**
+ * Slug derivado do nome do arquivo da planilha, usado quando `--slug=` não
+ * é informado (ex.: `data/planilha-turma-2024.csv` → `planilha-turma-2024`).
+ */
+function slugFromSheetPath(sheetPath: string): string {
+  const nomeBase = basename(sheetPath, extname(sheetPath));
+  return slugifyNomeArquivo(nomeBase);
+}
+
 function parseArgs(argv: string[]) {
   const [sheetPathArg, ...rest] = argv;
   if (!sheetPathArg) {
     console.error(
-      'Uso: node --loader ts-node/esm src/scripts/sync.ts <caminho/da/planilha.csv|.xlsx> [--out=data/emails.json]'
+      'Uso: node --loader ts-node/esm src/scripts/sync.ts <caminho/da/planilha.csv|.xlsx> [--slug=nome-do-projeto]'
     );
     process.exit(1);
   }
 
-  const outArg = rest.find((a) => a.startsWith('--out='));
-  const outPath = outArg ? outArg.replace('--out=', '') : defaultJsonPathFor(sheetPathArg);
+  const slugArg = rest.find((a) => a.startsWith('--slug='));
+  const slug = slugArg ? slugifyNomeArquivo(slugArg.replace('--slug=', '')) : slugFromSheetPath(sheetPathArg);
 
-  return { sheetPath: resolve(sheetPathArg), outPath: resolve(outPath) };
-}
+  if (!slug) {
+    console.error(
+      `Não foi possível determinar um slug de projeto válido a partir de "${sheetPathArg}". Informe --slug=nome-do-projeto explicitamente.`
+    );
+    process.exit(1);
+  }
 
-/**
- * Sem --out explícito, grava sempre em data/emails.json — nesta fase local
- * existe um único JSON oficial (a visão de múltiplas planilhas/slugs fica
- * para a fase futura, seção 9 da especificação).
- */
-function defaultJsonPathFor(_sheetPath: string): string {
-  return 'data/emails.json';
+  const outPath = resolve('data/active', slug, 'emails.json');
+
+  return { sheetPath: resolve(sheetPathArg), outPath, slug };
 }
 
 // ---------------------------------------------------------------------------
@@ -228,17 +261,20 @@ function writeJson(
 // ---------------------------------------------------------------------------
 
 function main() {
-  const { sheetPath, outPath } = parseArgs(process.argv.slice(2));
+  const { sheetPath, outPath, slug } = parseArgs(process.argv.slice(2));
 
   if (!existsSync(sheetPath)) {
     console.error(`Planilha não encontrada: ${sheetPath}`);
     process.exit(1);
   }
 
+  const projetoNovo = !existsSync(outPath);
+
   console.log(`Lendo planilha: ${sheetPath}`);
   const sheetRows = readSheet(sheetPath);
   console.log(`  ${sheetRows.length} linha(s) encontrada(s).`);
 
+  console.log(`Projeto: ${slug}${projetoNovo ? ' (novo — será criado)' : ''}`);
   console.log(`Carregando JSON existente: ${outPath}`);
   const dadosExistentes = loadExistingJson(outPath);
   const { email: emailExistente, registros: existing } = dadosExistentes;

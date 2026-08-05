@@ -14,6 +14,8 @@ interface Props {
   formato: 'csv' | 'xlsx';
   tamanhoBytes: number;
   estatisticas: EstatisticasPreliminares;
+  /** Etapa 4 (implementacaoImportacao.md): true quando o slug atual já é usado por um projeto ativo. */
+  slugJaExiste: boolean;
 }
 
 export function EtapaInformacoes({
@@ -24,6 +26,7 @@ export function EtapaInformacoes({
   formato,
   tamanhoBytes,
   estatisticas,
+  slugJaExiste,
 }: Props) {
   const linhasPreview = linhas.slice(0, QUANTIDADE_LINHAS_PREVIEW);
 
@@ -66,10 +69,18 @@ export function EtapaInformacoes({
           placeholder="Ex.: leads-evento-2026"
           value={estado.nomeArquivoSlug}
           onChange={(e) => handleNomeArquivoChange(e.target.value)}
+          aria-invalid={slugJaExiste}
+          aria-describedby={slugJaExiste ? 'import-nome-arquivo-erro' : undefined}
         />
-        <p className="preview-url">
-          /projetos/<strong>{estado.nomeArquivoSlug || '...'}</strong>
-        </p>
+        {slugJaExiste ? (
+          <p className="campo-formulario-erro" id="import-nome-arquivo-erro">
+            Já existe um projeto com esse nome de arquivo. Escolha outro para continuar.
+          </p>
+        ) : (
+          <p className="preview-url">
+            /projetos/<strong>{estado.nomeArquivoSlug || '...'}</strong>
+          </p>
+        )}
       </div>
 
       <div className="preview-planilha">
