@@ -1565,6 +1565,7 @@ button.status-badge-clicavel:hover {
   justify-content: center;
   padding: 1.5rem;
   z-index: 100;
+  pointer-events: auto;
 }
 
 .dialog-content {
