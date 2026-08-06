@@ -64,3 +64,43 @@ export async function criarProjeto(
   const dados = (await resposta.json()) as { ok: true; slug: string };
   return dados.slug;
 }
+
+/**
+ * Resultado individual de uma tentativa de exclusão, espelhando o formato
+ * devolvido por `DELETE /api/projetos` (Etapa 2 de
+ * implementacaoDelecao.md) para cada slug do lote.
+ */
+export interface ResultadoDelecaoProjeto {
+  slug: string;
+  ok: boolean;
+  error?: string;
+}
+
+/**
+ * Deleta (soft delete) um ou mais projetos via `DELETE /api/projetos`
+ * (Etapa 2 de implementacaoDelecao.md), movendo cada pasta para
+ * `data/trash/`. Endpoint sempre em lote (`{ slugs }`), mesmo para o caso
+ * de uso individual do Header (Etapa 3) — evita duas rotas fazendo a
+ * mesma coisa (ver seção 2 do plano).
+ *
+ * Cada slug é tratado de forma independente pelo servidor: a promise só
+ * rejeita em falha de rede/parsing da própria requisição. Falhas por slug
+ * (projeto não encontrado, etc.) vêm dentro do array de retorno — quem
+ * chama decide como tratar cada item (ex.: Etapa 3 trata o único item do
+ * lote como sucesso/falha da ação; Etapa 5 trata o lote inteiro).
+ */
+export async function deletarProjetos(slugs: string[]): Promise<ResultadoDelecaoProjeto[]> {
+  const resposta = await fetch('/api/projetos', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ slugs }),
+  });
+
+  if (resposta.status !== 200 && resposta.status !== 207) {
+    const mensagem = await extrairMensagemDeErro(resposta);
+    throw new Error(mensagem ?? 'Falha ao deletar o(s) projeto(s).');
+  }
+
+  const dados = (await resposta.json()) as { ok: boolean; resultados: ResultadoDelecaoProjeto[] };
+  return dados.resultados;
+}

@@ -155,6 +155,7 @@ select {
   width: 100%;
   padding: 1rem 3rem;
   border-bottom: 1px solid var(--color-border);
+  position: relative;
 }
 
 .app-header-logo {
@@ -358,6 +359,19 @@ select {
   border: 1px solid color-mix(in srgb, var(--color-danger) 25%, transparent);
 }
 
+/* Erro de exclusão de planilha (Header — Etapa 3 de implementacaoDelecao.md):
+   sobreposto como um toast abaixo da barra do header, em vez de um filho a
+   mais do flex row, já que `.app-header` só espera logo/nav/copiar/config
+   como itens diretos. */
+.erro-salvamento-header {
+  position: absolute;
+  top: 100%;
+  right: 3rem;
+  margin: 0.5rem 0 0;
+  z-index: 20;
+  box-shadow: var(--shadow-md);
+}
+
 /* =========================================================================
    Home / Dashboard de planilhas
    -------------------------------------------------------------------------
@@ -479,6 +493,74 @@ select {
   font-size: 0.85rem;
   color: var(--color-text-secondary);
   line-height: 1.4;
+}
+
+/* Modo de seleção múltipla para exclusão em lote (Etapa 4 de
+   implementacaoDelecao.md): o card deixa de ser um link e vira um
+   "botão" alternável, com uma checkbox sobreposta no canto superior
+   direito (CheckboxCustomizado, reaproveitado). */
+.card-pagina-selecionavel {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.card-pagina-selecionavel.selecionado {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-accent-soft);
+}
+
+.card-pagina-checkbox {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+}
+
+/* Barra de ação fixa exibida enquanto o modo de seleção (acima) está
+   ativo — contagem de selecionados + Cancelar/Deletar. "Deletar" só é
+   ligado na Etapa 5; aqui existe apenas como espaço reservado, seguindo o
+   mesmo padrão de "Em breve" já usado no dropdown do Header. */
+.barra-selecao-delecao {
+  position: fixed;
+  left: 50%;
+  bottom: 1.75rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.85rem 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  z-index: 30;
+}
+
+.barra-selecao-delecao-contagem {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.barra-selecao-delecao-acoes {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Erro de exclusão em lote (Home — Etapa 5 de implementacaoDelecao.md):
+   toast fixo acima da barra de ação, mesma lógica de posicionamento do
+   toast de erro do Header (Etapa 3), só que ancorado ao centro em vez da
+   direita, para acompanhar a barra que ele fica ao lado de cima. */
+.erro-selecao-lote {
+  position: fixed;
+  left: 50%;
+  bottom: 6.5rem;
+  transform: translateX(-50%);
+  z-index: 31;
+  margin: 0;
+  white-space: nowrap;
 }
 
 /* =========================================================================
@@ -661,9 +743,9 @@ select {
 .toolbar-linha-2 {
   justify-content: space-between;
 }
+
 .search-input-wrapper {
   position: relative;
-  flex: 1 1 240px;
   display: flex;
   align-items: center;
 }
@@ -3889,4 +3971,412 @@ li.marcado .exportar-lista-status-item {
 .email-editor-toolbar-popover-campo-icone input:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* =========================================================================
+   Lixeira (Etapa 7 de implementacaoDelecao.md)
+   Botão flutuante (canto inferior esquerdo da Home) + sidebar (`vaul`,
+   direction="left") com busca e listagem — ainda sem restaurar/excluir
+   (Etapas 8-10). O botão espelha `.email-emoji-flutuante-gatilho`
+   (mesmas dimensões/raio/sombra), mas como `position: fixed` em relação à
+   viewport em vez de `absolute` a um container local — a Home não tem um
+   "modal" servindo de âncora como `.modal-email-conteudo` faz para o
+   emoji picker.
+   ========================================================================= */
+
+.lixeira-flutuante {
+  position: fixed;
+  left: 1.75rem;
+  bottom: 1.75rem;
+  z-index: 40;
+}
+
+.lixeira-flutuante-gatilho {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.lixeira-flutuante-gatilho:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.lixeira-flutuante-badge {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.3rem;
+  border-radius: var(--radius-full);
+  background: var(--color-danger);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.lixeira-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  z-index: 90;
+}
+
+.lixeira-sidebar-conteudo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 91;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  width: min(360px, 90vw);
+  height: 100%;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+}
+
+.lixeira-sidebar-cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.lixeira-sidebar-titulo {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.lixeira-sidebar-subtitulo {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* "Esvaziar lixeira" (Etapa 10 de implementacaoDelecao.md) — botão de
+   texto discreto no cabeçalho, só visível com pelo menos um item na
+   lixeira; alinhado à direita do próprio cabeçalho (`flex-direction:
+   column` no pai), sem precisar de um wrapper extra. */
+.lixeira-sidebar-esvaziar {
+  align-self: flex-end;
+  margin-top: -0.15rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-danger);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lixeira-sidebar-esvaziar:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.lixeira-sidebar-esvaziar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.lixeira-sidebar-busca {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-tertiary);
+}
+
+.lixeira-sidebar-busca:focus-within {
+  border-color: var(--color-focus);
+  color: var(--color-text-secondary);
+}
+
+.lixeira-sidebar-busca input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.85rem;
+}
+
+.lixeira-sidebar-busca input:focus {
+  outline: none;
+}
+
+.lixeira-sidebar-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.lixeira-sidebar-estado {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-text-tertiary);
+}
+
+.lixeira-sidebar-erro {
+  color: var(--color-danger);
+}
+
+.lixeira-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+/* Checkbox de seleção por item (Etapa 8 de implementacaoDelecao.md),
+   reaproveitando o mesmo `CheckboxCustomizado` já usado no modo de seleção
+   da Home (Etapa 4) — aqui sempre visível, não atrás de um modo alternável,
+   já que os itens da lixeira nunca são links de navegação. */
+.lixeira-item-checkbox {
+  flex-shrink: 0;
+}
+
+.lixeira-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.lixeira-item-nome {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lixeira-item-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+}
+
+.lixeira-item-prazo {
+  flex-shrink: 0;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-bg);
+  color: var(--color-neutral);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.lixeira-item-prazo-urgente {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+/* Botão de exclusão permanente por item (Etapa 10 de
+   implementacaoDelecao.md) — ícone-só, mesma altura visual do badge de
+   prazo ao lado. `stopPropagation` no handler evita conflito com qualquer
+   clique de linha (a linha em si não tem ação própria hoje, mas a
+   checkbox já para propagação do jeito equivalente). */
+.lixeira-item-excluir {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+
+.lixeira-item-excluir:hover:not(:disabled) {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.lixeira-item-excluir:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Aviso de restauração (Etapa 8 de implementacaoDelecao.md) — mesma cor de
+   `.lixeira-sidebar-erro`, mas sem o texto centralizado herdado de
+   `.lixeira-sidebar-estado` (usado tanto para estados vazios quanto para
+   erros de carregamento), já que aqui é um aviso pontual sobre a seleção
+   atual, alinhado à esquerda como o resto da sidebar. */
+.lixeira-sidebar-erro-restauracao {
+  margin: 0;
+  text-align: left;
+}
+
+/* Barra de seleção interna da sidebar (Etapa 8): aparece abaixo da lista
+   quando há pelo menos um item selecionado, com a contagem + botão
+   "Restaurar" — mesmo fluxo para restauração individual e em lote. Ao
+   contrário de `.barra-selecao-delecao` (Home, Etapa 4), que é
+   `position: fixed` centralizada na viewport, esta vive dentro do próprio
+   `.lixeira-sidebar-conteudo` (largura já limitada pelo Drawer), então
+   basta um bloco em fluxo normal. */
+.lixeira-sidebar-barra-selecao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.lixeira-sidebar-barra-selecao-contagem {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+/* Agrupa "Restaurar" + "Excluir permanentemente" (Etapa 10) — mesmo padrão
+   de `.barra-selecao-delecao-acoes` (Home, Etapa 5), só que dentro da
+   barra da lixeira em vez de flutuante na viewport. */
+.lixeira-sidebar-barra-selecao-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.lixeira-sidebar-barra-selecao-restaurar,
+.lixeira-sidebar-barra-selecao-excluir {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+/* =========================================================================
+   ConflitoRestauracaoModal (Etapa 9 de implementacaoDelecao.md)
+
+   Construido sobre ConflictDialog (casco de titulo/descricao/rodape ja vem
+   de la) -- so o conteudo especifico deste conflito (duas colunas lado a
+   lado, cada uma com nome + campo de slug editavel) precisa de estilo
+   proprio aqui.
+   ========================================================================= */
+
+.conflito-restauracao-dialog {
+  max-width: 640px;
+}
+
+.conflito-restauracao-colunas {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.conflito-restauracao-coluna {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.conflito-restauracao-rotulo {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-tertiary);
+}
+
+.conflito-restauracao-nome {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Separador visual entre as duas colunas -- so decorativo (aria-hidden no
+   componente), alinhado com os campos de input, nao com o topo da coluna. */
+.conflito-restauracao-versus {
+  align-self: center;
+  margin-top: 1.1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-tertiary);
+}
+
+.conflito-restauracao-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.conflito-restauracao-campo input {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.conflito-restauracao-campo input:focus {
+  outline: none;
+  border-color: var(--color-border-strong);
+}
+
+.conflito-restauracao-campo input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+}
+
+.conflito-restauracao-campo-erro {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-danger);
+}
+
+.conflito-restauracao-erro {
+  margin: 0;
 }

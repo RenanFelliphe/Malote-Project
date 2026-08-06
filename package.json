@@ -31,6 +31,7 @@
     "react-dom": "^19.2.0",
     "react-icons": "^5.7.0",
     "react-router-dom": "^7.13.0",
+    "vaul": "^1.1.2",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -49,5 +50,10 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.3.6"
-  }
+  },
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import type { EmailConteudo, EmailRecord } from '../types/email';
 import { ThemeToggle } from './ThemeToggle';
 import { ExportarModal } from './ExportarModal';
 import { EmailConteudoModal } from './EmailConteudoModal';
+import { ConfirmDialog } from './ConfirmDialog';
 import { copiarHtml, copiarTexto } from './utils/clipboard';
+import { deletarProjetos } from '../services/projetosApi';
 import {
   IconeAtualizarPlanilha,
   IconeConfiguracoes,
@@ -52,6 +54,15 @@ interface Props {
    * não há em qual projeto gravar a edição.
    */
   onSalvarEmail?: (novoEmail: EmailConteudo) => Promise<void>;
+  /**
+   * Ativa o modo de seleção múltipla da Home (Etapa 4 de
+   * implementacaoDelecao.md). Passado apenas por `pages/home.tsx`; quando
+   * presente, "Deletar planilha" chama este callback em vez de abrir a
+   * confirmação direta usada na página do projeto (Etapa 3) — a Home lista
+   * vários projetos ao mesmo tempo, então a exclusão precisa passar por
+   * seleção antes de qualquer confirmação.
+   */
+  onAtivarSelecaoDelecao?: () => void;
 }
 
 /**
@@ -64,23 +75,28 @@ interface Props {
  * página (título + subtítulo) continua separado, dentro do container
  * com padding.
  *
- * O botão de configurações abre um dropdown com cinco itens. Hoje três
- * têm funcionalidade real ("Trocar tema", "Editar e-mail" e "Exportar
- * planilha"); os outros dois ("Atualizar planilha" e "Deletar planilha")
- * existem apenas como espaço reservado para quando o fluxo de múltiplas
- * planilhas for implementado — ficam desabilitados de propósito, para não
- * sugerir uma ação que a aplicação ainda não sabe executar.
+ * O botão de configurações abre um dropdown com cinco itens. Quatro têm
+ * funcionalidade real ("Trocar tema", "Editar e-mail", "Exportar
+ * planilha" e, a partir da Etapa 3 de implementacaoDelecao.md, "Deletar
+ * planilha" — habilitado apenas com um projeto aberto, já que a exclusão
+ * em lote pela Home é a Etapa 4); "Atualizar planilha" continua existindo
+ * apenas como espaço reservado para quando o fluxo de reimportação for
+ * implementado — fica desabilitado de propósito, para não sugerir uma ação
+ * que a aplicação ainda não sabe executar.
  */
-export function Header({ slug, registros, email, onSalvarEmail }: Props) {
+export function Header({ slug, registros, email, onSalvarEmail, onAtivarSelecaoDelecao }: Props) {
   const [menuAberto, setMenuAberto] = useState(false);
   const [modalExportarAberto, setModalExportarAberto] = useState(false);
   const [modalEmailAberto, setModalEmailAberto] = useState(false);
+  const [confirmarDeletarAberto, setConfirmarDeletarAberto] = useState(false);
+  const [erroDelecao, setErroDelecao] = useState<string | null>(null);
   const [campoCopiado, setCampoCopiado] = useState<'titulo' | 'conteudo' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const botaoRef = useRef<HTMLButtonElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Sem `registros`, não há um projeto específico aberto (caso da Home,
   // que lista vários projetos ao mesmo tempo) — usado para desabilitar as
@@ -186,6 +202,55 @@ export function Header({ slug, registros, email, onSalvarEmail }: Props) {
     setModalEmailAberto(true);
   }
 
+  /**
+   * Abre a confirmação de exclusão da planilha atual (Etapa 3 de
+   * implementacaoDelecao.md). Só é chamada com `slug` presente — o item do
+   * menu fica desabilitado sem um projeto aberto.
+   */
+  function abrirConfirmarDelecao() {
+    setMenuAberto(false);
+    setErroDelecao(null);
+    setConfirmarDeletarAberto(true);
+  }
+
+  /**
+   * Clique em "Deletar planilha" (Etapa 4): na Home, `onAtivarSelecaoDelecao`
+   * está presente e assume o clique inteiro — entra no modo de seleção
+   * múltipla em vez de confirmar direto, já que a Home não tem um único
+   * projeto "aberto" para deletar sozinha. Na página do projeto (Etapa 3),
+   * a prop não é passada, então cai no fluxo de confirmação direta.
+   */
+  function handleClicarDeletarPlanilha() {
+    if (onAtivarSelecaoDelecao) {
+      setMenuAberto(false);
+      onAtivarSelecaoDelecao();
+      return;
+    }
+    abrirConfirmarDelecao();
+  }
+
+  /**
+   * Confirma a exclusão: chama `deletarProjetos` com um lote de um único
+   * slug (endpoint sempre em lote, ver seção 2 do plano) e navega para a
+   * Home em sucesso. Em falha — either de rede ou o próprio item do lote
+   * reportado como não-ok — mantém o dialog fechado e exibe a mensagem de
+   * erro no cabeçalho, sem tentar adivinhar uma ação de recuperação.
+   */
+  async function handleConfirmarDelecao() {
+    if (!slug) return;
+    setConfirmarDeletarAberto(false);
+
+    try {
+      const [resultado] = await deletarProjetos([slug]);
+      if (!resultado?.ok) {
+        throw new Error(resultado?.error ?? 'Não foi possível deletar a planilha.');
+      }
+      navigate('/');
+    } catch (erro) {
+      setErroDelecao(erro instanceof Error ? erro.message : 'Não foi possível deletar a planilha.');
+    }
+  }
+
   return (
     <>
       <header className="app-header">
@@ -289,8 +354,9 @@ export function Header({ slug, registros, email, onSalvarEmail }: Props) {
                 type="button"
                 role="menuitem"
                 className="app-header-config-item app-header-config-item-botao app-header-config-item-perigo"
-                disabled
-                title="Em breve"
+                onClick={handleClicarDeletarPlanilha}
+                disabled={!onAtivarSelecaoDelecao && (!slug || !projetoAberto)}
+                title={onAtivarSelecaoDelecao || (slug && projetoAberto) ? undefined : 'Abra um projeto para deletar a planilha'}
               >
                 <IconeLixeira />
                 Deletar planilha
@@ -298,6 +364,7 @@ export function Header({ slug, registros, email, onSalvarEmail }: Props) {
             </div>
           )}
         </div>
+        {erroDelecao && <p className="erro-salvamento erro-salvamento-header">{erroDelecao}</p>}
       </header>
 
       {modalExportarAberto && (
@@ -309,6 +376,18 @@ export function Header({ slug, registros, email, onSalvarEmail }: Props) {
           email={emailAtual}
           onFechar={() => setModalEmailAberto(false)}
           onSalvar={handleSalvarEmail}
+        />
+      )}
+
+      {confirmarDeletarAberto && (
+        <ConfirmDialog
+          ariaLabel="Confirmar exclusão da planilha"
+          titulo="Deletar planilha"
+          descricao="Tem certeza que deseja deletar a planilha atual? Essa ação não pode ser desfeita!"
+          rotuloCancelar="Cancelar"
+          rotuloConfirmar="Deletar"
+          onCancelar={() => setConfirmarDeletarAberto(false)}
+          onConfirmar={() => void handleConfirmarDelecao()}
         />
       )}
     </>

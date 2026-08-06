@@ -1,0 +1,134 @@
+{
+  "projeto": "RPV: Turma Desenvolvimento de Sistemas",
+  "criado_em": "2026-08-06T00:13:43.615Z",
+  "atualizado_em": "2026-08-06T00:13:43.615Z",
+  "email": {
+    "titulo": "",
+    "conteudo": "",
+    "atualizado_em": ""
+  },
+  "registros": [
+    {
+      "id": 1,
+      "nome": "Pedro Henrique Almeida",
+      "email": "pedro.almeida@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 2,
+      "nome": "Larissa Gomes Teixeira",
+      "email": "larissa.teixeira@outlook.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 3,
+      "nome": "Bruno César Moraes",
+      "email": "bruno.moraes@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 4,
+      "nome": "Isabela Cristina Farias",
+      "email": "isabela.farias@hotmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 5,
+      "nome": "Diego Rodrigues Cunha",
+      "email": "diego.cunha@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 6,
+      "nome": "Vitória Aparecida Melo",
+      "email": "vitoria.meloarroba-gmail.com",
+      "status": "inválido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 7,
+      "nome": "Matheus Vinícius Castro",
+      "email": "matheus.castro@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 8,
+      "nome": "Amanda Beatriz Correia",
+      "email": "amanda.correia@yahoo.com.br",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 9,
+      "nome": "Felipe Augusto Nogueira",
+      "email": "felipe.nogueira@outlook.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 10,
+      "nome": "Letícia Fernanda Pires",
+      "email": "leticia.pires@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 11,
+      "nome": "Rodrigo Silva Bezerra",
+      "email": "rodrigo.bezerra@hotmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 12,
+      "nome": "Nathalia Souza Cardoso",
+      "email": "nathalia.cardoso@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 13,
+      "nome": "Gabriel Henrique Duarte",
+      "email": "gabriel.duarte@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 14,
+      "nome": "Yasmin Carolina Freitas",
+      "email": "yasmin.freitas@outlook.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    },
+    {
+      "id": 15,
+      "nome": "Vinícius Eduardo Ramos",
+      "email": "vinicius.ramos@gmail.com",
+      "status": "válido",
+      "status_alterado": false,
+      "last_updated": "2026-08-06T00:13:43.612Z"
+    }
+  ],
+  "slug": "rpv-turma-desenvolvimento-de-sistemas",
+  "deletado_em": "2026-08-06T00:22:07.869Z"
+}

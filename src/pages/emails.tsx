@@ -53,6 +53,7 @@ export function Emails({ slug, dados }: EmailsProps) {
   const [email, setEmail] = useState<EmailConteudo>(dados.email);
 
   const contadores = useMemo(() => calcularContadores(registros), [registros]);
+  const tituloPagina = dados.projeto?.trim() || slug;
 
   // Pipeline completo (seção 7): filtro por status -> busca -> ordenação ->
   // corte pela quantidade definida no input ao lado da searchbar. A
@@ -372,10 +373,7 @@ export function Emails({ slug, dados }: EmailsProps) {
       <div className="emails-page">
         <div className="emails-page-header">
           <div className="emails-page-header-titulo">
-            <h1>Sistema de E-mails</h1>
-            <p className="emails-page-header-subtitulo">
-              Organize, valide e envie sua base de contatos.
-            </p>
+            <h1>{tituloPagina}</h1>
           </div>
         </div>
 

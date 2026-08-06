@@ -114,6 +114,15 @@ export const EMAIL_CONTEUDO_VAZIO: EmailConteudo = {
  * (nome de exibição e datas de criação/atualização), título/corpo do e-mail
  * e os registros da planilha, todos convivendo no mesmo arquivo — um por
  * projeto (ver plano de refatoração multi-página, seção 3.1).
+ *
+ * `slug` e `deletado_em` (ver `implementacaoDelecao.md`, seção 2 e Etapa 1):
+ * quando um projeto é excluído, sua pasta inteira é movida de
+ * `data/active/<slug>` para `data/trash/<slug>--<timestamp>` — o nome
+ * físico da pasta na lixeira carrega o timestamp da exclusão apenas para
+ * nunca colidir entre exclusões repetidas do mesmo slug ao longo do tempo.
+ * A identidade real do projeto é o campo `slug` gravado aqui dentro do
+ * próprio JSON, não o nome da pasta. Ao restaurar, a pasta volta a se
+ * chamar `data/active/<slug>`, lendo o slug original deste campo.
  */
 export interface EmailsData {
   /** Nome de exibição do projeto, livre, sem slugificação (definido no wizard). */
@@ -127,6 +136,19 @@ export interface EmailsData {
   atualizado_em: string;
   /** Data/hora ISO de quando o projeto foi importado. Gravado uma única vez. */
   criado_em: string;
+  /**
+   * Identidade "de verdade" do projeto — ausente em projetos que nunca
+   * passaram pela lixeira. Gravado no momento do primeiro soft delete
+   * (Etapa 2), a partir de então usado para localizar a pasta em
+   * `data/trash/` independentemente do timestamp no nome físico.
+   */
+  slug?: string;
+  /**
+   * Data/hora ISO do momento em que o projeto foi movido para
+   * `data/trash/` (soft delete). Ausente em projetos que nunca passaram
+   * pela lixeira; limpo (removido) ao restaurar.
+   */
+  deletado_em?: string;
   email: EmailConteudo;
   registros: EmailRecord[];
 }

@@ -91,8 +91,8 @@ export function IconePaginaProxima() {
   return <FiChevronRight size={14} aria-hidden="true" />;
 }
 
-export function IconeBuscarPagina() {
-  return <FiSearch size={14} aria-hidden="true" />;
+export function IconeBuscarPagina({ className }: { className?: string }) {
+  return <FiSearch size={14} aria-hidden="true" className={className} />;
 }
 
 export function IconeImportar() {
