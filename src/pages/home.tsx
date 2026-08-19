@@ -5,6 +5,7 @@ import { Header } from '../components/Header';
 import { OrdenacaoPrioridade } from '../components/OrdenacaoPrioridade';
 import { CheckboxCustomizado } from '../components/CheckboxCustomizado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ExportarModal, type PlanilhaParaExportar } from '../components/ExportarModal';
 import { LixeiraSidebar } from '../components/LixeiraSidebar';
 import { IconeBuscarPagina, IconeImportar, IconeLixeira, IconePlanilha } from '../components/Icons';
 import { ImportWizardModal } from '../components/import/ImportWizardModal';
@@ -16,6 +17,7 @@ import {
   ordenarProjetos,
   type TOrdenacaoHome,
 } from './utils/HomeOrdenacao';
+import { useSelecaoMultipla } from './utils/useSelecaoMultipla';
 
 export function Home() {
   const inputArquivoRef = useRef<HTMLInputElement | null>(null);
@@ -26,15 +28,31 @@ export function Home() {
   // padrão: alfabética primeiro, conforme ORDENACAO_HOME_PADRAO.
   const [ordenacao, setOrdenacao] = useState<TOrdenacaoHome>(ORDENACAO_HOME_PADRAO);
   const [termoBuscaProjeto, setTermoBuscaProjeto] = useState('');
-  // Modo de seleção múltipla para exclusão em lote (Etapa 4 de
-  // implementacaoDelecao.md), ativado pelo item "Deletar planilha" do
-  // Header via `onAtivarSelecaoDelecao` — só passado aqui, nunca pela
-  // página de um projeto específico (Etapa 3).
-  const [modoSelecaoAtivo, setModoSelecaoAtivo] = useState(false);
-  const [slugsSelecionados, setSlugsSelecionados] = useState<Set<string>>(new Set());
+  // Modo de seleção múltipla, ativado pelo Header via `onAtivarSelecaoDelecao`
+  // (e, a partir da Etapa 2 de implementacaoExportacaoHome.md, também por
+  // `onAtivarSelecaoExportacao`) — só passado aqui, nunca pela página de um
+  // projeto específico (Etapa 3 de implementacaoDelecao.md). A lógica em si
+  // (quais ids estão marcados) vive em `useSelecaoMultipla` (Etapa 0 de
+  // implementacaoExportacaoHome.md), reaproveitável por qualquer ação em
+  // lote sobre os cards da Home.
+  const selecao = useSelecaoMultipla();
+  // Ação que o modo de seleção vai concluir quando o usuário clicar em
+  // "Concluir" na barra genérica (Etapa 2 de implementacaoExportacaoHome.md)
+  // — definida no momento em que a seleção é ativada (`ativarSelecaoDelecao`
+  // / `ativarSelecaoExportacao`, chamadas pelo Header) e usada só para
+  // decidir o que `handleConcluirSelecao` dispara; a barra em si não muda
+  // de rótulo conforme a ação.
+  const [acaoPendente, setAcaoPendente] = useState<'deletar' | 'exportar' | null>(null);
   // Confirmação da exclusão em lote (Etapa 5 de implementacaoDelecao.md).
   const [confirmarLoteAberto, setConfirmarLoteAberto] = useState(false);
   const [erroDelecaoLote, setErroDelecaoLote] = useState<string | null>(null);
+  // Exportação em lote (Etapa 2 de implementacaoExportacaoHome.md). A lista
+  // de planilhas selecionadas é montada em `abrirExportacaoLote` a partir de
+  // `PROJETOS` (slug + nome de exibição + registros) e passada inteira ao
+  // `ExportarModal`, que desde a Etapa 3 aceita múltiplas planilhas de uma
+  // vez (prop `planilhas`).
+  const [planilhasParaExportar, setPlanilhasParaExportar] = useState<PlanilhaParaExportar[]>([]);
+  const [modalExportarAberto, setModalExportarAberto] = useState(false);
   // Sidebar da Lixeira (Etapa 7 de implementacaoDelecao.md) — só a
   // abertura/fechamento e a contagem para o badge vivem aqui; a lista em si
   // é buscada e mantida dentro do próprio `LixeiraSidebar`.
@@ -68,36 +86,82 @@ export function Home() {
     setArquivoSelecionado(null);
   }
 
-  /** Chamado pelo Header (Etapa 4) — entra no modo de seleção, sempre com seleção vazia. */
-  function ativarModoSelecao() {
-    setModoSelecaoAtivo(true);
-    setSlugsSelecionados(new Set());
-  }
-
-  /** "Cancelar" da barra de ação — sai do modo de seleção sem deletar nada. */
+  /**
+   * "Cancelar" da barra de ação — sai do modo de seleção sem concluir a
+   * ação pendente (deletar ou exportar), qualquer que ela seja.
+   */
   function cancelarModoSelecao() {
-    setModoSelecaoAtivo(false);
-    setSlugsSelecionados(new Set());
+    selecao.cancelar();
+    setAcaoPendente(null);
     setConfirmarLoteAberto(false);
     setErroDelecaoLote(null);
+    setModalExportarAberto(false);
+    setPlanilhasParaExportar([]);
   }
 
-  function alternarSelecaoProjeto(slug: string) {
-    setSlugsSelecionados((atual) => {
-      const novo = new Set(atual);
-      if (novo.has(slug)) {
-        novo.delete(slug);
-      } else {
-        novo.add(slug);
-      }
-      return novo;
-    });
+  /**
+   * Entra no modo de seleção para deletar em lote (Etapa 4 de
+   * implementacaoDelecao.md), passada ao Header via `onAtivarSelecaoDelecao`.
+   */
+  function ativarSelecaoDelecao() {
+    setAcaoPendente('deletar');
+    selecao.ativar();
   }
 
-  /** Abre a confirmação de exclusão em lote (Etapa 5), disparada pelo botão "Deletar" da barra de ação. */
+  /**
+   * Entra no modo de seleção para exportar em lote (Etapa 1 de
+   * implementacaoExportacaoHome.md), passada ao Header via
+   * `onAtivarSelecaoExportacao`.
+   */
+  function ativarSelecaoExportacao() {
+    setAcaoPendente('exportar');
+    selecao.ativar();
+  }
+
+  /** Abre a confirmação de exclusão em lote (Etapa 5), disparada por "Concluir" quando `acaoPendente === 'deletar'`. */
   function abrirConfirmarLote() {
     setErroDelecaoLote(null);
     setConfirmarLoteAberto(true);
+  }
+
+  /**
+   * Monta a lista de planilhas selecionadas (slug + nome de exibição +
+   * registros, todos já disponíveis em `PROJETOS`) e abre o `ExportarModal`,
+   * disparada por "Concluir" quando `acaoPendente === 'exportar'`.
+   */
+  function abrirExportacaoLote() {
+    const planilhas = PROJETOS.filter((projeto) => selecao.selecionados.has(projeto.slug)).map(
+      (projeto) => ({
+        slug: projeto.slug,
+        nome: projeto.dados.projeto,
+        registros: projeto.dados.registros,
+      })
+    );
+    setPlanilhasParaExportar(planilhas);
+    setModalExportarAberto(true);
+  }
+
+  /**
+   * "Concluir" da barra de ação genérica — dispara a ação que ativou o
+   * modo de seleção, decidida por `acaoPendente`. O rótulo do botão nunca
+   * muda entre ações (seção 2 do plano).
+   */
+  function handleConcluirSelecao() {
+    if (acaoPendente === 'deletar') {
+      abrirConfirmarLote();
+    } else if (acaoPendente === 'exportar') {
+      abrirExportacaoLote();
+    }
+  }
+
+  /**
+   * Fecha o `ExportarModal` aberto a partir da seleção em lote. Sai do modo
+   * de seleção junto — ao contrário da exclusão (que recarrega a página em
+   * sucesso e reseta tudo de qualquer forma), a exportação não navega nem
+   * recarrega, então precisa encerrar a seleção explicitamente aqui.
+   */
+  function fecharModalExportarLote() {
+    cancelarModoSelecao();
   }
 
   /**
@@ -113,7 +177,7 @@ export function Home() {
     setConfirmarLoteAberto(false);
 
     try {
-      const resultados = await deletarProjetos([...slugsSelecionados]);
+      const resultados = await deletarProjetos([...selecao.selecionados]);
       const primeiraFalha = resultados.find((resultado) => !resultado.ok);
       if (primeiraFalha) {
         throw new Error(primeiraFalha.error ?? 'Não foi possível deletar uma ou mais planilhas selecionadas.');
@@ -128,7 +192,7 @@ export function Home() {
 
   return (
     <>
-      <Header onAtivarSelecaoDelecao={ativarModoSelecao} />
+      <Header onAtivarSelecaoDelecao={ativarSelecaoDelecao} onAtivarSelecaoExportacao={ativarSelecaoExportacao} />
 
       <div className="home-page">
         <div className="home-page-header">
@@ -191,7 +255,7 @@ export function Home() {
             <p className="sem-resultados">Nenhum projeto encontrado para a busca informada.</p>
           ) : (
             projetosVisiveis.map((projeto) => {
-              if (!modoSelecaoAtivo) {
+              if (!selecao.ativo) {
                 return (
                   <Link key={projeto.slug} to={`/${projeto.slug}`} className="card-pagina">
                     <span className="card-pagina-icone">
@@ -202,7 +266,7 @@ export function Home() {
                 );
               }
 
-              const selecionado = slugsSelecionados.has(projeto.slug);
+              const selecionado = selecao.selecionados.has(projeto.slug);
               return (
                 <div
                   key={projeto.slug}
@@ -210,18 +274,18 @@ export function Home() {
                   role="button"
                   tabIndex={0}
                   aria-pressed={selecionado}
-                  onClick={() => alternarSelecaoProjeto(projeto.slug)}
+                  onClick={() => selecao.alternar(projeto.slug)}
                   onKeyDown={(evento) => {
                     if (evento.key === 'Enter' || evento.key === ' ') {
                       evento.preventDefault();
-                      alternarSelecaoProjeto(projeto.slug);
+                      selecao.alternar(projeto.slug);
                     }
                   }}
                 >
                   <span className="card-pagina-checkbox" onClick={(evento) => evento.stopPropagation()}>
                     <CheckboxCustomizado
                       checked={selecionado}
-                      onChange={() => alternarSelecaoProjeto(projeto.slug)}
+                      onChange={() => selecao.alternar(projeto.slug)}
                     >
                       <span className="sr-only">Selecionar planilha {projeto.dados.projeto}</span>
                     </CheckboxCustomizado>
@@ -241,20 +305,20 @@ export function Home() {
         )}
       </div>
 
-      {modoSelecaoAtivo && (
-        <div className="barra-selecao-delecao" role="toolbar" aria-label="Ações de exclusão de planilhas">
-          <p className="barra-selecao-delecao-contagem">{slugsSelecionados.size} selecionada(s)</p>
-          <div className="barra-selecao-delecao-acoes">
+      {selecao.ativo && (
+        <div className="barra-selecao-lote" role="toolbar" aria-label="Ações em lote sobre planilhas selecionadas">
+          <p className="barra-selecao-lote-contagem">{selecao.selecionados.size} selecionada(s)</p>
+          <div className="barra-selecao-lote-acoes">
             <button type="button" className="dialog-botao-cancelar" onClick={cancelarModoSelecao}>
               Cancelar
             </button>
             <button
               type="button"
-              className="dialog-botao-deletar"
-              onClick={abrirConfirmarLote}
-              disabled={slugsSelecionados.size === 0}
+              className="dialog-botao-primario"
+              onClick={handleConcluirSelecao}
+              disabled={selecao.selecionados.size === 0}
             >
-              Deletar
+              Concluir
             </button>
           </div>
         </div>
@@ -267,15 +331,19 @@ export function Home() {
           ariaLabel="Confirmar exclusão das planilhas selecionadas"
           titulo="Deletar planilhas selecionadas"
           descricao={
-            slugsSelecionados.size === 1
+            selecao.selecionados.size === 1
               ? 'Tem certeza que deseja deletar a planilha selecionada? Essa ação não pode ser desfeita!'
-              : `Tem certeza que deseja deletar todas as ${slugsSelecionados.size} planilhas selecionadas? Essa ação não pode ser desfeita!`
+              : `Tem certeza que deseja deletar todas as ${selecao.selecionados.size} planilhas selecionadas? Essa ação não pode ser desfeita!`
           }
           rotuloCancelar="Cancelar"
           rotuloConfirmar="Deletar"
           onCancelar={() => setConfirmarLoteAberto(false)}
           onConfirmar={() => void handleConfirmarDelecaoLote()}
         />
+      )}
+
+      {modalExportarAberto && (
+        <ExportarModal planilhas={planilhasParaExportar} onFechar={fecharModalExportarLote} />
       )}
 
       {/*

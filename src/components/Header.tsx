@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import type { EmailConteudo, EmailRecord } from '../types/email';
 import { ThemeToggle } from './ThemeToggle';
-import { ExportarModal } from './ExportarModal';
+import { ExportarModal, type PlanilhaParaExportar } from './ExportarModal';
 import { EmailConteudoModal } from './EmailConteudoModal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { copiarHtml, copiarTexto } from './utils/clipboard';
@@ -30,6 +30,14 @@ interface Props {
    * aberto.
    */
   slug?: string;
+  /**
+   * Nome de exibição do projeto atualmente aberto (Etapa 3 de
+   * implementacaoExportacaoHome.md), usado como `nome` da única planilha
+   * passada ao `ExportarModal`. Passado apenas pela tela de e-mails; sem
+   * ele, cai para `slug` (e, na ausência de ambos, um rótulo genérico) —
+   * mesma tolerância já aplicada ao prefixo do nome do arquivo exportado.
+   */
+  nome?: string;
   /**
    * Registros da planilha atualmente aberta na tela, usados pela
    * exportação. Passado pela tela de e-mails (estado já editado da
@@ -63,6 +71,17 @@ interface Props {
    * seleção antes de qualquer confirmação.
    */
   onAtivarSelecaoDelecao?: () => void;
+  /**
+   * Ativa o modo de seleção múltipla da Home para exportação em lote
+   * (Etapa 1 de implementacaoExportacaoHome.md). Passado apenas por
+   * `pages/home.tsx`, espelhando `onAtivarSelecaoDelecao`; quando presente,
+   * "Exportar planilha" chama este callback em vez de abrir o
+   * `ExportarModal` direto — a Home lista vários projetos ao mesmo tempo,
+   * então a exportação precisa passar por seleção antes de abrir o modal
+   * (que passa a receber a lista de planilhas selecionadas a partir da
+   * Etapa 2/3).
+   */
+  onAtivarSelecaoExportacao?: () => void;
 }
 
 /**
@@ -84,7 +103,15 @@ interface Props {
  * implementado — fica desabilitado de propósito, para não sugerir uma ação
  * que a aplicação ainda não sabe executar.
  */
-export function Header({ slug, registros, email, onSalvarEmail, onAtivarSelecaoDelecao }: Props) {
+export function Header({
+  slug,
+  nome,
+  registros,
+  email,
+  onSalvarEmail,
+  onAtivarSelecaoDelecao,
+  onAtivarSelecaoExportacao,
+}: Props) {
   const [menuAberto, setMenuAberto] = useState(false);
   const [modalExportarAberto, setModalExportarAberto] = useState(false);
   const [modalEmailAberto, setModalEmailAberto] = useState(false);
@@ -105,6 +132,16 @@ export function Header({ slug, registros, email, onSalvarEmail, onAtivarSelecaoD
   // mais de um projeto real em disco (Etapa 9).
   const projetoAberto = registros !== undefined;
   const registrosParaExportar = registros ?? [];
+  /**
+   * Lista de 1 item para o `ExportarModal` (Etapa 3 de
+   * implementacaoExportacaoHome.md) — o modal passou a receber sempre uma
+   * lista de planilhas, mesmo aqui, onde só existe a planilha atualmente
+   * aberta. Vazia sem projeto aberto (Home, onde o item do menu já fica
+   * desabilitado — este array nunca chega a ser usado nesse caso).
+   */
+  const planilhaParaExportar: PlanilhaParaExportar[] = projetoAberto
+    ? [{ slug: slug ?? 'emails', nome: nome ?? slug ?? 'Planilha', registros: registrosParaExportar }]
+    : [];
 
   // Cópia local do `email`, usada apenas como fallback quando a prop não é
   // fornecida (Home) — nesse caso, é atualizada logo após um salvamento bem
@@ -195,6 +232,23 @@ export function Header({ slug, registros, email, onSalvarEmail, onAtivarSelecaoD
   function abrirExportacao() {
     setMenuAberto(false);
     setModalExportarAberto(true);
+  }
+
+  /**
+   * Clique em "Exportar planilha" (Etapa 1): na Home,
+   * `onAtivarSelecaoExportacao` está presente e assume o clique inteiro —
+   * entra no modo de seleção múltipla em vez de abrir o modal direto,
+   * mesmo padrão de `handleClicarDeletarPlanilha`. Na página do projeto, a
+   * prop não é passada, então cai no fluxo atual (abre o modal direto para
+   * a planilha aberta).
+   */
+  function handleClicarExportarPlanilha() {
+    if (onAtivarSelecaoExportacao) {
+      setMenuAberto(false);
+      onAtivarSelecaoExportacao();
+      return;
+    }
+    abrirExportacao();
   }
 
   function abrirEdicaoEmail() {
@@ -342,9 +396,9 @@ export function Header({ slug, registros, email, onSalvarEmail, onAtivarSelecaoD
                 type="button"
                 role="menuitem"
                 className="app-header-config-item app-header-config-item-botao"
-                onClick={abrirExportacao}
-                disabled={!projetoAberto}
-                title={projetoAberto ? undefined : 'Abra um projeto para exportar'}
+                onClick={handleClicarExportarPlanilha}
+                disabled={!onAtivarSelecaoExportacao && !projetoAberto}
+                title={onAtivarSelecaoExportacao || projetoAberto ? undefined : 'Abra um projeto para exportar'}
               >
                 <IconeExportar />
                 Exportar planilha
@@ -368,7 +422,7 @@ export function Header({ slug, registros, email, onSalvarEmail, onAtivarSelecaoD
       </header>
 
       {modalExportarAberto && (
-        <ExportarModal slug={slug} registros={registrosParaExportar} onFechar={() => setModalExportarAberto(false)} />
+        <ExportarModal planilhas={planilhaParaExportar} onFechar={() => setModalExportarAberto(false)} />
       )}
 
       {modalEmailAberto && (

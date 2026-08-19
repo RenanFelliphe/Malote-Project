@@ -517,10 +517,12 @@ select {
 }
 
 /* Barra de ação fixa exibida enquanto o modo de seleção (acima) está
-   ativo — contagem de selecionados + Cancelar/Deletar. "Deletar" só é
-   ligado na Etapa 5; aqui existe apenas como espaço reservado, seguindo o
-   mesmo padrão de "Em breve" já usado no dropdown do Header. */
-.barra-selecao-delecao {
+   ativo — contagem de selecionados + Cancelar/Concluir. Genérica desde a
+   Etapa 2 de implementacaoExportacaoHome.md: antes só existia para a
+   exclusão em lote (`barra-selecao-delecao`, implementacaoDelecao.md —
+   Etapa 5), agora também é usada pela exportação em lote, com os mesmos
+   dois botões e sem rótulo que mude conforme a ação. */
+.barra-selecao-lote {
   position: fixed;
   left: 50%;
   bottom: 1.75rem;
@@ -536,7 +538,7 @@ select {
   z-index: 30;
 }
 
-.barra-selecao-delecao-contagem {
+.barra-selecao-lote-contagem {
   margin: 0;
   font-size: 0.85rem;
   font-weight: 600;
@@ -544,7 +546,7 @@ select {
   white-space: nowrap;
 }
 
-.barra-selecao-delecao-acoes {
+.barra-selecao-lote-acoes {
   display: flex;
   gap: 0.75rem;
 }
@@ -2141,6 +2143,52 @@ button.status-badge-clicavel:hover {
 .exportar-selecionar-todos:hover {
   color: var(--color-accent-hover);
   text-decoration: underline;
+}
+
+/* --- Breakdown por planilha (Etapa 3, só aparece com 2+ planilhas) --- */
+
+.exportar-secao-planilhas .modal-campo-label {
+  margin-bottom: 0.15rem;
+}
+
+.exportar-lista-planilhas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.exportar-lista-planilhas-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.exportar-lista-planilhas-nome {
+  font-size: 0.82rem;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.exportar-lista-planilhas-contador {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* --- Lista de status --- */
@@ -4251,7 +4299,7 @@ li.marcado .exportar-lista-status-item {
 /* Barra de seleção interna da sidebar (Etapa 8): aparece abaixo da lista
    quando há pelo menos um item selecionado, com a contagem + botão
    "Restaurar" — mesmo fluxo para restauração individual e em lote. Ao
-   contrário de `.barra-selecao-delecao` (Home, Etapa 4), que é
+   contrário de `.barra-selecao-lote` (Home, Etapa 4), que é
    `position: fixed` centralizada na viewport, esta vive dentro do próprio
    `.lixeira-sidebar-conteudo` (largura já limitada pelo Drawer), então
    basta um bloco em fluxo normal. */
@@ -4275,7 +4323,7 @@ li.marcado .exportar-lista-status-item {
 }
 
 /* Agrupa "Restaurar" + "Excluir permanentemente" (Etapa 10) — mesmo padrão
-   de `.barra-selecao-delecao-acoes` (Home, Etapa 5), só que dentro da
+   de `.barra-selecao-lote-acoes` (Home, Etapa 5), só que dentro da
    barra da lixeira em vez de flutuante na viewport. */
 .lixeira-sidebar-barra-selecao-acoes {
   display: flex;

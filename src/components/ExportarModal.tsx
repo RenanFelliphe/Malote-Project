@@ -1,19 +1,33 @@
 import { useMemo, useState } from 'react';
 
-import type { EmailRecord, TStatus } from '../types/email';
+import type { TStatus } from '../types/email';
 import { Dialog } from './Dialog';
-import { exportarRegistros, type TFormatoExportacao } from './utils/exportarPlanilha';
-import { calcularContadores } from './utils/emailData';
+import { exportarRegistrosEmLote, type TFormatoExportacao } from './utils/exportarPlanilha';
+import {
+  calcularContadoresPorPlanilha,
+  somarContadores,
+  type PlanilhaParaContagem,
+} from './utils/emailData';
+
+/**
+ * Uma planilha selecionada para exportação: slug + nome de exibição +
+ * registros atuais (já no estado da tela, não a cópia estática do JSON).
+ * Reaproveita a mesma forma de `PlanilhaParaContagem` (`emailData.ts`) — o
+ * modal não precisa de nada além disso para exportar.
+ */
+export type PlanilhaParaExportar = PlanilhaParaContagem;
 
 interface Props {
   /**
-   * Slug do projeto atual (Etapa 9), usado como prefixo do nome do arquivo
-   * gerado (`exportarPlanilha.ts`). Quando ausente, cai para o prefixo
-   * genérico `emails`.
+   * Planilhas a exportar (Etapa 3 de implementacaoExportacaoHome.md).
+   * Dentro da página de uma planilha (`pages/emails.tsx`, via `Header`), é
+   * sempre um array de 1 item — a planilha atualmente aberta; o
+   * comportamento nesse caso é idêntico ao anterior (à época em que a prop
+   * era `slug` + `registros` isolados). Pela Home, pode conter várias
+   * planilhas escolhidas através do modo de seleção múltipla (ver
+   * `pages/home.tsx`).
    */
-  slug?: string;
-  /** Registros da planilha atualmente carregada (já no estado da tela, não a cópia estática do JSON). */
-  registros: EmailRecord[];
+  planilhas: PlanilhaParaExportar[];
   onFechar: () => void;
 }
 
@@ -36,24 +50,27 @@ const FORMATOS: { value: TFormatoExportacao; sigla: string; label: string }[] = 
 
 /**
  * Modal de exportação, aberto pelo item "Exportar planilha" do menu de
- * configurações (`Header`). Deliberadamente componentizado à parte do
- * `Header` (que só decide quando abri-lo) para poder ser reaproveitado no
- * futuro em outros contextos além do cabeçalho — ex.: uma ação por card na
- * Home, quando ela deixar de ser um mock estático.
+ * configurações (`Header`) — tanto de dentro de uma planilha (uma única
+ * planilha, sempre) quanto, a partir de implementacaoExportacaoHome.md, da
+ * Home (uma ou mais planilhas, escolhidas via seleção múltipla).
  *
  * Seleção de registros: "Enviados" vem marcado por padrão (conforme
  * solicitado); os demais status ficam desmarcados até o usuário escolher.
- * Cada linha da lista ganha um indicador de cor que reaproveita a mesma
- * paleta semântica dos badges de status já usados na tabela principal
- * (`.status-válido`, `.status-inválido` etc.) — a lista de exportação e a
- * tabela falam a mesma linguagem visual.
+ * A lista de status sempre trabalha com o total agregado de todas as
+ * planilhas recebidas — com 1 planilha (caso de sempre dentro da página de
+ * uma planilha), os números são idênticos aos de antes; com 2+ (Home), os
+ * contadores somam todas juntas. Quando há mais de uma planilha, um
+ * cabeçalho extra mostra quantas planilhas estão selecionadas e o
+ * breakdown por planilha (nº filtrado / total) logo acima da lista de
+ * status — com apenas uma planilha esse cabeçalho não aparece, mantendo o
+ * modal visualmente idêntico ao comportamento anterior.
  *
  * Formato do arquivo: seleção única (CSV por padrão), renderizada como
  * cartões com monograma (`.formato-card`) em vez do antigo grupo de botões
  * de texto puro — mais fácil de escanear com o olho quando os quatro
  * formatos têm nomes parecidos (CSV / CSV UTF-8).
  */
-export function ExportarModal({ slug, registros, onFechar }: Props) {
+export function ExportarModal({ planilhas, onFechar }: Props) {
   const [statusSelecionados, setStatusSelecionados] = useState<Set<TStatus>>(() => new Set(['enviado']));
   const [formato, setFormato] = useState<TFormatoExportacao>('csv');
   const [exportando, setExportando] = useState(false);
@@ -61,14 +78,34 @@ export function ExportarModal({ slug, registros, onFechar }: Props) {
 
   const todosMarcados = STATUS_EXPORTAVEIS.every(({ value }) => statusSelecionados.has(value));
 
-  const contadores = useMemo(() => calcularContadores(registros), [registros]);
-
-  const registrosFiltrados = useMemo(
-    () => registros.filter((registro) => statusSelecionados.has(registro.status)),
-    [registros, statusSelecionados]
+  // Contadores "brutos" de cada planilha (sem filtro de status aplicado) —
+  // alimentam tanto o breakdown por planilha quanto, somados, a lista de
+  // status principal (que sempre exibe o total agregado).
+  const contadoresPorPlanilha = useMemo(() => calcularContadoresPorPlanilha(planilhas), [planilhas]);
+  const contadores = useMemo(
+    () => somarContadores(contadoresPorPlanilha.map((item) => item.contadores)),
+    [contadoresPorPlanilha]
   );
 
-  const proporcaoSelecionada = registros.length === 0 ? 0 : registrosFiltrados.length / registros.length;
+  // Registros de cada planilha já filtrados pelo status selecionado no
+  // momento — mantém o vínculo com a planilha de origem (slug/nome),
+  // necessário tanto para o breakdown quanto para a exportação em si
+  // (cada planilha é exportada separadamente, ver `handleExportar`).
+  const planilhasFiltradas = useMemo(
+    () =>
+      planilhas.map((planilha) => ({
+        ...planilha,
+        registrosFiltrados: planilha.registros.filter((registro) => statusSelecionados.has(registro.status)),
+      })),
+    [planilhas, statusSelecionados]
+  );
+
+  const totalRegistros = contadores.total;
+  const totalFiltrado = useMemo(
+    () => planilhasFiltradas.reduce((soma, planilha) => soma + planilha.registrosFiltrados.length, 0),
+    [planilhasFiltradas]
+  );
+  const proporcaoSelecionada = totalRegistros === 0 ? 0 : totalFiltrado / totalRegistros;
 
   function alternarStatus(status: TStatus) {
     setStatusSelecionados((atual) => {
@@ -91,13 +128,27 @@ export function ExportarModal({ slug, registros, onFechar }: Props) {
     onFechar();
   }
 
+  /**
+   * Dispara a exportação em lote (`exportarRegistrosEmLote`, Etapa 4 de
+   * implementacaoExportacaoHome.md), descartando antes qualquer planilha
+   * sem nenhum registro no filtro de status atual — a função de baixo só
+   * cuida de gerar/baixar, a filtragem é responsabilidade daqui. Com 1
+   * planilha (sempre o caso dentro da página de uma planilha), o
+   * comportamento é idêntico ao de antes: um único arquivo baixado direto,
+   * sem zip. Com 2+ planilhas pela Home, o resultado é um único `.zip`
+   * contendo um arquivo por planilha.
+   */
   async function handleExportar() {
-    if (registrosFiltrados.length === 0 || exportando) return;
+    if (totalFiltrado === 0 || exportando) return;
+
+    const planilhasComRegistros = planilhasFiltradas
+      .filter((planilha) => planilha.registrosFiltrados.length > 0)
+      .map((planilha) => ({ slug: planilha.slug, registros: planilha.registrosFiltrados }));
 
     setExportando(true);
     setErro(null);
     try {
-      await exportarRegistros(registrosFiltrados, formato, slug);
+      await exportarRegistrosEmLote(planilhasComRegistros, formato);
       onFechar();
     } catch {
       setErro('Não foi possível gerar o arquivo. Tente novamente.');
@@ -114,20 +165,38 @@ export function ExportarModal({ slug, registros, onFechar }: Props) {
       className="modal-exportar"
       footer={
         <div className="exportar-rodape">
-          {registrosFiltrados.length === 0 && (
+          {totalFiltrado === 0 && (
             <p className="exportar-rodape-aviso">Selecione ao menos um status para exportar.</p>
           )}
           <button
             type="button"
             className="dialog-botao-copiar"
             onClick={() => void handleExportar()}
-            disabled={registrosFiltrados.length === 0 || exportando}
+            disabled={totalFiltrado === 0 || exportando}
           >
             {exportando ? 'Exportando…' : 'Exportar'}
           </button>
         </div>
       }
     >
+      {planilhas.length > 1 && (
+        <section className="exportar-secao exportar-secao-planilhas">
+          <p className="modal-campo-label">
+            {planilhas.length} planilhas selecionadas · {totalRegistros} registros no total
+          </p>
+          <ul className="exportar-lista-planilhas">
+            {planilhasFiltradas.map((planilha) => (
+              <li key={planilha.slug} className="exportar-lista-planilhas-item">
+                <span className="exportar-lista-planilhas-nome">{planilha.nome}</span>
+                <span className="exportar-lista-planilhas-contador">
+                  {planilha.registrosFiltrados.length} de {planilha.registros.length}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="exportar-secao">
         <p className="modal-campo-label">Quais registros deseja exportar?</p>
         <label className="exportar-selecionar-todos">
@@ -152,8 +221,8 @@ export function ExportarModal({ slug, registros, onFechar }: Props) {
           ))}
         </ul>
         <div className="exportar-rodape-contagem">
-          <span className="exportar-rodape-numero">{registrosFiltrados.length}</span>
-          <span className="exportar-rodape-texto">de {registros.length} selecionado(s)</span>
+          <span className="exportar-rodape-numero">{totalFiltrado}</span>
+          <span className="exportar-rodape-texto">de {totalRegistros} selecionado(s)</span>
           <div className="exportar-rodape-barra">
             <div
               className="exportar-rodape-barra-preenchida"

@@ -84,6 +84,63 @@ export function calcularContadores(registros: EmailRecord[]): EmailCounters {
 }
 
 /**
+ * Uma planilha com seus registros atuais, identificada por slug + nome de
+ * exibição — forma comum usada tanto pela seleção múltipla da Home
+ * (`pages/home.tsx`) quanto pela página de uma única planilha (via
+ * `Header`), ao montar a lista passada ao `ExportarModal` (Etapa 3 de
+ * implementacaoExportacaoHome.md).
+ */
+export interface PlanilhaParaContagem {
+  slug: string;
+  nome: string;
+  registros: EmailRecord[];
+}
+
+/** Contadores de uma planilha específica, identificados por slug/nome (breakdown do `ExportarModal`). */
+export interface ContadorPorPlanilha {
+  slug: string;
+  nome: string;
+  contadores: EmailCounters;
+}
+
+/**
+ * Contadores individuais de cada planilha selecionada — usado pelo
+ * breakdown por planilha do `ExportarModal` quando há mais de uma
+ * selecionada (Etapa 3 de implementacaoExportacaoHome.md). Cada entrada
+ * reaproveita a mesma `calcularContadores` já usada para uma única
+ * planilha, então os números batem exatamente com os exibidos hoje dentro
+ * da página de cada planilha.
+ */
+export function calcularContadoresPorPlanilha(planilhas: PlanilhaParaContagem[]): ContadorPorPlanilha[] {
+  return planilhas.map(({ slug, nome, registros }) => ({
+    slug,
+    nome,
+    contadores: calcularContadores(registros),
+  }));
+}
+
+/**
+ * Soma um conjunto de `EmailCounters` (ex.: o breakdown por planilha) num
+ * único total agregado — exibido pela lista de status do `ExportarModal`,
+ * que sempre trabalha com o total combinado de todas as planilhas
+ * selecionadas, mesmo quando há apenas uma (nesse caso, a soma de um único
+ * item é numericamente idêntica ao `calcularContadores` de antes).
+ */
+export function somarContadores(lista: EmailCounters[]): EmailCounters {
+  return lista.reduce(
+    (soma, atual) => ({
+      total: soma.total + atual.total,
+      válido: soma.válido + atual.válido,
+      inválido: soma.inválido + atual.inválido,
+      duplicado: soma.duplicado + atual.duplicado,
+      deletado: soma.deletado + atual.deletado,
+      enviado: soma.enviado + atual.enviado,
+    }),
+    { total: 0, válido: 0, inválido: 0, duplicado: 0, deletado: 0, enviado: 0 }
+  );
+}
+
+/**
  * Filtra os registros por um conjunto de status simultaneamente selecionados
  * (usado pela barra de filtros da tabela principal, onde cada botão
  * marca/desmarca seu status independentemente dos demais). Conjunto vazio
