@@ -4,7 +4,7 @@
 
 ---
 
-## Objetivo de longo prazo do projeto
+## Demanda 1: Envio Automático dos E-mails
 
 Hoje o sistema é uma ferramenta de **organização de destinatários**: ele importa planilhas, valida e-mails, identifica duplicados, e permite copiar a lista de e-mails selecionada para colar manualmente em outro programa (Outlook). O próprio envio nunca foi parte do escopo (ver seção 1 da especificação: *"O sistema não realizará o envio de e-mails"*).
 
@@ -23,16 +23,6 @@ A visão de longo prazo é transformar o sistema em um **disparador controlado d
 - Divididos em 5 blocos de 20;
 - Intervalo de 10 minutos entre blocos;
 - Resultado: a cada 10 minutos, o sistema dispara automaticamente 20 e-mails, até completar os 5 blocos (40 minutos no total).
-
-### Por que isso é uma mudança de escopo, e não só de interface
-
-Vale deixar registrado o motivo de essa demanda não ser "só mais um botão": ela muda uma premissa fundamental do projeto.
-
-- **Hoje, quem envia é o Outlook** — o sistema apenas prepara e-mails/título/corpo para serem colados manualmente. Não existe (e não é confiável tentar automatizar) uma forma de controlar o Outlook por fora para simular cliques de "enviar" em intervalos programados.
-- **Envio automático de verdade exige que o próprio sistema envie o e-mail**, via integração real com um serviço de envio (ex.: Microsoft Graph API, já que o destino final é o Outlook/Microsoft 365, ou um serviço de SMTP).
-- **Blocos com intervalo exigem um agendador** (algo que "lembre" de disparar o próximo bloco no horário certo), o que por sua vez exige um processo rodando de forma persistente — diferente do modelo atual, que só faz algo quando a página está aberta no navegador.
-
-Ou seja: essa demanda pertence naturalmente à fase de evolução já prevista na seção **9. Planos Futuros** da especificação (que já antecipa a necessidade de backend e hospedação), só que estendendo aquela visão para incluir também o envio em si — algo que a especificação atual explicitamente exclui do escopo.
 
 ### O que essa implementação exigiria, tecnicamente
 
@@ -65,42 +55,112 @@ Registrando aqui os principais blocos de trabalho, para quando o projeto chegar 
    - Considerar incluir link/opção de descadastro nos e-mails;
    - Evitar variações que possam disparar filtros de spam (links suspeitos, excesso de maiúsculas, etc.).
 
+**O que agrega:** transforma o sistema de "organizador de destinatários" em disparador de verdade, com proteção anti-spam via fatiamento em blocos.
+
+**Dificuldade: 🔴 Alta — é a maior mudança de arquitetura do lote.**
+
+O motivo é estrutural, não só de código: hoje **não existe backend persistente**. O middleware do Vite (`emailsApiPlugin`) só roda em `npm run dev` e só grava um JSON quando o navegador está aberto fazendo a requisição. Um "disparo" precisa sobreviver ao fechamento da aba — isso exige:
+- Um processo servidor real (Node standalone, não middleware de dev server) rodando o scheduler.
+- Persistência de estado do disparo (pendente/em andamento/pausado) independente da sessão do navegador.
+- Integração com Microsoft Graph API (`Mail.Send`) — cadastro de app no Azure AD, fluxo OAuth, tokens com refresh.
+
+**Caminho recomendado, em fatias:**
+1. Primeiro, criar o modelo de dados "Disparo" (tipo `types/dispatch.ts`) e a tela de configuração (blocos, intervalo) — isso é só UI, reaproveitando a seleção que já existe em `emails.tsx`.
+2. Depois, um servidor Node separado (Express/Fastify) com um scheduler simples (`setInterval` checando disparos pendentes, ou `node-cron`) — foge do escopo do Vite dev server.
+3. Por último, a integração de envio de fato (Graph API ou SMTP via Nodemailer, mais simples de começar).
 ---
 
-## Demanda imediata (fase manual — em andamento)
+## Demanda 2 — Variáveis no Texto (merge tags)
 
-Enquanto a automação acima não é implementada, o envio continua manual pelo Outlook. A demanda imediata resolve um problema real desse fluxo manual: hoje o título e o corpo do e-mail ficam fora da plataforma (bloco de notas, Word, etc.), obrigando o usuário a transitar entre 3 ou mais janelas diferentes para montar um envio.
+Personalização por destinatário (merge tags). O título/corpo do e-mail (EmailConteudo) é um único texto estático pra todos os registros da planilha — não existe nenhum {{nome}} ou placeholder dinâmico. Pra uma ferramenta de disparo em massa, isso costuma ser básico.
 
-- **Modal/campo para guardar o título e o conteúdo do e-mail na própria página**, evitando depender de um bloco de notas ou editor de texto externo.
-  - Reaproveitar o padrão já existente de cópia (`copiarTexto`, em `src/components/utils/clipboard.ts`) para adicionar botões de "copiar título" e "copiar corpo", análogos ao que já existe para copiar a lista de e-mails.
-  - Persistir esses dados no mesmo esquema que já existe hoje para os registros (JSON via o middleware local descrito em `emailsApi.ts`), sem necessidade de botão "Salvar", seguindo a mesma regra de persistência imediata já definida na especificação (seção 2.2).
-  - **Importante:** não é possível copiar e-mails + título + corpo em um único bloco e colar tudo de uma vez distribuído nos campos certos do Outlook (Destinatários / Assunto / Corpo). O "colar" sempre insere o conteúdo inteiro em um único campo — o campo onde estiver o cursor no momento. Por isso a solução é manter os três botões de cópia separados, cada um copiando exatamente o conteúdo do campo correspondente.
+Na toolbar do modal, deve haver um novo botão: "Criar Variável" ao lado do "Criar Botão".
 
-### Possível melhoria intermediária (opcional, ainda manual)
+Esta variável deve funcionar, inicialmente, apenas para adicionar no texto, o conteúdo de uma célula com base nos registro da planilha. Assim, para cada envio, aquela variável receberá um dado diferente.
 
-Como um passo intermediário entre o manual atual e a automação completa (útil caso a automação leve tempo para ser implementada): gerar um link `mailto:` a partir da seleção + template salvo (`mailto:?bcc=...&subject=...&body=...`), que abre o Outlook já com destinatários, assunto e corpo preenchidos automaticamente em um único clique — sem exigir três cópias/colagens separadas. Limitação a considerar: apenas texto puro (sem formatação) e limite de tamanho da URL (na prática, cerca de 2000 caracteres), o que pode ser insuficiente para listas grandes de destinatários.
+Exemplo:
+"Olá, [ NomeAluno ]! 
+
+Parabéns por concluir o curso [ NomeCurso ] no dia [ DataConclusão ]
+
+Os certificados serão enviados no dia [ DataEnvio ]!"
+
+**O que agrega:** personalização por destinatário (`{{nome}}`, `{{curso}}` etc.) — pré-requisito conceitual pra Demanda 1 fazer sentido em escala.
+
+**Dificuldade: 🟡 Média** — é só extensão do Tiptap, mas com pegadinhas de integração com o pipeline existente.
+
+Pontos de atenção no código atual:
+- Seguiria o mesmo padrão do `NoBotao.ts`: um **node customizado** do Tiptap (não uma mark), já que a variável é um "chip" atômico, não texto editável por dentro. Renderiza como `<span data-variavel="NomeAluno" contenteditable="false">`.
+- Precisa entrar na allowlist do `sanitizarHtml.ts` (`ALLOWED_TAGS`/`ALLOWED_ATTR` — hoje `span` já é permitido, mas o atributo `data-variavel` teria que ser adicionado).
+- O botão "Criar Variável" na toolbar segue o padrão de popover já usado (`ToolbarPopover`), listando as colunas identificadas em `identifyColumns.ts`.
+- **O ponto mais delicado:** hoje o e-mail é um texto único salvo em `EmailConteudo.conteudo`. Para o envio funcionar por registro, o `emailHtmlInline.ts` (ou uma nova função) precisaria, na hora do disparo, substituir cada `<span data-variavel="X">` pelo valor de `registro[X]` — ou seja, essa demanda só "fecha o ciclo" quando acoplada à Demanda 1. Sozinha, ela dá pra implementar (inserir/visualizar a variável no editor), mas o "renderizar por destinatário" depende do sistema de envio existir.
 
 ---
 
-## Resumo do roadmap
+## Demanda 3 — Atualizar Planilha (reimportação via UI)
+Reimportação de planilha. Já é o botão fantasma "Atualizar planilha" no menu — a lógica de sincronizar por ID já existe em sync.ts, só roda via terminal (Node), fora do navegador. Dava pra expor esse fluxo na UI.
 
-| Fase | O que é | Envio | Esforço |
-|---|---|---|---|
-| 1. Atual | Guardar título/corpo na plataforma + botões de cópia separados | Manual (Outlook) | Baixo |
-| 2. Intermediária (opcional) | Link `mailto:` pré-preenchido em um clique | Manual (Outlook), mas 1 clique | Baixo/médio |
-| 3. Futura | Disparador automático em blocos com intervalo, via API de envio real | Automático (pelo próprio sistema) | Alto |
+**O que agrega:** fecha um botão que já existe visualmente mas está desabilitado (`Header.tsx`, item "Atualizar planilha", `disabled` com título "Em breve").
 
+**Dificuldade: 🟢 Baixa-Média** — a lógica de negócio (`sync.ts`) já existe e é só Node puro (não depende de nada do browser).
 
-(
-   Agora veja como não fica nada legal essa toolbar de tabela com scroll.
-Para facilitar, vamos usar a mesma estratégia que usamos na toolbar principal do modal: Seções + ver mais
+O desafio real não é a lógica de sincronização (já pronta e testada), é **rodá-la a partir do navegador**:
+1. Expandir o middleware do `vite.config.ts` com uma nova rota `POST /api/emails/:slug/sync`, que recebe o arquivo via `FormData`/multipart.
+2. Essa rota chama as mesmas funções de `sync.ts` (`syncRecords`, `applyStatusRules`) — hoje elas estão em `src/scripts/`, com `tsconfig.scripts.json` separado do bundle do Vite. Ou o middleware roda em Node puro fora do bundle (mais fácil, já que o middleware já é código Node), ou você refatora essas funções pra um lugar compartilhado.
+3. No frontend, reaproveitar o parsing já existente em `parseSheetBrowser.ts` (usado no wizard de importação) pra pré-visualizar antes de confirmar, e então mandar o arquivo pro novo endpoint.
 
-Vamos agrupar alguns botões:
-Inserir: A esquerda, a direita, acima, abaixo
-Excluir: linha, coluna, tabela
-Mesclar: Mesclar e dividir
-Cabeçalho: Linha e coluna
-Cor da célula
-Tamanho: Altura, espessura e largura (E não precisa do placeholder, apenas o ícone e o input)
-Duplicar: A direita, a esquerda
-)
+---
+
+## Demanda 4: Histórico de Alterações
+Histórico/auditoria. Toda alteração (salvarEmails) sobrescreve o emails.json inteiro, sem versionamento nem log de quem/quando mudou o quê. Não tem desfazer.
+
+**O que agrega:** auditoria e desfazer, hoje inexistentes (`salvarEmails` sobrescreve o JSON inteiro sem rastro).
+
+**Dificuldade: 🟡 Média**, mas cresce dependendo da ambição.
+
+Duas abordagens bem diferentes:
+- **Versão simples (log append-only):** cada `PUT /api/emails/:slug` no middleware, antes de sobrescrever, grava um snapshot em `data/<slug>/history/<timestamp>.json` (ou um `history.jsonl` com um diff). Dá pra implementar em algumas horas — é só interceptar a escrita existente.
+- **Versão com "desfazer" de verdade:** exige guardar um diff estruturado (quem mudou o quê, de/para) em vez de snapshot bruto, senão "desfazer" vira "restaurar arquivo inteiro", o que pode sobrescrever alterações concorrentes de outros campos.
+
+---
+
+## Demanda 5: Correção de Registros Individualmente
+Edição individual de nome/e-mail — pra corrigir um erro de digitação num registro, hoje o único caminho é reimportar a planilha inteira via sync.ts. Permitir editar nome/e-mail direto na célula da tabela (like já acontece com status) resolveria isso sem depender do terminal.
+
+**O que agrega:** corrige o ponto mais frustrante do fluxo atual — hoje um erro de digitação exige reimportar a planilha inteira via terminal.
+
+**Dificuldade: 🟢 Baixa** — é o item mais barato do lote, e o padrão já existe no código.
+
+A própria tabela já faz exatamente isso pra `status` (`EmailTable.renderStatus`, com `<select>` inline substituindo o badge). O mesmo padrão vale pra nome/e-mail:
+1. Trocar `<td>{registro.nome}</td>` por um campo editável inline (clique vira `<input>`, blur/Enter confirma) — visualmente parecido com o `campoTamanhoFonte` do editor (buffer local + confirmação só no blur).
+2. Novo handler em `emails.tsx`, no mesmo molde de `handleAtualizarStatusIndividual`: monta o registro atualizado, marca `last_updated`, chama `persistirRegistros`.
+3. **Decisão de negócio a tomar:** editar o e-mail manualmente devia setar algo equivalente a `status_alterado = true`? Hoje esse campo só existe pra status. Se `sync.ts` rodar de novo depois, ele vai sobrescrever esse nome/e-mail editado manualmente com o que tiver na planilha — vale a pena decidir se isso é aceitável ou se precisa de um novo campo tipo `dados_alterados_manualmente`.
+
+---
+
+## Demanda 6: Armazenamento duplo - Banco e Local
+O armazenamento local, hoje, já existe. Toda planilha importada é armazenada dentro da pasta do projeto
+Porem, deve também haver a opção de armazenar os dados da planilha num banco de dados real, exigindo requisição e rotas.
+
+**O que agrega:** camada de persistência real, abrindo caminho pra multiusuário/hospedagem (já mapeado como visão de longo prazo na seção 9 do `DEVME.md`).
+
+**Dificuldade: 🔴 Alta** — é a mudança de arquitetura mais ampla, e sobrepõe praticamente tudo (Demandas 1, 3, 4 dependem ou se beneficiam dela).
+
+Pontos centrais:
+- Escolher o banco (SQLite é o caminho natural pra manter "local-first" — arquivo único, sem servidor externo; Postgres se já mirar hospedagem).
+- Precisa de um ORM/query builder (Drizzle ou Prisma se TypeScript, pra manter o estilo tipado do projeto).
+- O middleware do `vite.config.ts` deixaria de escrever JSON diretamente e passaria a chamar o banco — mas o próprio README já é explícito que isso é dívida técnica conhecida e faz parte do roadmap (seção 9 da especificação, "Backend e persistência").
+- "Duplo" sugere manter o JSON como fallback/export, não synced em tempo real com o banco — o que é mais simples do que sincronizar bidirecionalmente dois armazenamentos.
+
+---
+
+### Sugestão de prioridade
+
+| Ordem | Demanda | Por quê |
+|---|---|---|
+| 1 | **5 — Edição individual** | Baixíssimo custo, alto valor imediato, zero risco arquitetural |
+| 2 | **3 — Atualizar planilha via UI** | Lógica já pronta, só falta expor; fecha um botão fantasma |
+| 3 | **4 — Histórico (versão snapshot)** | Rede de segurança barata antes de mexer em coisas mais arriscadas |
+| 4 | **2 — Variáveis no texto** | Prepara terreno pra Demanda 1, mas entrega valor sozinha (visualização) |
+| 5 | **6 — Banco de dados** | Pré-requisito de infraestrutura pra Demanda 1 rodar de forma confiável |
+| 6 | **1 — Envio automático** | A mais complexa e a que mais depende das outras já estarem prontas |
