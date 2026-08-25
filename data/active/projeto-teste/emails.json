@@ -1,7 +1,7 @@
 {
   "projeto": "Projeto Teste",
   "criado_em": "2026-07-21T16:18:43.000Z",
-  "atualizado_em": "2026-08-04T11:21:18.753Z",
+  "atualizado_em": "2026-08-25T11:54:09.916Z",
   "email": {
     "titulo": "Parabéns pela conclusão do curso no Multiverso Rio Pomba Valley! 🎉",
     "conteudo": "<p style=\"text-align: left;\"><span style=\"font-size: 16px;\">Teste botão</span></p><p style=\"text-align: left;\"></p><p style=\"text-align: left;\"></p>",
@@ -20,9 +20,9 @@
       "id": 2,
       "nome": "Bruno Lima",
       "email": "bruno.lima2@exemplo.com",
-      "status": "válido",
-      "status_alterado": false,
-      "last_updated": "2026-07-15T12:52:47.753Z"
+      "status": "inválido",
+      "status_alterado": true,
+      "last_updated": "2026-08-25T11:54:09.906Z"
     },
     {
       "id": 3,
