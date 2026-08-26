@@ -32,43 +32,27 @@ Ou seja: uma demanda **concluída** ainda mora aqui, com sua seção inteira, at
 
 ## ⚠️ Fluxo de entrega por etapas — leia antes de começar
 
-Para toda demanda implementada, o processo segue duas partes: uma etapa
-preliminar de mapeamento (Etapa 0) e a regra de entrega cumulativa que vale a
-partir da Etapa 1.
+Para toda demanda implementada, o processo segue duas partes: uma etapa preliminar de mapeamento (Etapa 0) e a regra de entrega cumulativa que vale a partir da Etapa 1.
 
 ### Etapa 0 — Mapeamento
 
-Etapa preliminar, que roda antes da Etapa 1 de qualquer demanda. Único
-objetivo: reunir de uma vez o contexto necessário, para que as etapas
-seguintes não dependam mais do projeto inteiro sendo reenviado a cada troca.
+Etapa preliminar, que roda antes da Etapa 1 de qualquer demanda. Único objetivo: reunir de uma vez o contexto necessário, para que as etapas seguintes não dependam mais do projeto inteiro sendo reenviado a cada troca.
 
-1. A partir do planner da demanda (`nomeDaDemanda.md`), identificar todos os
-   arquivos envolvidos na implementação — Fontes, Alterados e Criados —
-   mesmo os que ainda não existem, mas estão previstos para etapas futuras.
-2. Retornar um único ZIP contendo o planner da demanda + todos esses
-   arquivos. Os "Criados" que ainda não foram implementados entram vazios ou
-   com um esqueleto mínimo.
+1. A partir do planner da demanda (`nomeDaDemanda.md`), identificar todos os arquivos envolvidos na implementação — Fontes, Alterados e Criados — mesmo os que ainda não existem, mas estão previstos para etapas futuras.
 
-A partir daqui, o usuário passa a enviar apenas o ZIP mais recente como
-referência — nunca mais o projeto inteiro.
+2. Retornar um único ZIP contendo o planner da demanda + todos esses arquivos. Os "Criados" que ainda não foram implementados devem ser criados e guardados vazios.
+
+A partir daqui, o usuário passa a enviar apenas o ZIP mais recente como referência — nunca mais o projeto inteiro.
 
 ### Regra de entrega (Etapa 1 em diante)
 
 A cada etapa, a entrega é **um único ZIP, cumulativo**:
 
-- **Contém todos os arquivos necessários até aqui, não só os da etapa
-  atual.** Isso inclui (a) todo arquivo efetivamente alterado desde a
-  Etapa 1 desta revisão, e (b) todo arquivo listado como Fonte, Alterado ou
-  Criado em qualquer etapa já concluída — mesmo os que nunca chegaram a ser
-  modificados. Uma vez que um arquivo apareceu em algum ZIP, ele continua
-  aparecendo em todos os ZIPs seguintes até o fim da implementação, para que
-  o usuário nunca precise reenviar manualmente algo que ainda é relevante,
-  só porque não mudou na etapa mais recente.
-- **Sempre inclui o planner da demanda** (`nomeDaDemanda.md`), atualizado a
-  cada entrega: etapas concluídas marcadas com "✅ concluída" no título,
-  notas de execução preenchidas, e qualquer ajuste de rota registrado — caso
-  um diagnóstico feito durante a implementação mude uma decisão já tomada no
-  planner.
+- **Contém todos os arquivos necessários até aqui, não só os da etapa atual.** Isso inclui (a) todo arquivo efetivamente alterado desde a Etapa 1 desta revisão, e (b) todo arquivo listado como Fonte, Alterado ou Criado em qualquer etapa já concluída — mesmo os que nunca chegaram a ser modificados. Uma vez que um arquivo apareceu em algum ZIP, ele continua aparecendo em todos os ZIPs seguintes até o fim da implementação, para que o usuário nunca precise reenviar manualmente algo que ainda é relevante, só porque não mudou na etapa mais recente.
+
+- **Sempre inclui o planner da demanda** (`nomeDaDemanda.md`), atualizado a cada entrega: etapas concluídas marcadas com "✅ concluída" no título, notas de execução preenchidas, e qualquer ajuste de rota registrado — caso um diagnóstico feito durante a implementação mude uma decisão já tomada no planner.
+
+> Observação: Sempre ao criar o documento individual de cada demanda, este bloco deve ser incluído no arquivo.
 
 ---
 

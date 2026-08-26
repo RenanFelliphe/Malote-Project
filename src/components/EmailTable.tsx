@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { EmailRecord, TStatusManual } from '../types/email';
 import { STATUS_SELECIONAVEIS } from '../types/email';
 import { copiarTexto } from './utils/clipboard';
+import { isValidEmail } from './EmailStatus';
+import { restaurarCampos, type TCampoRestauravel } from './utils/restaurarCampos';
 import {
   IconeArrastar,
   IconeConfirmarEnvio,
@@ -17,6 +19,52 @@ type TColunaCopiavel = 'nome' | 'email';
 
 /** Por quanto tempo o botão de copiar mostra o feedback "Copiado!" antes de voltar ao normal. */
 const DURACAO_FEEDBACK_COPIA_MS = 1500;
+
+/**
+ * Campos de `EmailRecord` editáveis inline por esta demanda (seção 2,
+ * "Não cobre": `id` nunca é editável, é a chave de sincronização; `status`
+ * já tem seu próprio fluxo via select em `renderStatus`, com regra de
+ * proteção equivalente mas independente).
+ */
+export type TCampoEditavel = 'nome' | 'email';
+
+/**
+ * Aplica a regra de captura "primeira vez vence" (`EdicaoIndividualdeRegistro.md`,
+ * seção 3) ao confirmar a edição inline de `nome` ou `email`: se
+ * `backup_dados[campo]` já existe, permanece intocado — a primeira captura
+ * nunca é sobrescrita por edições seguintes do mesmo campo. Caso contrário,
+ * captura o valor **atual** do registro (que neste momento ainda é o valor
+ * anterior a esta edição — vindo da planilha ou de uma edição anterior de
+ * um campo diferente) como o "original da planilha" para fins de futura
+ * restauração.
+ *
+ * Função pura, sem efeitos colaterais (não persiste nada) — chamada pelo
+ * handler de confirmação da edição inline de célula (`confirmarEdicaoCelula`,
+ * Etapa 4, logo abaixo) antes de propagar o registro atualizado para
+ * `persistirRegistros` (`emails.tsx`). Não faz revalidação
+ * de e-mail (`isValidEmail`, `EmailStatus.ts`) nem recálculo de status: o
+ * chamador decide o que fazer com o valor já validado antes de invocar esta
+ * função, e não recalcula status aqui porque a edição de `nome`/`email` não
+ * necessariamente afeta o status (só a edição de `email` pode, e mesmo
+ * assim apenas quando `backup_dados.status` estiver ausente — regra que
+ * também fica por conta do chamador, seção 4 do planner).
+ */
+export function capturarEdicaoCampo(
+  registro: EmailRecord,
+  campo: TCampoEditavel,
+  novoValor: string
+): EmailRecord {
+  const jaCapturado = registro.backup_dados?.[campo] !== undefined;
+
+  return {
+    ...registro,
+    [campo]: novoValor,
+    backup_dados: jaCapturado
+      ? registro.backup_dados
+      : { ...registro.backup_dados, [campo]: registro[campo] },
+    last_updated: new Date().toISOString(),
+  };
+}
 
 interface Props {
   registros: EmailRecord[];
@@ -80,11 +128,63 @@ interface Props {
   /**
    * Chamada ao clicar em "Restaurar" no dropdown de ações do cabeçalho.
    * Disponível para qualquer grupo selecionado (deletado, válido, inválido
-   * ou enviado) — não depende de `todosSelecionadosDeletados`. Zera
-   * `status_alterado` dos selecionados e deixa o sistema recalcular o
-   * status normalmente a partir da regra automática (seção 5.2).
+   * ou enviado) — não depende de `todosSelecionadosDeletados`. Remove a
+   * chave `backup_dados.status` dos selecionados e deixa o sistema
+   * recalcular o status normalmente a partir da regra automática (seção 5.2).
    */
   onRestaurar?: () => void;
+  /**
+   * Chamada ao confirmar (blur ou Enter) a edição inline de `nome`/`email`
+   * de um registro (Etapa 4). O registro recebido já vem com `backup_dados`
+   * atualizado pela regra "primeira vez vence" (`capturarEdicaoCampo`,
+   * Etapa 3) e com o novo valor gravado no campo editado — o chamador só
+   * precisa persistir (`persistirRegistros`, `emails.tsx`) e, quando
+   * `campo === 'email'`, recalcular o status automático do conjunto (a
+   * edição pode formar ou desfazer um grupo de duplicados). A validação de
+   * formato do e-mail (`isValidEmail`) já acontece aqui dentro, antes desta
+   * chamada — só chega até o chamador uma edição sintaticamente válida.
+   * Quando ausente, as células de `nome`/`email` continuam como texto
+   * estático não editável (mesmo padrão condicional de
+   * `onAtualizarStatusIndividual` sobre o select de status).
+   */
+  onEditarCampo?: (registroAtualizado: EmailRecord, campo: TCampoEditavel) => void;
+  /**
+   * Chamada ao clicar no botão "Restaurar" de uma linha (Etapa 6, `td-acoes`)
+   * quando `backup_dados` daquele registro tem **exatamente 1 chave** — o
+   * caso "restaura direto, sem modal" da seção 4 do planner. O registro
+   * recebido já vem pronto de `restaurarCampos` (Etapa 5, `utils/restaurarCampos.ts`):
+   * nome/email já reescritos literalmente e/ou `backup_dados.status` já
+   * removido. O chamador só precisa persistir (`persistirRegistros`,
+   * `emails.tsx`) e, quando `status` estiver entre `camposRestaurados`,
+   * recalcular o status automático do conjunto inteiro — `restaurarCampos`
+   * não tem acesso aos demais registros para recontar duplicados, então
+   * quem de fato decide o novo valor de status é `recalcularStatusAutomatico`
+   * (`EmailStatus.ts`), chamado pelo chamador depois desta propagação.
+   * Nome deliberadamente diferente de `onRestaurar` (que já existe e cobre
+   * a restauração em lote de registros deletados, vinda da seleção via
+   * checkbox) — os dois fluxos não têm relação entre si.
+   */
+  onRestaurarCampos?: (
+    registroAtualizado: EmailRecord,
+    camposRestaurados: TCampoRestauravel[]
+  ) => void;
+  /**
+   * Chamada ao clicar no botão "Restaurar" de uma linha quando
+   * `backup_dados` daquele registro tem **2 ou mais chaves** — o caso "abre
+   * modal de escolha" da seção 4 do planner. Recebe o registro e a lista de
+   * campos disponíveis para restaurar (`Object.keys(registro.backup_dados)`),
+   * para que quem escuta monte o modal de conflito (`RestaurarCamposModal`,
+   * Etapa 7) sem precisar recalcular essa lista. Ainda não é passada por
+   * `emails.tsx` nesta etapa — o próprio modal só existe a partir da Etapa
+   * 7 — então, por ora, clicar em "Restaurar" num registro com 2+ campos
+   * alterados não tem efeito visível, mesmo padrão de degradação graciosa
+   * já usado por `onEditarCampo`/`onAtualizarStatusIndividual` quando
+   * ausentes.
+   */
+  onAbrirConflitoRestaurarCampos?: (
+    registro: EmailRecord,
+    camposDisponiveis: TCampoRestauravel[]
+  ) => void;
 }
 
 /** Tabela com ID, Nome, E-mail e Status de cada registro (seção 6). */
@@ -101,10 +201,27 @@ export function EmailTable({
   onDeletar,
   onConfirmarEnvio,
   onRestaurar,
+  onEditarCampo,
+  onRestaurarCampos,
+  onAbrirConflitoRestaurarCampos,
 }: Props) {
   // Qual coluna mostrou "Copiado!" por último (null = nenhuma, ou o feedback já expirou).
   const [colunaCopiada, setColunaCopiada] = useState<TColunaCopiavel | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Célula de nome/e-mail atualmente em edição (Etapa 4) — no máximo uma por
+  // vez, em qualquer linha. `valorEdicao` é o buffer local de digitação
+  // (só propagado para fora no blur/Enter, nunca a cada tecla); revertido
+  // sem persistir no Esc, no mesmo espírito do stepper de fonte do editor
+  // (`EmailEditorToolbar.tsx`).
+  const [edicaoCelula, setEdicaoCelula] = useState<{ id: number; campo: TCampoEditavel } | null>(
+    null
+  );
+  const [valorEdicao, setValorEdicao] = useState('');
+  // Sinaliza e-mail digitado sintaticamente inválido (revalidação com
+  // `isValidEmail`, seção 4): mantém a edição aberta em vez de confirmar.
+  const [erroEdicaoEmail, setErroEdicaoEmail] = useState(false);
+  const inputEdicaoRef = useRef<HTMLInputElement | null>(null);
 
   // Há registros selecionados no momento (usado tanto pelos hooks abaixo
   // quanto na renderização) — precisa vir antes dos hooks que dependem dela.
@@ -127,6 +244,24 @@ export function EmailTable({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
+
+  // Ao entrar em edição de uma célula (Etapa 4), leva o foco ao `<input>` e
+  // já seleciona o conteúdo — evita um clique extra para o usuário limpar o
+  // valor antigo antes de digitar o novo. `requestAnimationFrame` garante
+  // que o input já esteja montado no DOM antes de focar (mesmo padrão do
+  // select de atualização em massa, acima).
+  useEffect(() => {
+    if (!edicaoCelula) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const input = inputEdicaoRef.current;
+      if (!input) return;
+      input.focus();
+      input.select();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [edicaoCelula]);
 
   // Ao abrir o select de atualização em massa, leva o foco a ele e já
   // dispara o dropdown nativo (`showPicker`, quando suportado) — evita um
@@ -202,6 +337,132 @@ export function EmailTable({
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setColunaCopiada(coluna);
     timeoutRef.current = setTimeout(() => setColunaCopiada(null), DURACAO_FEEDBACK_COPIA_MS);
+  }
+
+  /** Entra em modo de edição da célula de `nome`/`email` de um registro (Etapa 4). */
+  function iniciarEdicaoCelula(registro: EmailRecord, campo: TCampoEditavel) {
+    setEdicaoCelula({ id: registro.id, campo });
+    setValorEdicao(registro[campo]);
+    setErroEdicaoEmail(false);
+  }
+
+  /** Sai do modo de edição sem persistir nada — usado pelo Esc (reversão, seção 2). */
+  function cancelarEdicaoCelula() {
+    setEdicaoCelula(null);
+    setErroEdicaoEmail(false);
+  }
+
+  /**
+   * Confirma a edição em andamento (blur ou Enter, seção 2): valida,
+   * captura em `backup_dados` via `capturarEdicaoCampo` (Etapa 3) e propaga
+   * o registro atualizado para `onEditarCampo` (que persiste via
+   * `persistirRegistros`, `emails.tsx`). Recebe o `registro` da linha
+   * (e não só o id) para não depender de reler `registros` por índice.
+   *
+   * - Valor idêntico ao atual (inclusive só espaços a mais): encerra a
+   *   edição silenciosamente, sem capturar nem persistir — não é uma
+   *   correção de fato.
+   * - `email` sintaticamente inválido (`isValidEmail`): mantém a edição
+   *   aberta, sinalizando o erro, em vez de confirmar (seção 4/Teste 2).
+   * - Valor vazio (após trim): mesmo tratamento de "sem correção" acima —
+   *   apagar um nome/e-mail por engano ao editar não é uma correção válida.
+   */
+  function confirmarEdicaoCelula(registro: EmailRecord) {
+    if (!edicaoCelula) return;
+    const { campo } = edicaoCelula;
+    const valorFinal = valorEdicao.trim();
+
+    if (valorFinal === '' || valorFinal === registro[campo]) {
+      cancelarEdicaoCelula();
+      return;
+    }
+
+    if (campo === 'email' && !isValidEmail(valorFinal)) {
+      setErroEdicaoEmail(true);
+      return;
+    }
+
+    const registroAtualizado = capturarEdicaoCampo(registro, campo, valorFinal);
+    onEditarCampo?.(registroAtualizado, campo);
+    cancelarEdicaoCelula();
+  }
+
+  /**
+   * Renderiza a célula de `nome`/`email` de um registro (Etapa 4): texto
+   * estático por padrão, vira `<input>` ao clicar, no mesmo espírito do
+   * stepper de tamanho de fonte do editor (`EmailEditorToolbar.tsx`). Sem
+   * `onEditarCampo`, a célula permanece somente leitura (mesmo padrão
+   * condicional de `renderStatus` sobre `onAtualizarStatusIndividual`).
+   */
+  function renderCelulaEditavel(registro: EmailRecord, campo: TCampoEditavel) {
+    const emEdicao = edicaoCelula?.id === registro.id && edicaoCelula.campo === campo;
+
+    if (!emEdicao) {
+      return (
+        <span
+          className={`celula-editavel ${onEditarCampo ? '' : 'celula-editavel-desabilitada'}`}
+          onClick={() => onEditarCampo && iniciarEdicaoCelula(registro, campo)}
+          title={onEditarCampo ? `Clique para editar o ${campo}` : undefined}
+        >
+          {registro[campo]}
+        </span>
+      );
+    }
+
+    return (
+      <input
+        ref={inputEdicaoRef}
+        type="text"
+        className={`input-edicao-inline ${erroEdicaoEmail ? 'input-edicao-invalido' : ''}`}
+        value={valorEdicao}
+        onChange={(evento) => {
+          setValorEdicao(evento.target.value);
+          if (erroEdicaoEmail) setErroEdicaoEmail(false);
+        }}
+        onBlur={() => confirmarEdicaoCelula(registro)}
+        onKeyDown={(evento) => {
+          if (evento.key === 'Enter') {
+            evento.preventDefault();
+            confirmarEdicaoCelula(registro);
+          } else if (evento.key === 'Escape') {
+            evento.preventDefault();
+            cancelarEdicaoCelula();
+          }
+        }}
+        aria-label={`Editar ${campo} do registro ${registro.id}`}
+        aria-invalid={erroEdicaoEmail || undefined}
+        title={erroEdicaoEmail ? 'E-mail inválido — corrija ou pressione Esc para cancelar' : undefined}
+      />
+    );
+  }
+
+  /**
+   * Clique no botão "Restaurar" de uma linha (Etapa 6, `td-acoes`): decide
+   * entre restaurar direto ou delegar a escolha ao modal de conflito,
+   * conforme a seção 4 do planner (o botão só é renderizado, mais abaixo,
+   * quando `backup_dados` do registro já tem ao menos 1 chave — chamar esta
+   * função com um registro sem `backup_dados` não deveria acontecer, mas a
+   * checagem é mantida como salvaguarda).
+   *
+   * - **1 chave em `backup_dados`:** `restaurarCampos` (Etapa 5) resolve
+   *   tudo de uma vez — o registro já atualizado segue direto para
+   *   `onRestaurarCampos`, sem abrir modal.
+   * - **2+ chaves:** repassa o registro e a lista de campos disponíveis
+   *   para `onAbrirConflitoRestaurarCampos`, que vai renderizar o modal de
+   *   escolha (Etapa 7).
+   */
+  function handleClicarRestaurarLinha(registro: EmailRecord) {
+    if (!registro.backup_dados) return;
+    const camposDisponiveis = Object.keys(registro.backup_dados) as TCampoRestauravel[];
+    if (camposDisponiveis.length === 0) return;
+
+    if (camposDisponiveis.length === 1) {
+      const registroAtualizado = restaurarCampos(registro, camposDisponiveis);
+      onRestaurarCampos?.(registroAtualizado, camposDisponiveis);
+      return;
+    }
+
+    onAbrirConflitoRestaurarCampos?.(registro, camposDisponiveis);
   }
 
   /**
@@ -458,10 +719,25 @@ export function EmailTable({
                 />
               </td>
               <td>{registro.id}</td>
-              <td>{registro.nome}</td>
-              <td>{registro.email}</td>
+              <td>{renderCelulaEditavel(registro, 'nome')}</td>
+              <td>{renderCelulaEditavel(registro, 'email')}</td>
               <td>{renderStatus(registro)}</td>
-              <td className="td-acoes" />
+              <td className="td-acoes">
+                {onRestaurarCampos &&
+                  registro.backup_dados &&
+                  Object.keys(registro.backup_dados).length > 0 && (
+                    <button
+                      type="button"
+                      className={`botao-restaurar-linha ${selecionados.has(registro.id) ? '' : 'botao-restaurar-linha-invisivel'
+                        }`}
+                      onClick={() => handleClicarRestaurarLinha(registro)}
+                      title="Restaurar valor(es) original(is) deste registro"
+                      aria-label={`Restaurar valores originais do registro ${registro.id}`}
+                    >
+                      <IconeRestaurar />
+                    </button>
+                  )}
+              </td>
             </tr>
           );
         })}

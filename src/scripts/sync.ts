@@ -157,7 +157,7 @@ function syncRecords(sheetRows: ReturnType<typeof readSheet>, existing: EmailRec
 
     if (existingRecord) {
       // Registro existente: atualiza apenas nome/e-mail vindos da planilha.
-      // Preserva status, status_alterado e demais campos manuais.
+      // Preserva status, backup_dados e demais campos manuais.
       const changed = existingRecord.nome !== nome || existingRecord.email !== email;
       existingRecord.nome = nome;
       existingRecord.email = email;
@@ -166,13 +166,13 @@ function syncRecords(sheetRows: ReturnType<typeof readSheet>, existing: EmailRec
         updated++;
       }
     } else {
-      // Novo registro.
+      // Novo registro. Nasce sem `backup_dados` — nenhum campo foi
+      // alterado manualmente ainda.
       const novo: EmailRecord = {
         id,
         nome,
         email,
         status: 'válido', // provisório; recalculado logo abaixo
-        status_alterado: false,
         last_updated: now,
       };
       byId.set(id, novo);
@@ -202,9 +202,9 @@ function applyStatusRules(records: EmailRecord[]): EmailRecord[] {
   }
 
   for (const record of records) {
-    // status_alterado = true → status definido manualmente, nunca
+    // backup_dados?.status === true → status definido manualmente, nunca
     // recalculado automaticamente durante a sincronização (seção 2.3 / 5.3).
-    if (record.status_alterado) continue;
+    if (record.backup_dados?.status) continue;
 
     const emailValid = !!record.email && isValidEmail(record.email);
     const isDuplicate = emailValid && (groupSizeByEmail.get(normalizeEmail(record.email)) ?? 0) > 1;

@@ -13,23 +13,26 @@
       "nome": "Ana Souza",
       "email": "ana.souza1@exemplo.com",
       "status": "enviado",
-      "status_alterado": true,
-      "last_updated": "2026-07-22T13:57:17.307Z"
+      "last_updated": "2026-07-22T13:57:17.307Z",
+      "backup_dados": {
+        "status": true
+      }
     },
     {
       "id": 2,
       "nome": "Bruno Lima",
       "email": "bruno.lima2@exemplo.com",
       "status": "inválido",
-      "status_alterado": true,
-      "last_updated": "2026-08-25T11:54:09.906Z"
+      "last_updated": "2026-08-25T11:54:09.906Z",
+      "backup_dados": {
+        "status": true
+      }
     },
     {
       "id": 3,
       "nome": "Carla Mendes",
       "email": "carla.mendes3@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -37,7 +40,6 @@
       "nome": "Diego Alves",
       "email": "diego.alves4@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -45,7 +47,6 @@
       "nome": "Eduarda Rocha",
       "email": "eduarda.rocha5@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -53,7 +54,6 @@
       "nome": "Felipe Costa",
       "email": "felipe.costa6@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -61,7 +61,6 @@
       "nome": "Gabriela Dias",
       "email": "gabriela.dias7@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -69,7 +68,6 @@
       "nome": "Henrique Melo",
       "email": "henrique.melo8@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -77,7 +75,6 @@
       "nome": "Isabela Ramos",
       "email": "isabela.ramos9@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -85,7 +82,6 @@
       "nome": "João Pedro",
       "email": "joao.pedro10@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -93,7 +89,6 @@
       "nome": "Karina Silva",
       "email": "karina.silva11@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -101,7 +96,6 @@
       "nome": "Lucas Ferreira",
       "email": "lucas.ferreira12@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -109,7 +103,6 @@
       "nome": "Mariana Torres",
       "email": "mariana.torres13@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -117,7 +110,6 @@
       "nome": "Nicolas Barros",
       "email": "nicolas.barros14@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -125,7 +117,6 @@
       "nome": "Olívia Cardoso",
       "email": "olivia.cardoso15@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -133,7 +124,6 @@
       "nome": "Pedro Nunes",
       "email": "pedro.nunes16@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -141,7 +131,6 @@
       "nome": "Queila Freitas",
       "email": "queila.freitas17@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -149,7 +138,6 @@
       "nome": "Rafael Pinto",
       "email": "rafael.pinto18@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -157,7 +145,6 @@
       "nome": "Sabrina Castro",
       "email": "sabrina.castro19@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -165,7 +152,6 @@
       "nome": "Thiago Moreira",
       "email": "thiago.moreira20@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -173,7 +159,6 @@
       "nome": "Ursula Prado",
       "email": "ursula.prado21@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -181,7 +166,6 @@
       "nome": "Vitor Hugo",
       "email": "vitor.hugo22@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -189,7 +173,6 @@
       "nome": "Wesley Batista",
       "email": "wesley.batista23@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -197,7 +180,6 @@
       "nome": "Xênia Vieira",
       "email": "xenia.vieira24@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -205,7 +187,6 @@
       "nome": "Yasmin Duarte",
       "email": "yasmin.duarte25@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -213,7 +194,6 @@
       "nome": "Zeca Andrade",
       "email": "zeca.andrade26@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -221,7 +201,6 @@
       "nome": "Amanda Farias",
       "email": "amanda.farias27@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -229,7 +208,6 @@
       "nome": "Bernardo Teles",
       "email": "bernardo.teles28@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -237,7 +215,6 @@
       "nome": "Camila Reis",
       "email": "camila.reis29@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -245,7 +222,6 @@
       "nome": "Daniel Xavier",
       "email": "daniel.xavier30@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -253,7 +229,6 @@
       "nome": "Elaine Brito",
       "email": "elaine.brito31@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -261,7 +236,6 @@
       "nome": "Fábio Guedes",
       "email": "fabio.guedes32@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -269,7 +243,6 @@
       "nome": "Giovana Peixoto",
       "email": "giovana.peixoto33@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -277,7 +250,6 @@
       "nome": "Hugo Marques",
       "email": "hugo.marques34@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -285,7 +257,6 @@
       "nome": "Inês Coutinho",
       "email": "ines.coutinho35@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -293,7 +264,6 @@
       "nome": "Julio Sales",
       "email": "julio.sales36@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -301,7 +271,6 @@
       "nome": "Kelly Nogueira",
       "email": "kelly.nogueira37@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -309,7 +278,6 @@
       "nome": "Leonardo Assis",
       "email": "leonardo.assis38@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -317,7 +285,6 @@
       "nome": "Marina Tavares",
       "email": "marina.tavares39@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -325,7 +292,6 @@
       "nome": "Otávio Correia",
       "email": "otavio.correia40@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -333,7 +299,6 @@
       "nome": "Paula Siqueira",
       "email": "paula.siqueira41@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -341,7 +306,6 @@
       "nome": "Renato Aguiar",
       "email": "renato.aguiar42@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -349,7 +313,6 @@
       "nome": "Simone Bezerra",
       "email": "simone.bezerra43@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -357,7 +320,6 @@
       "nome": "Tarcísio Leal",
       "email": "tarcisio.leal44@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -365,7 +327,6 @@
       "nome": "Valentina Gama",
       "email": "valentina.gama45@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -373,7 +334,6 @@
       "nome": "William Cunha",
       "email": "william.cunha46@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -381,7 +341,6 @@
       "nome": "Ximena Rocha",
       "email": "ximena.rocha47@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -389,7 +348,6 @@
       "nome": "Yago Pimentel",
       "email": "yago.pimentel48@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -397,7 +355,6 @@
       "nome": "Zilda Monteiro",
       "email": "zilda.monteiro49@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -405,7 +362,6 @@
       "nome": "Alice Bastos",
       "email": "alice.bastos50@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -413,7 +369,6 @@
       "nome": "Caio Moura",
       "email": "caio.moura51@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -421,7 +376,6 @@
       "nome": "Débora Sant'Anna",
       "email": "debora.sant'anna52@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -429,7 +383,6 @@
       "nome": "Emerson Vaz",
       "email": "emerson.vaz53@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -437,7 +390,6 @@
       "nome": "Fernanda Lacerda",
       "email": "fernanda.lacerda54@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -445,7 +397,6 @@
       "nome": "Guilherme Pontes",
       "email": "guilherme.pontes55@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -453,7 +404,6 @@
       "nome": "Heloísa Braga",
       "email": "heloisa.braga56@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -461,7 +411,6 @@
       "nome": "Igor Salgado",
       "email": "igor.salgado57@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -469,7 +418,6 @@
       "nome": "Jaqueline Rêgo",
       "email": "jaqueline.rego58@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -477,7 +425,6 @@
       "nome": "Kauê Medeiros",
       "email": "kaue.medeiros59@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -485,7 +432,6 @@
       "nome": "Larissa Fagundes",
       "email": "larissa.fagundes60@exemplo.com",
       "status": "válido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.753Z"
     },
     {
@@ -493,7 +439,6 @@
       "nome": "Marcos Vinicius (1)",
       "email": "marcos.vinicius@dominio.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-22T13:57:04.879Z"
     },
     {
@@ -501,7 +446,6 @@
       "nome": "Marcos Vinicius (2)",
       "email": "MARCOS.VINICIUS@DOMINIO.COM",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-22T13:57:04.879Z"
     },
     {
@@ -509,7 +453,6 @@
       "nome": "Marcos Vinicius (3)",
       "email": "marcos.vinicius@dominio.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-22T13:57:04.879Z"
     },
     {
@@ -517,7 +460,6 @@
       "nome": "Patrícia Gonçalves (1)",
       "email": "patricia.goncalves@dominio.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -525,7 +467,6 @@
       "nome": "Patrícia Gonçalves (2)",
       "email": "PATRICIA.GONCALVES@DOMINIO.COM",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -533,7 +474,6 @@
       "nome": "Patrícia Gonçalves (3)",
       "email": "patricia.goncalves@dominio.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -541,7 +481,6 @@
       "nome": "Rodrigo Sampaio (1)",
       "email": "rodrigo.sampaio@dominio.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -549,7 +488,6 @@
       "nome": "Rodrigo Sampaio (2)",
       "email": "RODRIGO.SAMPAIO@DOMINIO.COM",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -557,7 +495,6 @@
       "nome": "Rodrigo Sampaio (3)",
       "email": "rodrigo.sampaio@dominio.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -565,7 +502,6 @@
       "nome": "Cíntia Ferraz (1)",
       "email": "cintia.ferraz@dominio.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -573,7 +509,6 @@
       "nome": "Cíntia Ferraz (2)",
       "email": "CINTIA.FERRAZ@DOMINIO.COM",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -581,7 +516,6 @@
       "nome": "Cíntia Ferraz (3)",
       "email": "cintia.ferraz@dominio.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -589,7 +523,6 @@
       "nome": "Anderson Prado (1)",
       "email": "anderson.prado@dominio.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -597,7 +530,6 @@
       "nome": "Anderson Prado (2)",
       "email": "ANDERSON.PRADO@DOMINIO.COM",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -605,7 +537,6 @@
       "nome": "Anderson Prado (3)",
       "email": "anderson.prado@dominio.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -613,7 +544,6 @@
       "nome": "Beatriz Nascimento (1)",
       "email": "beatriz.nascimento@corp.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -621,7 +551,6 @@
       "nome": "Beatriz Nascimento (2)",
       "email": "BEATRIZ.NASCIMENTO@CORP.COM",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -629,7 +558,6 @@
       "nome": "Fabrício Andrade (1)",
       "email": "fabricio.andrade@corp.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -637,7 +565,6 @@
       "nome": "Fabrício Andrade (2)",
       "email": "FABRICIO.ANDRADE@CORP.COM",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -645,7 +572,6 @@
       "nome": "Juliana Prado (1)",
       "email": "juliana.prado@corp.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -653,7 +579,6 @@
       "nome": "Juliana Prado (2)",
       "email": "JULIANA.PRADO@CORP.COM",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -661,7 +586,6 @@
       "nome": "Sérgio Nakamura (1)",
       "email": "sergio.nakamura@corp.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -669,7 +593,6 @@
       "nome": "Sérgio Nakamura (2)",
       "email": "SERGIO.NAKAMURA@CORP.COM",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -677,7 +600,6 @@
       "nome": "Vanessa Righi (1)",
       "email": "vanessa.righi@corp.com",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -685,7 +607,6 @@
       "nome": "Vanessa Righi (2)",
       "email": "VANESSA.RIGHI@CORP.COM",
       "status": "duplicado",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -693,7 +614,6 @@
       "nome": "Sem Arroba",
       "email": "semarrobadominio.com",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -701,7 +621,6 @@
       "nome": "Sem Dominio",
       "email": "usuario@dominiosemponto",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -709,7 +628,6 @@
       "nome": "Espaco No Meio",
       "email": "nome sobrenome@dominio.com",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -717,7 +635,6 @@
       "nome": "Email Vazio",
       "email": "",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -725,7 +642,6 @@
       "nome": "Somente Arroba Dominio",
       "email": "@dominio.com",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -733,7 +649,6 @@
       "nome": "Sem Dominio Apos Arroba",
       "email": "usuario@",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -741,7 +656,6 @@
       "nome": "Arroba Duplo",
       "email": "usuario@@dominio.com",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -749,7 +663,6 @@
       "nome": "Ponto Final Sem Extensao",
       "email": "usuario@dominio.",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -757,7 +670,6 @@
       "nome": "Texto Puro",
       "email": "istoNaoEUmEmail",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -765,7 +677,6 @@
       "nome": "Somente Numeros",
       "email": "123456789",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -773,7 +684,6 @@
       "nome": "Espaco Antes Arroba",
       "email": "usuario @dominio.com",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -781,7 +691,6 @@
       "nome": "Dominio So Ponto",
       "email": "usuario@.",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -789,7 +698,6 @@
       "nome": "Multiplos Espacos",
       "email": "",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -797,7 +705,6 @@
       "nome": "Sem Usuario V2",
       "email": "@outrodominio.com",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     },
     {
@@ -805,7 +712,6 @@
       "nome": "Caracteres Invalidos",
       "email": "usuário#dominio,com",
       "status": "inválido",
-      "status_alterado": false,
       "last_updated": "2026-07-15T12:52:47.755Z"
     }
   ],

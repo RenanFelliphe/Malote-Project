@@ -26,18 +26,19 @@ export function normalizeEmail(email: string): string {
 
 /**
  * Recalcula o status "automático" (válido / inválido / duplicado) de todos
- * os registros cujo `status_alterado` seja `false`, respeitando a prioridade
- * da seção 5.2 (não há "enviado"/"deletado" automáticos — esses só existem
- * via ação manual, portanto aqui a disputa é apenas entre duplicado e
- * válido/inválido). Registros com `status_alterado = true` são preservados
- * sem alteração — enquanto esse atributo for verdadeiro, o status não pode
- * ser recalculado automaticamente (seção 5.3).
+ * os registros cuja `backup_dados?.status` seja ausente/`false`, respeitando
+ * a prioridade da seção 5.2 (não há "enviado"/"deletado" automáticos — esses
+ * só existem via ação manual, portanto aqui a disputa é apenas entre
+ * duplicado e válido/inválido). Registros com `backup_dados?.status === true`
+ * são preservados sem alteração — enquanto essa chave estiver presente, o
+ * status não pode ser recalculado automaticamente (seção 5.3).
  *
  * Usada:
  * - pelo script de sincronização (Etapa 2), sobre todos os registros;
- * - pela ação "Restaurar" da interface (Etapa 5), depois de zerar
- *   `status_alterado` do(s) registro(s) restaurado(s) — o registro "volta a
- *   ser processado normalmente pelo sistema", conforme a especificação.
+ * - pela ação "Restaurar" da interface (Etapa 5), depois de remover
+ *   `backup_dados.status` do(s) registro(s) restaurado(s) — o registro
+ *   "volta a ser processado normalmente pelo sistema", conforme a
+ *   especificação.
  *
  * Não muta `records`; retorna um novo array.
  */
@@ -45,7 +46,7 @@ export function recalcularStatusAutomatico(records: EmailRecord[]): EmailRecord[
   const now = new Date().toISOString();
 
   // Agrupa por e-mail normalizado, considerando os registros com e-mail
-  // sintaticamente válido — independentemente de status_alterado, pois
+  // sintaticamente válido — independentemente de backup_dados?.status, pois
   // pertencer a um grupo duplicado é um fato sobre os dados, e não depende
   // de o registro em si poder ou não ser recalculado. Registros
   // "deletado" ficam de fora da contagem: um registro deletado não deve
@@ -54,26 +55,26 @@ export function recalcularStatusAutomatico(records: EmailRecord[]): EmailRecord[
   //
   // IMPORTANTE: só é considerado "deletado" para fins de contagem o
   // registro que *permanecerá* deletado após este recálculo, isto é,
-  // aquele com `status === 'deletado' && status_alterado === true`.
+  // aquele com `status === 'deletado' && backup_dados?.status === true`.
   // "deletado" é um status manual (só existe via ação explícita, sempre
-  // acompanhado de status_alterado = true). Quando a ação "Restaurar" zera
-  // `status_alterado` de um registro, ela não altera o campo `status`
-  // (que continua "deletado" até este recálculo decidir o novo valor); se
-  // a contagem do grupo usasse apenas `r.status === 'deletado'`, o próprio
-  // registro restaurado seria excluído da contagem de duplicados — mesmo
-  // estando prestes a voltar a ficar ativo — subestimando o tamanho real
-  // do grupo e permitindo que vários registros com o mesmo e-mail
+  // acompanhado de `backup_dados.status = true`). Quando a ação "Restaurar"
+  // remove `backup_dados.status` de um registro, ela não altera o campo
+  // `status` (que continua "deletado" até este recálculo decidir o novo
+  // valor); se a contagem do grupo usasse apenas `r.status === 'deletado'`,
+  // o próprio registro restaurado seria excluído da contagem de duplicados
+  // — mesmo estando prestes a voltar a ficar ativo — subestimando o tamanho
+  // real do grupo e permitindo que vários registros com o mesmo e-mail
   // voltassem todos como "válido" simultaneamente.
   const groupSizeByEmail = new Map<string, number>();
   for (const r of records) {
     if (!r.email || !isValidEmail(r.email)) continue;
-    if (r.status === 'deletado' && r.status_alterado) continue;
+    if (r.status === 'deletado' && r.backup_dados?.status) continue;
     const key = normalizeEmail(r.email);
     groupSizeByEmail.set(key, (groupSizeByEmail.get(key) ?? 0) + 1);
   }
 
   return records.map((record) => {
-    if (record.status_alterado) return record;
+    if (record.backup_dados?.status) return record;
 
     const emailValid = !!record.email && isValidEmail(record.email);
     const isDuplicate = emailValid && (groupSizeByEmail.get(normalizeEmail(record.email)) ?? 0) > 1;

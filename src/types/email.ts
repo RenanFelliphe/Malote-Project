@@ -64,10 +64,36 @@ export interface EmailRecord {
   email: string;
   status: TStatus;
   /**
-   * Indica que o status foi definido manualmente pelo usuário.
-   * Enquanto `true`, a sincronização não deve recalcular o status automaticamente.
+   * Modelo unificado de proteção contra sobrescrita manual (ver
+   * `EdicaoIndividualdeRegistro.md`, seção 3). Substitui o antigo
+   * `status_alterado` (booleano), generalizando o mesmo mecanismo para
+   * `nome` e `email` além de `status`.
+   *
+   * Regra de captura ("primeira alteração vence", por campo,
+   * independentemente): ao editar `nome`/`email` manualmente pela primeira
+   * vez, a chave correspondente recebe o valor **anterior à edição** (que
+   * nesse momento ainda é o valor vindo da planilha); edições seguintes do
+   * mesmo campo não alteram a chave já capturada.
+   *
+   * A presença de uma chave aqui já funciona como trava de proteção contra
+   * sobrescrita numa sincronização futura — não há booleano adicional por
+   * campo.
+   *
+   * Restauração (assimétrica por design):
+   * - `nome`/`email`: o valor capturado é escrito de volta literalmente.
+   * - `status`: a chave é apenas removida e `recalcularStatusAutomatico`
+   *   é disparado — o valor `true` armazenado nunca é lido como valor de
+   *   status em si, só como marcação de proteção (mesmo papel que
+   *   `status_alterado = true` cumpria antes).
    */
-  status_alterado: boolean;
+  backup_dados?: {
+    /** Valor original da planilha para `nome`, capturado na primeira edição manual. */
+    nome?: string;
+    /** Valor original da planilha para `email`, capturado na primeira edição manual. */
+    email?: string;
+    /** `true` = status foi alterado manualmente (mesmo papel de `status_alterado` antigo). Nunca lido como valor de status. */
+    status?: boolean;
+  };
   /** Data/hora ISO da última alteração persistida neste registro. */
   last_updated: string;
 }
