@@ -2,7 +2,7 @@
 
 > Este documento reúne as demandas levantadas para evolução do sistema, além da especificação já formalizada em `Especificacao_Sistema_Emails_v3.md`. Diferente da especificação (que descreve o que **já foi decidido e está pronto para ser implementado**), este arquivo registra objetivos e ideias em diferentes estágios de maturidade — desde melhorias pontuais até a visão de longo prazo do projeto — para que não se percam entre uma conversa e outra.
 >
-> As demandas estão organizadas na ordem recomendada de execução (não pela numeração de identificação, que é fixa e não muda): **5 → 3 → 4 → 2 → 6 → 1**.
+> As demandas estão organizadas na ordem recomendada de execução (não pela numeração de identificação, que é fixa e não muda): **5 → 3 → 7 → 4 → 2 → 6 → 1**.
 
 ## Como usar este documento
 
@@ -63,7 +63,8 @@ Tabela viva: toda demanda já levantada tem uma linha aqui, mesmo depois de remo
 | # | Demanda | Status | Esforço | Depende de | Bloqueia |
 |---|---|---|---|---|---|
 | 5 | Edição Individual de Registro | Mapeado | Dias | — | 3 (novo requisito: conflito de sync) |
-| 3 | Atualizar Planilha via UI | Registrado | Dias | 5 (modelo `backup_dados`) | — |
+| 3 | Atualizar Planilha via UI | Mapeado | Dias | 5 (modelo `backup_dados`) | — |
+| 7 | Mapeamento de ID Personalizado | Registrado | Horas–dias | — | — |
 | 4 | Histórico de Alterações | Registrado | Horas–dias (versão simples) | — | — |
 | 2 | Variáveis no Texto (merge tags) | Registrado | Dias | — | 1 (para "fechar o ciclo") |
 | 6 | Armazenamento Duplo (Banco + Local) | Registrado | Semanas | — | 1 (recomendado) |
@@ -206,7 +207,7 @@ Em ambos os casos, ao confirmar a escolha, a restauração de cada campo selecio
 
 ## Demanda 3 — Atualizar Planilha via UI
 
-**Status:** Registrado
+**Status:** Mapeado
 **Esforço estimado:** Dias
 **Depende de:** Demanda 5 (o fluxo de conflito depende do modelo `backup_dados` existir)
 **Bloqueia:** —
@@ -215,78 +216,215 @@ Em ambos os casos, ao confirmar a escolha, a restauração de cada campo selecio
 
 O botão "Atualizar planilha" já existe visualmente no menu de configurações (`Header.tsx`), mas está desabilitado (`disabled`, título "Em breve"). A lógica de sincronizar por `id` já existe inteira em `sync.ts` — hoje só roda via terminal (Node), fora do navegador.
 
-Com a Demanda 5, essa reimportação ganha uma complicação nova: registros podem ter campos protegidos manualmente (`backup_dados`). Reimportar sem tratar isso sobrescreveria correções manuais silenciosamente — o que é exatamente o problema que a Demanda 5 foi desenhada para evitar. Por isso, esta demanda passa a incluir também a resolução desse conflito.
+Com a Demanda 5, essa reimportação ganha uma complicação nova: registros podem ter campos protegidos manualmente (`backup_dados`). Reimportar sem tratar isso sobrescreveria correções manuais silenciosamente — o que é exatamente o problema que a Demanda 5 foi desenhada para evitar.
+
+No destrinchamento desta demanda, o escopo original ("reimportar planilha, resolver conflito de `backup_dados`") se dividiu em dois fluxos com naturezas diferentes:
+
+- **Atualizar Registros** — o que a demanda original cobria: reimportar uma planilha nova para atualizar os *valores* dos registros (nome, e-mail, presença/ausência).
+- **Atualizar Dados** — fluxo novo: corrigir os *metadados* do projeto (nome, mapeamento de colunas), sem depender de o usuário ter a planilha original à mão outra vez.
+
+O segundo fluxo só é viável porque esta demanda passa a exigir uma mudança de modelo de dados: **a planilha bruta enviada passa a ser persistida junto ao projeto**, não só o `EmailRecord[]` já processado.
 
 ### Escopo
 
 **Cobre:**
-- Reimportar uma planilha para um projeto **já existente**, sincronizando por `id` (mesma regra de `sync.ts`: novos registros são adicionados, existentes têm nome/e-mail/status recalculados quando não protegidos).
-- Pré-visualização da planilha antes de confirmar a reimportação (reaproveitando `parseSheetBrowser.ts`, já usado no wizard de importação).
-- **Detecção de conflito por registro:** para cada registro existente com `backup_dados` não vazio, comparar campo a campo o valor vindo da planilha com o valor atual protegido. Se houver divergência em algum campo protegido, o registro entra numa lista de conflitos em vez de ser atualizado automaticamente.
-- **Modal de resolução de conflitos de sincronização:** lista os registros conflitantes, permitindo, por registro, escolher entre manter o valor manual (protegido) ou aceitar o novo valor vindo da planilha.
-- Registros sem nenhum `backup_dados` continuam sendo atualizados normalmente, sem passar pelo modal — o conflito só existe onde há proteção manual.
-- Feedback de resultado ao final: quantos registros foram adicionados, atualizados automaticamente, e quantos passaram por resolução de conflito.
-- **Resolução em massa no modal de conflito:** além da escolha por registro, vale oferecer atalhos tipo "Manter todos os valores manuais" / "Aceitar todos os valores da planilha", no mesmo espírito do "Selecionar Todos" já usado nos outros modais de conflito do sistema (`DeleteConflictContent`)? Recomenda-se que sim, mas fica como decisão a confirmar antes da Etapa 5.
+- Botão "Atualizar Planilha" no `Header.tsx` deixa de estar desabilitado e vira um dropdown com duas opções: **Atualizar Registros** e **Atualizar Dados**.
+- **Persistência do arquivo bruto da planilha** (`sheet.<ext>`) na pasta de dados do projeto, ao lado de `emails.json`. Gravado na criação do projeto (sem alterar o fluxo atual do `ImportWizardModal`, só adicionando essa gravação) e **sobrescrito a cada reimportação bem-sucedida** via "Atualizar Registros" — o arquivo persistido sempre reflete a última planilha usada para aquele projeto.
+- **Fluxo "Atualizar Registros":** seletor de arquivo → modal com resumo inicial (mesmo modelo do resumo final do `EtapaRevisao`: nome do projeto, URL, total de registros, e-mails válidos/inválidos/duplicados, registros atualizados, tamanho do arquivo) → seções de conflito condicionais (só aparecem as que tiverem pelo menos 1 ocorrência) → resumo final.
+- **Fluxo "Atualizar Dados":** modal único com 3 seções — (1) dados do projeto (nome, nome do arquivo — ao salvar, se o nome do projeto mudou, recalcula o slug e redireciona para a nova rota, reaproveitando a checagem de unicidade já usada em `ConflitoRestauracaoModal`); (2) remapeamento de colunas nome/e-mail, reaproveitando a estrutura visual do `EtapaMapeamento` (duas colunas + seleção de prioridade quando há mais de uma coluna candidata por atributo), reprocessando o `sheet.<ext>` já persistido — **sem exigir novo upload**. Ao confirmar, `applyStatusRules` é **reexecutado sobre a base inteira** com os valores de nome/e-mail recalculados pela nova seleção de colunas — duplicados que passam a existir (ou deixam de existir) por causa do remapeamento são recalculados silenciosamente, do mesmo jeito que qualquer outro recálculo de duplicado no sistema hoje, sem gerar seção de conflito própria; (3) resumo.
+- **Motor de merge único, compartilhado pelos dois fluxos** (com um subconjunto de tipos de conflito habilitado por chamador — ver tabela de aplicabilidade abaixo), reaproveitando `applyStatusRules` para o recálculo de válido/inválido/duplicado depois do merge.
+- Taxonomia final de conflitos (ver seção própria abaixo) e sua ordem de resolução em cascata dentro do wizard.
+- Feedback consolidado ao final de cada fluxo (adicionados, atualizados automaticamente, resolvidos manualmente, ignorados) e recarga dos dados do projeto na tela.
 
 **Não cobre nesta fase:**
-- Criar um projeto novo a partir desse fluxo (isso já existe via `ImportWizardModal`) — esta demanda é só para projeto já aberto.
-- Desfazer uma reimportação (relacionado à Demanda 4, mas não obrigatório aqui).
-- Detecção automática de mudança de estrutura de colunas (mesmo comportamento de `identifyColumns.ts` hoje: falha se não achar coluna de e-mail).
+- Mapeamento de ID personalizado (coluna de ID customizável no mapeamento) — foi retirado do escopo original de "Atualizar Dados > Colunas" e virou a **Demanda 7**, para nascer ao mesmo tempo no wizard de importação e neste fluxo de atualização, em vez de aparecer primeiro só aqui.
+- Criar um projeto novo a partir deste fluxo (já existe via `ImportWizardModal`) — esta demanda é só para projeto já aberto.
+- Desfazer uma reimportação ou uma atualização de dados (relacionado à Demanda 4, não obrigatório aqui).
+- Detecção/resolução de duplicados como conflito de sincronização — duplicado continua sendo um estado calculado e resolvido depois, na tabela normal (`EmailTable`), não dentro do modal de conflito desta demanda.
+- Refatoração do `ConflictDialog` — está ruim hoje, mas fica registrado como débito técnico para não inflar o escopo desta demanda; o novo componente de merge (`MergeCampoConflito`) nasce à parte, sem depender de reformar o casco existente primeiro.
 
-### Decisões em aberto
+### Modelo de dados
 
-- **Conflito em `status`:** um registro pode ter `backup_dados.status = true` (status alterado manualmente) sem que a sincronização normalmente mexesse nisso — `applyStatusRules` já ignora registros protegidos. Confirmar se `status` deveria sequer entrar na lista de possíveis conflitos desta demanda, já que ele não é recalculado a partir da planilha (só `nome`/`email` vêm da planilha; `status` é derivado). Provavelmente o conflito de sync só se aplica a `nome`/`email` — `status` fica de fora por natureza.
+Pasta de dados de cada projeto passa a conter dois arquivos, em vez de um:
+
+```
+data/active/<slug>/
+  emails.json     # já existe hoje — EmailRecord[] processado
+  sheet.<ext>      # novo — a planilha bruta mais recente (csv, xlsx, etc.)
+```
+
+- Gravado pela primeira vez no fluxo de criação (`ImportWizardModal`), sem mudança de comportamento visível para o usuário nesse fluxo.
+- Sobrescrito a cada reimportação bem-sucedida via **Atualizar Registros**.
+- **Não** é alterado por **Atualizar Dados > Colunas** — remapear colunas é reinterpretar o mesmo arquivo já salvo, não uma reimportação de dados novos.
+
+### Taxonomia final de conflitos
+
+| # | Tipo | Gatilho | Precisa de decisão do usuário? | UI |
+|---|---|---|---|---|
+| 1 | **Atributo alterado** | `backup_dados.nome` ou `backup_dados.email` presente **e** o valor vindo da planilha diverge do valor protegido atual | Sim | Merge theirs/ours |
+| 2 | **Status alterado (automático)** | Recálculo normal (`applyStatusRules`) faria um registro **não protegido** trocar de válido↔inválido | Não — é só o recálculo automático que já acontece hoje | Nota informativa no resumo, não é seção do wizard |
+| 3 | **Registro corrigido** | `backup_dados.nome`/`.email` presente e o valor vindo da planilha é **igual** ao valor já corrigido na interface | Não — resolução automática (remove o `backup_dados` daquele campo) | Nota informativa no resumo ("N registros tiveram a proteção removida por já estarem com o valor correto") |
+| 4 | **Registro enviado** | Registro com `status = enviado` e a planilha traz `nome`/`email` diferente do atual | Sim | Merge theirs/ours |
+| 5 | **Registro deletado (revivido)** | Registro com `status = deletado` volta a aparecer na planilha nova | Sim | Merge theirs/ours (manter deletado vs. reviver com os dados novos) |
+| 6 | **Registro sumido da planilha** | Um `id` que existia na planilha anterior não está mais presente na nova | Sim | Lista simples (não é bem um "theirs/ours" — é ignorar vs. marcar como deletado) |
+
+Sobre os itens 2 e 3: nenhum dos dois tem, de fato, um "theirs" para o usuário escolher — item 2 porque a planilha nunca carrega `status`, ele é sempre derivado; item 3 porque os dois lados (planilha e valor corrigido manualmente) já são iguais. Por isso nenhum dos dois ganha uma seção navegável no wizard — ambos entram só como uma linha informativa no resumo final, para não resolver nada silenciosamente sem o usuário saber que aconteceu.
+
+**Ordem de resolução em cascata** (mesma lógica de prioridade de `STATUS_PRIORIDADE`, aplicada agora à ordem das seções do wizard, não só ao cálculo de status):
+
+```
+Resumo inicial
+  → Enviado (item 4)
+  → Deletado / revivido (item 5)
+  → Sumido da planilha (item 6)
+  → Atributo alterado (item 1)
+  → [Status alterado (item 2) e Corrigido (item 3) só entram como notas no resumo final]
+Resumo final
+```
+
+A resolução de uma seção afeta o que aparece nas seções seguintes — nenhuma seção é calculada de antemão, cada uma parte do resultado da anterior:
+- Um registro "Enviado" mantido como enviado não aparece em "Atributo alterado" (a decisão de mantê-lo já resolveu o valor). Se o usuário optar por "desenviar" (aceitar o novo nome/e-mail e voltar o status), ele passa a ser avaliado normalmente na seção seguinte.
+- O mesmo vale para "Deletado/revivido" → "Atributo alterado": se o usuário decide reviver o registro, ele entra na checagem de atributo alterado com o novo status; se decide manter deletado, some do restante do fluxo.
+- Cada seção só aparece se tiver pelo menos 1 registro pendente depois da cascata da seção anterior — mesmo comportamento condicional que o `EtapaDefinicaoPrioridade` já tem hoje no wizard de importação (só some se não houver ambiguidade).
+
+**Aplicabilidade por fluxo** — nem todo tipo de conflito pode ocorrer nos dois pontos de entrada do motor de merge:
+
+| Tipo de conflito | Atualizar Registros | Atualizar Dados > Colunas |
+|---|---|---|
+| Atributo alterado | Sim | Sim (o remapeamento pode gerar um nome/e-mail computado diferente do atual) |
+| Status alterado (nota) | Sim | Sim |
+| Corrigido (nota) | Sim | Sim |
+| Enviado | Sim | Sim |
+| Deletado / revivido | Sim | **Não** — remapear colunas não adiciona nem remove linhas, só reinterpreta as mesmas |
+| Sumido da planilha | Sim | **Não** — mesmo motivo acima |
 
 ### Desafio técnico principal
 
-A lógica de sincronização agora detecta divergências protegidas por `backup_dados`, preserva o valor manual por padrão e permite resolvê-las explicitamente com `--aceitar-conflitos`, removendo a proteção do campo aceito.
+Um único motor de merge, com dois pontos de entrada diferentes (planilha nova vs. arquivo persistido remapeado) e um subconjunto de tipos de conflito habilitado por chamador, precisa manter estado acumulado entre as seções do wizard — a saída de uma seção é a entrada da próxima, e o resumo final só pode ser calculado depois que a cascata inteira terminar.
+
+### Decisões em aberto
+
+- **Atalhos de resolução em massa** ("aceitar todos os theirs" / "aceitar todos os ours") por seção de conflito — confirmado que sim, no espírito do merge estilo VS Code; falta só definir se o atalho fica visível mesmo quando há só 1 registro na seção (provavelmente não, é ruído).
+- **Formato da nota de "Status alterado" e "Corrigido" no resumo final** — lista textual (nomes dos registros afetados) ou só uma contagem numérica? Lista é mais transparente, mas pode ficar longa em planilhas grandes; talvez contagem + link/expansível.
 
 ### Etapas de Implementação `[Inicial]`
 
-> Quebra preliminar — revisar ao iniciar. As Etapas 1–4 cobrem o fluxo básico (já detalhado antes desta revisão); a Etapa 5 é o acréscimo novo e ainda precisa de desenho mais fino antes de codar (ver decisões em aberto).
+> Quebra preliminar — revisar ao iniciar. A ordem prioriza ter a persistência do arquivo bruto e o motor de merge prontos antes de qualquer UI, já que os dois wizards dependem disso.
 
-**Etapa 1 — Endpoint no middleware**
-- Nova rota no `vite.config.ts` (`emailsApiPlugin`): `POST /api/emails/:slug/sync`, recebendo o arquivo via `FormData`/multipart.
+**Etapa 1 — Persistência do arquivo bruto**
+- Endpoint de criação de projeto (`emailsApiPlugin`) passa a gravar `sheet.<ext>` na pasta do projeto, além do `emails.json` já gravado hoje — sem alterar o restante do fluxo de criação.
+- Nova função utilitária para ler esse arquivo de volta a partir do middleware (usada pela Etapa 7).
 
-**Etapa 2 — Reaproveitamento das funções de sincronização**
-- Decidir entre: (a) o middleware chama diretamente `syncRecords`/`applyStatusRules` de `src/scripts/`, já que o middleware roda em Node puro mesmo fora do bundle do Vite; ou (b) mover essas funções para um módulo compartilhado, acessível tanto pelo script de terminal quanto pelo middleware.
-- **Atenção:** `src/scripts/` usa `tsconfig.scripts.json`, separado do bundle da aplicação — confirmar que o middleware consegue importar esse código sem conflito de configuração antes de escolher a abordagem.
+**Etapa 2 — Dropdown no Header**
+- Botão "Atualizar Planilha" no `Header.tsx` deixa de estar `disabled`/"Em breve" e vira um trigger de dropdown com dois itens: "Atualizar Registros" (abre seletor de arquivo) e "Atualizar Dados" (abre o modal direto, sem seletor).
 
-**Etapa 3 — UI de reimportação**
-- Botão "Atualizar planilha" no `Header.tsx` passa a abrir um seletor de arquivo.
-- Reaproveitar `parseSheetBrowser.ts` para pré-visualizar antes de confirmar (mesmo padrão do `EtapaInformacoes.tsx` do wizard de importação).
+**Etapa 3 — Endpoints no middleware**
+- `POST /api/emails/:slug/sync` — recebe a nova planilha via `FormData` (fluxo Atualizar Registros); ao concluir com sucesso, sobrescreve `sheet.<ext>`.
+- Endpoint para reprocessar o `sheet.<ext>` já persistido com uma nova seleção de colunas, sem upload (fluxo Atualizar Dados > Colunas).
+- `PATCH /api/projetos/:slug` — atualização de nome do projeto/arquivo, reaproveitando a checagem de unicidade de slug já usada em `ConflitoRestauracaoModal`.
 
-**Etapa 4 — Sincronização básica (registros sem conflito)**
-- Aplicar a mesma lógica de `syncRecords`/`applyStatusRules`, mas pulando qualquer registro que tenha `backup_dados` não vazio em `nome`/`email` divergente do valor da planilha — esses vão para a Etapa 5 em vez de serem aplicados direto.
+**Etapa 4 — Motor de merge compartilhado**
+- Novo módulo com a função central: recebe registros atuais + registros vindos da planilha (nova ou remapeada) + a lista de tipos de conflito habilitados para aquele chamador, devolve os registros sem conflito, as listas por tipo de conflito (enviado, deletado/revivido, sumido, alterado) e as listas de resolução automática (corrigido, status alterado).
+- Reaproveita `applyStatusRules` para o recálculo pós-merge.
 
-**Etapa 5 — Detecção e resolução de conflitos**
-- Para cada registro com `backup_dados.nome` ou `backup_dados.email` presente, comparar o valor da planilha com o valor atual do registro naquele campo.
-- Se divergente, adicionar à lista de conflitos (não aplicar automaticamente).
-- Modal de conflito (reaproveitando `ConflictDialog`), listando os registros conflitantes, com escolha por registro entre manter valor manual ou aceitar o da planilha — e, se decidido na revisão desta etapa, atalhos de resolução em massa.
+**Etapa 5 — Wizard "Atualizar Registros"**
+- Novo componente reaproveitando o casco do `ImportWizardModal` (stepper, barra de progresso, next/previous).
+- Seção de resumo inicial (mesmo modelo do resumo final do `EtapaRevisao`).
+- Seções condicionais de conflito, na ordem em cascata definida acima, cada uma consumindo o estado resolvido da anterior.
+- Seção de resumo final, incluindo as notas informativas de "corrigido" e "status alterado".
 
-**Etapa 6 — Confirmação e feedback**
-- Ao confirmar (sincronização + resoluções de conflito), enviar o resultado consolidado para o endpoint.
-- Exibir resumo (adicionados, atualizados automaticamente, resolvidos manualmente) e recarregar os dados do projeto na tela.
+**Etapa 6 — Componente de merge theirs/ours**
+- Novo componente `MergeCampoConflito` — duas colunas (theirs/ours) por registro conflitante, com os atalhos de resolução em massa. Não reaproveita `ConflictDialog` como casco de conteúdo (ver decisão de não refatorá-lo agora); usa só o padrão visual do wizard como referência de layout.
+
+**Etapa 7 — Wizard "Atualizar Dados"**
+- 3 seções: (1) projeto — nome/arquivo, com recálculo de slug e redirecionamento ao concluir se o nome mudou; (2) colunas — reaproveitando a estrutura do `EtapaMapeamento` (duas colunas + prioridade), disparando o motor de merge (Etapa 4) com o `sheet.<ext>` persistido e só os tipos de conflito aplicáveis a este fluxo (ver tabela de aplicabilidade); ao confirmar, reexecuta `applyStatusRules` sobre a base inteira com os valores recalculados, para refletir duplicados que passam a existir/deixam de existir por causa do remapeamento; (3) resumo.
+
+**Etapa 8 — Confirmação e feedback final**
+- Ao confirmar cada fluxo, envia o resultado consolidado ao endpoint correspondente, atualiza `sheet.<ext>` (só no fluxo Atualizar Registros), redireciona se o nome do projeto mudou (fluxo Atualizar Dados) e recarrega os dados do projeto na tela.
 
 ### Arquivos Necessários
 
 **Arquivos Fonte:**
-- `src/scripts/sync.ts` — lógica de `syncRecords`/`applyStatusRules` já pronta e testada, reaproveitada pelo novo endpoint (Etapa 2; ver decisão em aberto sobre chamada direta vs. módulo compartilhado).
-- `src/components/import/utils/parseSheetBrowser.ts` — reaproveitado para pré-visualizar a planilha antes de confirmar a reimportação (Etapa 3).
-- `src/components/import/EtapaInformacoes.tsx` — referência do mesmo padrão de preview já usado no wizard de importação (Etapa 3).
-- `src/components/ConflictDialog.tsx` — casco reaproveitado como base do novo modal de conflito de sincronização (Etapa 5).
-- `src/components/DeleteConflictContent.tsx` — referência do padrão "Selecionar Todos" para os atalhos de resolução em massa (decisão em aberto).
-- `src/types/email.ts` — estrutura de `backup_dados` (Demanda 5), consultada para detectar conflito por campo.
+- `src/scripts/sync.ts` — base da lógica de sincronização por `id`, reaproveitada como ponto de partida do motor de merge (Etapa 4).
+- `src/components/EmailStatus.ts` (`STATUS_PRIORIDADE`) — ordem de prioridade reaproveitada para a cascata de seções de conflito.
+- `src/components/import/ImportWizardModal.tsx` — casco reaproveitado (stepper, progresso, next/previous) pelos dois novos wizards (Etapas 5 e 7).
+- `src/components/import/EtapaRevisao.tsx` — modelo do resumo, reaproveitado nas seções de resumo inicial/final (Etapa 5).
+- `src/components/import/EtapaMapeamento.tsx` — estrutura de seleção de colunas + prioridade, reaproveitada na seção "Colunas" do fluxo Atualizar Dados (Etapa 7).
+- `src/components/import/utils/parseSheetBrowser.ts` — parse da planilha, reaproveitado tanto para o novo upload (Atualizar Registros) quanto para reler o `sheet.<ext>` persistido (Atualizar Dados).
+- `src/components/ConflitoRestauracaoModal.tsx` / lógica de `slugify` — reaproveitada na checagem de unicidade ao renomear o projeto (Etapa 7).
+- `src/types/email.ts` — estrutura de `backup_dados` (Demanda 5), consultada pelo motor de merge para detectar conflito por campo.
 
 **Arquivos Alterados:**
-- `vite.config.ts` — novo endpoint `POST /api/emails/:slug/sync` no `emailsApiPlugin` (Etapa 1).
-- `src/components/Header.tsx` — botão "Atualizar planilha" deixa de estar `disabled`/"Em breve" e passa a abrir o seletor de arquivo (Etapa 3).
-- `src/services/emailsApi.ts` — nova função de client para chamar o endpoint de sincronização.
+- `vite.config.ts` — endpoint de criação de projeto passa a gravar `sheet.<ext>`; novos endpoints `POST /api/emails/:slug/sync`, de remapeamento de colunas e `PATCH /api/projetos/:slug` (Etapas 1 e 3).
+- `src/components/Header.tsx` — botão "Atualizar Planilha" vira dropdown com as duas opções (Etapa 2).
+- `src/services/emailsApi.ts` / `src/services/projetosApi.ts` — novas funções de client para os endpoints acima.
 
 **Arquivos Criados:**
-- `src/components/SincronizarPlanilhaModal.tsx` *(nome sugerido)* — UI de reimportação com pré-visualização (Etapa 3).
-- `src/components/ConflitoSincronizacaoModal.tsx` *(nome sugerido)* — modal de resolução de conflitos de sincronização, reaproveitando `ConflictDialog` (Etapa 5).
-- `src/scripts/syncShared.ts` *(nome sugerido, somente se a Etapa 2 optar pela alternativa "b": mover as funções de sincronização para um módulo compartilhado entre o script de terminal e o middleware)*.
+- `src/scripts/syncEngine.ts` *(nome sugerido)* — motor de merge compartilhado entre os dois fluxos (Etapa 4).
+- `src/components/atualizar/AtualizarRegistrosModal.tsx` *(nome sugerido)* — wizard do fluxo "Atualizar Registros" (Etapa 5).
+- `src/components/atualizar/AtualizarDadosModal.tsx` *(nome sugerido)* — wizard do fluxo "Atualizar Dados" (Etapa 7).
+- `src/components/atualizar/MergeCampoConflito.tsx` *(nome sugerido)* — componente de merge theirs/ours reutilizado pelas seções de conflito "Enviado", "Deletado/revivido" e "Atributo alterado" (Etapa 6).
+- `src/components/atualizar/RegistrosSumidosSection.tsx` *(nome sugerido)* — seção específica do conflito "sumido da planilha" (lista simples, não é merge de campo) (Etapa 5).
+
+---
+
+## Demanda 7 — Mapeamento de ID Personalizado
+
+**Status:** Registrado
+**Esforço estimado:** Horas–dias
+**Depende de:** —
+**Bloqueia:** —
+
+### Contexto
+
+Surgiu durante o destrinchamento da Demanda 3, como parte da seção "Colunas" do fluxo Atualizar Dados: a ideia original era permitir selecionar, na hora de remapear colunas, qual coluna da planilha deveria ser usada como `id` do registro. Só que hoje **nenhum** dos dois pontos de entrada (wizard de importação nem a futura Demanda 3) tem esse seletor — o `id` é sempre a ordem da linha na planilha, ou uma coluna de ID detectada automaticamente por `identifyColumns.ts` sem controle explícito do usuário sobre qual coluna usar quando há mais de uma candidata.
+
+Foi retirada do escopo da Demanda 3 porque, para fazer sentido, precisa nascer nos dois lugares ao mesmo tempo — se nascesse só na atualização, o `id` usado para casar registros na reimportação poderia divergir silenciosamente do `id` que o projeto usou na criação.
+
+### Escopo
+
+**Cobre:**
+- Novo controle (`<select>`) na etapa de mapeamento, tanto no `EtapaMapeamento.tsx` (wizard de importação, criação de projeto) quanto na seção "Colunas" da Demanda 3 (`AtualizarDadosModal`), para escolher explicitamente qual coluna da planilha representa o `id` do registro.
+- Comportamento padrão preservado quando o usuário não escolhe nada: mesma regra atual (ordem da linha, ou coluna detectada automaticamente por `identifyColumns.ts`).
+- Validação de unicidade dos valores da coluna escolhida como ID (avisar se houver valores repetidos, já que isso quebra o casamento de registros na sincronização).
+
+**Não cobre nesta fase:**
+- Migração de `id` para projetos já existentes que mudarem de estratégia de identificação (ex.: projeto criado sem coluna de ID explícita passa a ter uma) — o risco de desalinhamento entre reimportações ao trocar de estratégia de ID no meio do caminho de um projeto já existente é uma nota de atenção a levantar na implementação, não uma migração automática coberta aqui.
+
+### Decisões em aberto
+
+- Se a coluna de ID escolhida tiver valores vazios ou duplicados, o sistema deve bloquear a confirmação ou só avisar e seguir com o fallback de ordem de linha para os casos problemáticos?
+
+### Etapas de Implementação `[Inicial]`
+
+> Quebra preliminar — revisar ao iniciar e ao ver como a Demanda 3 evoluiu (esta demanda toca os dois mesmos pontos de mapeamento que ela usa).
+
+**Etapa 1 — Seletor de coluna de ID**
+- Novo `<select>` na etapa de mapeamento, listando as colunas identificadas pela planilha, com opção "Nenhuma (usar ordem da linha)" como padrão.
+
+**Etapa 2 — Validação de unicidade**
+- Ao escolher uma coluna, verificar duplicidade/vazios nos valores e exibir aviso (conforme decisão em aberto).
+
+**Etapa 3 — Reaproveitar no wizard de importação**
+- Adicionar o seletor em `EtapaMapeamento.tsx` (criação de projeto).
+
+**Etapa 4 — Reaproveitar na Demanda 3**
+- Adicionar o mesmo seletor na seção "Colunas" do `AtualizarDadosModal` (Demanda 3), com a mesma validação.
+
+### Arquivos Necessários
+
+**Arquivos Fonte:**
+- `src/scripts/utils/identifyColumns.ts` — lógica atual de detecção automática de colunas, base para a nova opção explícita de ID.
+- `src/components/import/EtapaMapeamento.tsx` — ponto de inserção do seletor no wizard de importação (Etapa 3).
+- `src/components/atualizar/AtualizarDadosModal.tsx` *(criado pela Demanda 3)* — ponto de inserção do seletor na seção "Colunas" (Etapa 4).
+
+**Arquivos Alterados:**
+- `src/components/import/EtapaMapeamento.tsx` — novo seletor de coluna de ID (Etapa 3).
+- `src/components/atualizar/AtualizarDadosModal.tsx` — novo seletor de coluna de ID (Etapa 4).
+- `src/scripts/utils/identifyColumns.ts` — validação de unicidade dos valores da coluna escolhida (Etapa 2).
+
+**Arquivos Criados:**
+- Nenhum arquivo novo previsto — a demanda estende componentes já existentes/planejados por outras demandas.
 
 ---
 
