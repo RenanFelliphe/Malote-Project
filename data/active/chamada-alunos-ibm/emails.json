@@ -1,7 +1,7 @@
 {
   "projeto": "Chamada Alunos IBM",
   "criado_em": "2026-08-25T16:44:40.368Z",
-  "atualizado_em": "2026-08-25T16:44:40.368Z",
+  "atualizado_em": "2026-08-27T11:29:14.259Z",
   "email": {
     "titulo": "",
     "conteudo": "",
@@ -12,9 +12,12 @@
       "id": 1,
       "nome": "A Rafael P Alves",
       "email": "arafael5@gmail.com",
-      "status": "válido",
+      "status": "inválido",
       "status_alterado": false,
-      "last_updated": "2026-08-25T16:44:40.293Z"
+      "last_updated": "2026-08-27T11:29:14.218Z",
+      "backup_dados": {
+        "status": true
+      }
     },
     {
       "id": 2,
@@ -22,7 +25,7 @@
       "email": "agamenonvieira@gmail.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-08-25T16:44:40.293Z"
+      "last_updated": "2026-08-27T11:27:33.424Z"
     },
     {
       "id": 3,
@@ -30,7 +33,7 @@
       "email": "wladm123@gmail.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-08-25T16:44:40.293Z"
+      "last_updated": "2026-08-27T11:27:20.942Z"
     },
     {
       "id": 4,
@@ -38,7 +41,7 @@
       "email": "eng.alinetagliatte@gmail.com",
       "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-08-25T16:44:40.293Z"
+      "last_updated": "2026-08-27T11:27:20.942Z"
     },
     {
       "id": 5,

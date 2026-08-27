@@ -226,6 +226,7 @@ Com a Demanda 5, essa reimportação ganha uma complicação nova: registros pod
 - **Modal de resolução de conflitos de sincronização:** lista os registros conflitantes, permitindo, por registro, escolher entre manter o valor manual (protegido) ou aceitar o novo valor vindo da planilha.
 - Registros sem nenhum `backup_dados` continuam sendo atualizados normalmente, sem passar pelo modal — o conflito só existe onde há proteção manual.
 - Feedback de resultado ao final: quantos registros foram adicionados, atualizados automaticamente, e quantos passaram por resolução de conflito.
+- **Resolução em massa no modal de conflito:** além da escolha por registro, vale oferecer atalhos tipo "Manter todos os valores manuais" / "Aceitar todos os valores da planilha", no mesmo espírito do "Selecionar Todos" já usado nos outros modais de conflito do sistema (`DeleteConflictContent`)? Recomenda-se que sim, mas fica como decisão a confirmar antes da Etapa 5.
 
 **Não cobre nesta fase:**
 - Criar um projeto novo a partir desse fluxo (isso já existe via `ImportWizardModal`) — esta demanda é só para projeto já aberto.
@@ -234,12 +235,11 @@ Com a Demanda 5, essa reimportação ganha uma complicação nova: registros pod
 
 ### Decisões em aberto
 
-- **Resolução em massa no modal de conflito:** além da escolha por registro, vale oferecer atalhos tipo "Manter todos os valores manuais" / "Aceitar todos os valores da planilha", no mesmo espírito do "Selecionar Todos" já usado nos outros modais de conflito do sistema (`DeleteConflictContent`)? Recomenda-se que sim, mas fica como decisão a confirmar antes da Etapa 5.
 - **Conflito em `status`:** um registro pode ter `backup_dados.status = true` (status alterado manualmente) sem que a sincronização normalmente mexesse nisso — `applyStatusRules` já ignora registros protegidos. Confirmar se `status` deveria sequer entrar na lista de possíveis conflitos desta demanda, já que ele não é recalculado a partir da planilha (só `nome`/`email` vêm da planilha; `status` é derivado). Provavelmente o conflito de sync só se aplica a `nome`/`email` — `status` fica de fora por natureza.
 
 ### Desafio técnico principal
 
-A lógica de sincronização básica já está pronta e testada — o trabalho real é **expô-la a partir do navegador** e **acrescentar a resolução de conflito** que não existia antes (o script de terminal atual nunca lidou com isso, porque `backup_dados` não existia até a Demanda 5).
+A lógica de sincronização agora detecta divergências protegidas por `backup_dados`, preserva o valor manual por padrão e permite resolvê-las explicitamente com `--aceitar-conflitos`, removendo a proteção do campo aceito.
 
 ### Etapas de Implementação `[Inicial]`
 

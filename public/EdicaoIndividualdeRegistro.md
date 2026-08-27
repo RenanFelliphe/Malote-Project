@@ -61,7 +61,7 @@ A própria presença de uma chave em `backup_dados` já funciona como a trava de
 - **Se `backup_dados` tem exatamente 1 chave:** restaura direto, sem modal — aplica a regra de restauração do campo correspondente (seção 3).
 - **Se `backup_dados` tem 2 ou mais chaves:** abre um modal de conflito para o usuário escolher quais campos restaurar.
 
-> **Atenção de nomenclatura:** `EmailTable.tsx` já tem um `onRestaurar` (restauração em lote de registros deletados, vindo da seleção via checkbox). O novo botão desta demanda precisa de um prop **com outro nome** (ex. `onRestaurarCampos`) para não colidir com o handler existente.
+> **Atenção de nomenclatura:** o botão desta demanda usa `onRestaurarCampos`, mantendo separado o fluxo de restauração de campos do fluxo de restauração da lixeira.
 
 ## 5. Modal de restauração — individual vs. em massa
 
@@ -152,7 +152,7 @@ Rodado com `--dry-run` primeiro (1815 + 100 = 1915 registros identificados), dep
 
 - `renderCelulaEditavel` (`EmailTable.tsx`) alterna texto estático / `<input>` ao clicar, com foco e seleção automáticos do conteúdo ao entrar em edição.
 - `confirmarEdicaoCelula` cobre blur e Enter; `cancelarEdicaoCelula` cobre Esc, sem persistir. Valor idêntico ao atual ou vazio (após trim) cancela silenciosamente, sem gravar nem capturar em `backup_dados` — não é uma correção de fato.
-- Revalidação de e-mail com `isValidEmail` (`EmailStatus.ts`) antes de confirmar; erro mantém a edição aberta com `erroEdicaoEmail`, em vez de fechar.
+- Revalidação de e-mail com `isValidEmail` (`EmailStatus.ts`) antes de confirmar; valor inválido mantém a edição aberta com `erroEdicaoEmail` e não é persistido.
 - Captura em `backup_dados` via `capturarEdicaoCampo` (Etapa 3) já integrada dentro de `confirmarEdicaoCelula`, antes de propagar para `onEditarCampo`.
 - `handleEditarCampo` (`emails.tsx`) persiste via `persistirRegistros` e só recalcula status (`recalcularStatusAutomatico`, sobre o conjunto inteiro, não só o registro editado) quando `campo === 'email'` — edição de `nome` nunca aciona o recálculo, como especificado.
 - Busca por `status_alterado` em `src/` confirma zero ocorrências fora de comentários/changelog (critério da seção 8.1).
@@ -200,6 +200,8 @@ Durante a implementação, uma edição anterior (Etapa 6) havia deixado um bloc
 
 Sem tsconfig do projeto completo nesta sessão (mesma limitação das Etapas 3-6): checagem feita com `tsc --strict --noEmit` sobre `RestaurarCamposModal.tsx`, `EmailTable.tsx` e `emails.tsx` juntos, com stubs locais para os módulos ausentes do ZIP (`Dialog.tsx`, `Icons.tsx`, `EmailToolbar.tsx`, etc.) — zero erros depois de corrigir um stub imprecis (tipo de `onAlternarFiltro`, sem relação com o código desta demanda). Recomendo `npm run build`/`npm run lint` no projeto completo para confirmação final, incluindo os Testes 1-7 da seção 9 (em especial o Teste 4, restauração via modal, e o Teste 7, build/lint) — critério de aprovação da Demanda 5 completa (seção 8). Busca por `status_alterado` em `src/` confirma zero ocorrências fora de comentários/changelog.
 
+**Adendo — variante em massa (seção 5), implementada nesta mesma sessão a pedido do usuário, depois da nota acima:** o item unificado "Restaurar" no dropdown de ações do cabeçalho (`EmailTable.tsx`) abre o fluxo de restauração de campos quando ao menos 1 registro selecionado tem `backup_dados` com 1+ chave. A restauração antiga de status em massa foi removida do dropdown; o fluxo unificado cobre também registros com `backup_dados.status`. `handleAbrirRestaurarCamposEmMassa` filtra os selecionados com algo em `backup_dados` e calcula a união dos campos entre eles, repassando via novo prop `onAbrirConflitoRestaurarCamposEmMassa`. `RestaurarCamposModal` generalizado com prop `quantidadeRegistros` (1 = individual, 2+ = massa) só para ajustar o texto — os checkboxes e o no-op por registro/campo continuam exatamente como já eram, sem lógica nova ali. Em `emails.tsx`, `conflitoRestaurarCampos` passou a guardar sempre um array de registros (`[registro]` no individual, N no massa) e ganhou um núcleo comum de persistência (`aplicarRestauracaoDeCampos`) reaproveitado pelos três caminhos (direto, modal individual, modal em massa). Corrigido também o gate que decide se o menu do cabeçalho aparece para incluir `onAbrirConflitoRestaurarCamposEmMassa`. Checado com `tsc --strict --noEmit` isolado (mesmos stubs) sobre os três arquivos juntos — zero erros. A pendência do CSS de hover do botão por linha foi resolvida posteriormente em `src/index.css`; a recomendação de `npm run build`/`npm run lint` + Testes 1-7 completos no projeto real continua de pé.
+
 **O que fazer:** novo componente (`src/components/RestaurarCamposModal.tsx`), reaproveitando `ConflictDialog` como casco (mesmo padrão de `ConflitoExclusaoModal`/`DuplicadosConflitoModal`). Modo individual: lista os campos daquele registro específico. Modo em massa (ver seção 5 para a decisão de escopo): lista a união dos campos alterados entre os registros selecionados; aplica `restaurarCampos` em cada um, respeitando o no-op onde não se aplica.
 
 **Por quê:** fecha o fluxo descrito na seção 5 — sem ele, um registro com 2+ campos protegidos não tem como ser restaurado pela interface.
@@ -215,7 +217,7 @@ Sem tsconfig do projeto completo nesta sessão (mesma limitação das Etapas 3-6
 - `src/types/email.ts` — remove `status_alterado` de `EmailRecord`; adiciona `backup_dados?: { nome?: string; email?: string; status?: boolean }` (Etapa 1).
 - `src/components/EmailStatus.ts` — `recalcularStatusAutomatico` passa a ler `backup_dados?.status` no lugar de `status_alterado` (Etapa 1).
 - `src/scripts/sync.ts` — `applyStatusRules` passa a ler `backup_dados?.status` no lugar de `status_alterado` (Etapa 1).
-- `src/components/EmailTable.tsx` — célula de nome/e-mail vira campo editável inline; captura em `backup_dados` na primeira edição; novo botão "Restaurar" na área `td-acoes` com a regra de visibilidade condicional; novo prop (ex. `onRestaurarCampos`, distinto do `onRestaurar` já existente) (Etapas 3, 4 e 6).
+- `src/components/EmailTable.tsx` — célula de nome/e-mail vira campo editável inline; captura em `backup_dados` na primeira edição; botão "Restaurar" na área `td-acoes` com a regra de visibilidade condicional; ação unificada de restauração no dropdown (Etapas 3, 4 e 6).
 - `data/active/projeto-teste/emails.json` — migração dos registros com `status_alterado: true` para `backup_dados: { status: true }` (Etapa 2).
 - `data/active/chamada-alunos-ibm/emails.json` — mesma migração do item acima (Etapa 2).
 

@@ -4,6 +4,7 @@
  * Uso (terminal, fora do bundle do Vite):
  *   node --loader ts-node/esm src/scripts/sync.ts data/planilha.csv
  *   node --loader ts-node/esm src/scripts/sync.ts data/planilha.xlsx --slug=projeto-teste
+ *   node --loader ts-node/esm src/scripts/sync.ts data/planilha.xlsx --slug=projeto-teste --aceitar-conflitos
  *
  * A partir da migração descrita em implementacaoImportacao.md (Etapa 2), o
  * destino não é mais um caminho de arquivo fixo: é sempre
@@ -67,6 +68,7 @@ function parseArgs(argv: string[]) {
   }
 
   const slugArg = rest.find((a) => a.startsWith('--slug='));
+  const aceitarConflitos = rest.includes('--aceitar-conflitos');
   const slug = slugArg ? slugifyNomeArquivo(slugArg.replace('--slug=', '')) : slugFromSheetPath(sheetPathArg);
 
   if (!slug) {
@@ -78,7 +80,7 @@ function parseArgs(argv: string[]) {
 
   const outPath = resolve('data/active', slug, 'emails.json');
 
-  return { sheetPath: resolve(sheetPathArg), outPath, slug };
+  return { sheetPath: resolve(sheetPathArg), outPath, slug, aceitarConflitos };
 }
 
 // ---------------------------------------------------------------------------
@@ -130,7 +132,16 @@ function loadExistingJson(jsonPath: string): Pick<EmailsData, 'email' | 'registr
 // 3. Sincronização por id (seção 2.3 — "Identificação de registros")
 // ---------------------------------------------------------------------------
 
-function syncRecords(sheetRows: ReturnType<typeof readSheet>, existing: EmailRecord[]) {
+export interface ConflitoSincronizacao {
+  id: number;
+  campos: Array<'nome' | 'email'>;
+}
+
+function syncRecords(
+  sheetRows: ReturnType<typeof readSheet>,
+  existing: EmailRecord[],
+  options: { aceitarConflitos?: boolean } = {}
+) {
   const headers = sheetRows.length > 0 ? Object.keys(sheetRows[0]) : [];
   const { idColumn, nomeColumn } = identifyColumns(headers);
 
@@ -139,6 +150,7 @@ function syncRecords(sheetRows: ReturnType<typeof readSheet>, existing: EmailRec
 
   let added = 0;
   let updated = 0;
+  const conflitos: ConflitoSincronizacao[] = [];
 
   sheetRows.forEach((row, index) => {
     // id: usa a coluna de ID se existir e for numérica; caso contrário,
@@ -156,11 +168,35 @@ function syncRecords(sheetRows: ReturnType<typeof readSheet>, existing: EmailRec
     const existingRecord = byId.get(id);
 
     if (existingRecord) {
-      // Registro existente: atualiza apenas nome/e-mail vindos da planilha.
-      // Preserva status, backup_dados e demais campos manuais.
-      const changed = existingRecord.nome !== nome || existingRecord.email !== email;
-      existingRecord.nome = nome;
-      existingRecord.email = email;
+      // Uma captura em backup_dados marca o valor original da planilha. Se a
+      // nova planilha divergir dele, a alteração manual entra em conflito e
+      // o valor protegido é preservado até uma decisão explícita.
+      const camposConflitantes: Array<'nome' | 'email'> = [];
+      for (const campo of ['nome', 'email'] as const) {
+        const valorPlanilha = campo === 'nome' ? nome : email;
+        const valorOriginal = existingRecord.backup_dados?.[campo];
+        if (valorOriginal !== undefined && valorPlanilha !== valorOriginal) {
+          camposConflitantes.push(campo);
+        }
+      }
+
+      if (camposConflitantes.length > 0) {
+        conflitos.push({ id, campos: camposConflitantes });
+      }
+
+      const aceitar = options.aceitarConflitos === true;
+      const nomeProtegido = camposConflitantes.includes('nome') && !aceitar;
+      const emailProtegido = camposConflitantes.includes('email') && !aceitar;
+      const changed =
+        (!nomeProtegido && existingRecord.nome !== nome) ||
+        (!emailProtegido && existingRecord.email !== email);
+      if (!nomeProtegido) existingRecord.nome = nome;
+      if (!emailProtegido) existingRecord.email = email;
+      if (aceitar && camposConflitantes.length > 0 && existingRecord.backup_dados) {
+        const backupRestante = { ...existingRecord.backup_dados };
+        for (const campo of camposConflitantes) delete backupRestante[campo];
+        existingRecord.backup_dados = Object.keys(backupRestante).length > 0 ? backupRestante : undefined;
+      }
       if (changed) {
         existingRecord.last_updated = now;
         updated++;
@@ -180,7 +216,7 @@ function syncRecords(sheetRows: ReturnType<typeof readSheet>, existing: EmailRec
     }
   });
 
-  return { records: Array.from(byId.values()), added, updated };
+  return { records: Array.from(byId.values()), added, updated, conflitos };
 }
 
 // ---------------------------------------------------------------------------
@@ -261,7 +297,7 @@ function writeJson(
 // ---------------------------------------------------------------------------
 
 function main() {
-  const { sheetPath, outPath, slug } = parseArgs(process.argv.slice(2));
+  const { sheetPath, outPath, slug, aceitarConflitos } = parseArgs(process.argv.slice(2));
 
   if (!existsSync(sheetPath)) {
     console.error(`Planilha não encontrada: ${sheetPath}`);
@@ -280,7 +316,7 @@ function main() {
   const { email: emailExistente, registros: existing } = dadosExistentes;
   console.log(`  ${existing.length} registro(s) já existente(s).`);
 
-  const { records, added, updated } = syncRecords(sheetRows, existing);
+  const { records, added, updated, conflitos } = syncRecords(sheetRows, existing, { aceitarConflitos });
   const finalRecords = applyStatusRules(records);
 
   writeJson(outPath, emailExistente, finalRecords, dadosExistentes);
@@ -297,6 +333,10 @@ function main() {
   console.log('\nSincronização concluída.');
   console.log(`  Novos registros:      ${added}`);
   console.log(`  Registros atualizados: ${updated}`);
+  console.log(`  Conflitos detectados:  ${conflitos.length}`);
+  if (conflitos.length > 0 && !aceitarConflitos) {
+    console.log('  Valores manuais preservados. Use --aceitar-conflitos para aceitar os valores da planilha.');
+  }
   console.log('  Contadores:', counters);
   console.log(`  JSON gravado em: ${outPath}`);
 }

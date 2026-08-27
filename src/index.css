@@ -1458,6 +1458,38 @@ button.status-badge-clicavel:hover {
   text-align: right;
 }
 
+.botao-restaurar-linha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.botao-restaurar-linha:hover,
+.botao-restaurar-linha:focus-visible {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+  border-color: color-mix(in srgb, var(--color-info) 18%, transparent);
+}
+
+.botao-restaurar-linha-invisivel {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.email-table tbody tr:hover .botao-restaurar-linha-invisivel {
+  visibility: visible;
+  pointer-events: auto;
+}
+
 .th-acoes-menu {
   position: relative;
   display: inline-flex;
@@ -4427,4 +4459,37 @@ li.marcado .exportar-lista-status-item {
 
 .conflito-restauracao-erro {
   margin: 0;
+}
+
+.status-salvamento {
+  margin: 0.5rem 0;
+  color: var(--cor-texto-secundario);
+  font-size: 0.875rem;
+}
+
+.status-salvamento-sucesso {
+  color: var(--cor-sucesso, #237a4b);
+}
+
+.celula-editavel[role='button'] {
+  cursor: text;
+}
+
+.celula-editavel[role='button']:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.erro-edicao-inline {
+  display: block;
+  color: var(--cor-perigo, #b42318);
+  font-size: 0.75rem;
+}
+
+.feedback-restaurado {
+  margin-right: 0.5rem;
+  color: var(--cor-sucesso, #237a4b);
+  font-size: 0.75rem;
+  font-weight: 600;
 }

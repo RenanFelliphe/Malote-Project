@@ -54,8 +54,8 @@ function pickFirstFilled(linha: LinhaPlanilha, colunas: string[]): string {
  *   conceito de "sincronizar por id" aqui, já que o projeto está sendo
  *   criado do zero (diferente de `sync.ts`, que casa com registros já
  *   existentes).
- * - `status_alterado`: sempre `false` — nenhum registro novo pode já ter
- *   sido alterado manualmente.
+ * - `backup_dados`: omitido — nenhum registro novo pode já ter sido alterado
+ *   manualmente.
  * - `status`: cada registro nasce com `'válido'` provisório; o valor final
  *   (válido/inválido/duplicado) é decidido de uma vez só, para o array
  *   inteiro, por `recalcularStatusAutomatico` — mesmo padrão de
@@ -76,7 +76,6 @@ export function construirRegistros(
     nome: pickFirstFilled(linha, colunasNome),
     email: pickFirstFilled(linha, colunasEmail),
     status: 'válido', // provisório; recalculado logo abaixo
-    status_alterado: false,
     last_updated: now,
   }));
 

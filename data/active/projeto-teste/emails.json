@@ -1,7 +1,7 @@
 {
   "projeto": "Projeto Teste",
   "criado_em": "2026-07-21T16:18:43.000Z",
-  "atualizado_em": "2026-08-25T11:54:09.916Z",
+  "atualizado_em": "2026-08-27T12:27:25.270Z",
   "email": {
     "titulo": "Parabéns pela conclusão do curso no Multiverso Rio Pomba Valley! 🎉",
     "conteudo": "<p style=\"text-align: left;\"><span style=\"font-size: 16px;\">Teste botão</span></p><p style=\"text-align: left;\"></p><p style=\"text-align: left;\"></p>",
@@ -12,21 +12,15 @@
       "id": 1,
       "nome": "Ana Souza",
       "email": "ana.souza1@exemplo.com",
-      "status": "enviado",
-      "last_updated": "2026-07-22T13:57:17.307Z",
-      "backup_dados": {
-        "status": true
-      }
+      "status": "válido",
+      "last_updated": "2026-08-27T12:27:21.140Z"
     },
     {
       "id": 2,
       "nome": "Bruno Lima",
       "email": "bruno.lima2@exemplo.com",
-      "status": "inválido",
-      "last_updated": "2026-08-25T11:54:09.906Z",
-      "backup_dados": {
-        "status": true
-      }
+      "status": "válido",
+      "last_updated": "2026-08-27T11:35:27.718Z"
     },
     {
       "id": 3,
@@ -439,21 +433,21 @@
       "nome": "Marcos Vinicius (1)",
       "email": "marcos.vinicius@dominio.com",
       "status": "duplicado",
-      "last_updated": "2026-07-22T13:57:04.879Z"
+      "last_updated": "2026-08-27T11:35:27.718Z"
     },
     {
       "id": 62,
       "nome": "Marcos Vinicius (2)",
       "email": "MARCOS.VINICIUS@DOMINIO.COM",
       "status": "duplicado",
-      "last_updated": "2026-07-22T13:57:04.879Z"
+      "last_updated": "2026-08-27T11:35:27.718Z"
     },
     {
       "id": 63,
       "nome": "Marcos Vinicius (3)",
       "email": "marcos.vinicius@dominio.com",
       "status": "duplicado",
-      "last_updated": "2026-07-22T13:57:04.879Z"
+      "last_updated": "2026-08-27T11:35:27.718Z"
     },
     {
       "id": 64,

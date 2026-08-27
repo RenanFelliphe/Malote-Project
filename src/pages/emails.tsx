@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { EmailConteudo, EmailRecord, EmailsData, TFiltro, TStatus, TStatusManual } from '../types/email';
 import { calcularPaginacao } from '../components/utils/paginacao';
@@ -11,6 +11,7 @@ import { restaurarCampos, type TCampoRestauravel } from '../components/utils/res
 import { RestaurarCamposModal } from '../components/RestaurarCamposModal';
 import { Paginacao } from '../components/Paginacao';
 import { ConflitoExclusaoModal } from '../components/ConflitoExclusaoModal';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { DuplicadosConflitoModal } from '../components/DuplicadosConflitoModal';
 import { Header } from '../components/Header';
 import { salvarEmails } from '../services/emailsApi';
@@ -49,22 +50,39 @@ export function Emails({ slug, dados }: EmailsProps) {
     aDeletar: EmailRecord[];
   } | null>(null);
   /**
-   * Registro pendente de escolha no modal de restauração de campos (Etapa
-   * 7), aberto via `onAbrirConflitoRestaurarCampos` (`EmailTable.tsx`,
-   * Etapa 6) quando o registro clicado tem 2+ campos em `backup_dados` —
-   * `camposDisponiveis` é a lista repassada pela tabela (as próprias
-   * chaves de `backup_dados` daquele registro), exibida no modal como as
-   * opções de checkbox.
+   * Registro(s) pendentes de escolha no modal de restauração de campos.
+   * Sempre um array — `[registro]` (length 1) no fluxo individual, aberto
+   * via `onAbrirConflitoRestaurarCampos` (`EmailTable.tsx`, Etapa 6) quando
+   * um registro clicado tem 2+ campos em `backup_dados`; vários registros
+   * (length 2+) no fluxo em massa, aberto via
+   * `onAbrirConflitoRestaurarCamposEmMassa` a partir da seleção múltipla
+   * (dropdown de ações do cabeçalho, variante da seção 5 do planner).
+   * `camposDisponiveis` é a lista repassada pela tabela — as chaves de
+   * `backup_dados` do registro único, ou a união entre os selecionados —
+   * exibida no modal como as opções de checkbox.
    */
   const [conflitoRestaurarCampos, setConflitoRestaurarCampos] = useState<{
-    registro: EmailRecord;
+    registros: EmailRecord[];
     camposDisponiveis: TCampoRestauravel[];
   } | null>(null);
+  const [confirmacaoRestauracao, setConfirmacaoRestauracao] = useState<{
+    registros: EmailRecord[];
+    campos: TCampoRestauravel[];
+  } | null>(null);
   const [erroSalvamento, setErroSalvamento] = useState<string | null>(null);
+  const [statusSalvamento, setStatusSalvamento] = useState<'salvando' | 'salvo' | 'erro' | null>(null);
+  const [idsRestaurados, setIdsRestaurados] = useState<Set<number>>(new Set());
+  const feedbackRestauracaoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Título/corpo do e-mail (REFATORACAO-EMAIL-TITULO-CONTEUDO.md). Editado
   // via o modal aberto pelo dropdown do Header (Etapa 3); os botões de
   // copiar (Etapa 2) já leem este mesmo estado.
   const [email, setEmail] = useState<EmailConteudo>(dados.email);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackRestauracaoRef.current) clearTimeout(feedbackRestauracaoRef.current);
+    };
+  }, []);
 
   const contadores = useMemo(() => calcularContadores(registros), [registros]);
   const tituloPagina = dados.projeto?.trim() || slug;
@@ -222,19 +240,24 @@ export function Emails({ slug, dados }: EmailsProps) {
   async function persistirRegistros(
     registrosAtualizados: EmailRecord[],
     options?: { preservarSelecao?: boolean }
-  ) {
+  ): Promise<boolean> {
     const registrosAnteriores = registros;
     setRegistros(registrosAtualizados);
     setErroSalvamento(null);
+    setStatusSalvamento('salvando');
 
     try {
       await salvarEmails(slug, { email, registros: registrosAtualizados });
+      setStatusSalvamento('salvo');
       if (!options?.preservarSelecao) {
         setSelecionados(new Set());
       }
+      return true;
     } catch {
       setRegistros(registrosAnteriores);
       setErroSalvamento('Não foi possível salvar a alteração. Tente novamente.');
+      setStatusSalvamento('erro');
+      return false;
     }
   }
 
@@ -321,45 +344,75 @@ export function Emails({ slug, dados }: EmailsProps) {
   }
 
   /**
+   * Núcleo comum de persistência para qualquer restauração de campos — 1
+   * registro (caminho direto da Etapa 6, ou modal individual) ou vários
+   * (modal em massa). Substitui, no array completo, cada registro já
+   * atualizado por `restaurarCampos` (Etapa 5) e recalcula o status
+   * automático do conjunto inteiro quando `status` estiver entre os campos
+  * restaurados (`status` ou `email`) — `restaurarCampos` opera sobre um único registro isolado,
+   * sem acesso aos demais para recontar duplicados, então esse recálculo só
+   * pode acontecer aqui, sobre o conjunto inteiro (mesmo motivo de
+   * `handleEditarCampo`/`handleRestaurar`) — `recalcularStatusAutomatico`
+   * já preserva sozinho qualquer outro registro com `backup_dados?.status`
+   * ainda presente, inclusive os que não fizeram parte desta restauração.
+   */
+  async function aplicarRestauracaoDeCampos(
+    registrosAtualizados: EmailRecord[],
+    camposRestaurados: TCampoRestauravel[]
+  ) {
+    const mapaAtualizados = new Map(registrosAtualizados.map((registro) => [registro.id, registro]));
+    let novosRegistros = registros.map((registro) => mapaAtualizados.get(registro.id) ?? registro);
+
+    if (camposRestaurados.includes('status') || camposRestaurados.includes('email')) {
+      novosRegistros = recalcularStatusAutomatico(novosRegistros);
+    }
+
+    return persistirRegistros(novosRegistros);
+  }
+
+  /**
    * Confirma a restauração direta (1 campo, sem modal) de um registro
    * (Etapa 6), disparada por `onRestaurarCampos` (`EmailTable.tsx`). O
    * registro recebido já chega pronto de `restaurarCampos` (Etapa 5): valor
    * de nome/email já reescrito literalmente e/ou `backup_dados.status` já
-   * removido — resta persistir e, quando `status` estiver entre os campos
-   * restaurados, recalcular o status automático de todo o conjunto. Mesmo
-   * motivo de `handleEditarCampo`/`handleRestaurar`: `restaurarCampos`
-   * opera sobre um único registro isolado, sem acesso aos demais para
-   * recontar duplicados, então o valor de fato só é decidido aqui, sobre o
-   * conjunto inteiro — `recalcularStatusAutomatico` já preserva sozinho
-   * qualquer outro registro com `backup_dados?.status` ainda presente.
+   * removido — só falta encaminhar para o núcleo comum de persistência.
    */
   async function handleRestaurarCampos(
     registroAtualizado: EmailRecord,
     camposRestaurados: TCampoRestauravel[]
   ) {
-    let registrosAtualizados = registros.map((registro) =>
-      registro.id === registroAtualizado.id ? registroAtualizado : registro
-    );
-
-    if (camposRestaurados.includes('status')) {
-      registrosAtualizados = recalcularStatusAutomatico(registrosAtualizados);
-    }
-
-    await persistirRegistros(registrosAtualizados);
+    setConfirmacaoRestauracao({ registros: [registroAtualizado], campos: camposRestaurados });
   }
 
   /**
-   * Abre o modal de conflito de restauração (Etapa 7), disparado por
-   * `onAbrirConflitoRestaurarCampos` (`EmailTable.tsx`, Etapa 6) quando o
-   * registro clicado tem 2+ campos em `backup_dados`. Só guarda o registro
-   * e a lista de campos disponíveis — a restauração de fato só acontece na
+   * Abre o modal de conflito de restauração no modo individual, disparado
+   * por `onAbrirConflitoRestaurarCampos` (`EmailTable.tsx`, Etapa 6) quando
+   * o registro clicado tem 2+ campos em `backup_dados`. Guarda o registro
+   * (sempre como array de 1 item — mesmo formato do modo em massa, abaixo)
+   * e a lista de campos disponíveis; a restauração de fato só acontece na
    * confirmação (`handleConfirmarConflitoRestaurarCampos`, abaixo).
    */
   function handleAbrirConflitoRestaurarCampos(
     registro: EmailRecord,
     camposDisponiveis: TCampoRestauravel[]
   ) {
-    setConflitoRestaurarCampos({ registro, camposDisponiveis });
+    setConflitoRestaurarCampos({ registros: [registro], camposDisponiveis });
+  }
+
+  /**
+   * Abre o modal de conflito de restauração no modo em massa (seção 5 do
+   * planner), disparado por `onAbrirConflitoRestaurarCamposEmMassa`
+   * (`EmailTable.tsx`) a partir do item "Restaurar campos" do dropdown de
+   * ações do cabeçalho. `registrosSelecionados` já vem filtrado pela
+   * tabela — só os que de fato têm algo em `backup_dados` — e
+   * `camposDisponiveis` já é a união entre eles; este handler só guarda o
+   * que recebeu.
+   */
+  function handleAbrirConflitoRestaurarCamposEmMassa(
+    registrosSelecionados: EmailRecord[],
+    camposDisponiveis: TCampoRestauravel[]
+  ) {
+    setConflitoRestaurarCampos({ registros: registrosSelecionados, camposDisponiveis });
   }
 
   /** Fecha o modal de restauração de campos sem alterar nada — mesmo padrão dos demais modais de conflito. */
@@ -368,20 +421,39 @@ export function Emails({ slug, dados }: EmailsProps) {
   }
 
   /**
-   * Confirmação do `RestaurarCamposModal` (Etapa 7): aplica `restaurarCampos`
-   * (Etapa 5) ao registro pendente com só os campos que o usuário marcou —
-   * campos disponíveis mas deixados desmarcados permanecem intocados em
-   * `backup_dados`, ainda protegidos — e reaproveita `handleRestaurarCampos`
-   * (mesmo handler do caminho direto de 1 campo, Etapa 6) para persistir e,
-   * quando aplicável, recalcular o status automático do conjunto.
+   * Confirmação do `RestaurarCamposModal`, comum aos dois modos (individual
+   * e em massa — a diferença já foi resolvida antes, em quantos registros
+   * `conflitoRestaurarCampos.registros` guarda). Aplica `restaurarCampos`
+   * (Etapa 5) a cada registro pendente com só os campos que o usuário
+   * marcou — campos disponíveis mas deixados desmarcados permanecem
+   * intocados em `backup_dados`, ainda protegidos, e o no-op por
+   * registro/campo que não se aplica (tabela de exemplo da seção 5) já
+   * acontece sozinho dentro de `restaurarCampos`, registro a registro — e
+   * encaminha o lote já resolvido para o mesmo núcleo comum de persistência
+   * do caminho direto.
    */
   async function handleConfirmarConflitoRestaurarCampos(camposEscolhidos: TCampoRestauravel[]) {
     if (!conflitoRestaurarCampos) return;
-    const { registro } = conflitoRestaurarCampos;
+    const { registros: registrosPendentes } = conflitoRestaurarCampos;
     setConflitoRestaurarCampos(null);
 
-    const registroAtualizado = restaurarCampos(registro, camposEscolhidos);
-    await handleRestaurarCampos(registroAtualizado, camposEscolhidos);
+    const registrosAtualizados = registrosPendentes.map((registro) =>
+      restaurarCampos(registro, camposEscolhidos)
+    );
+    setConfirmacaoRestauracao({ registros: registrosAtualizados, campos: camposEscolhidos });
+  }
+
+  async function confirmarRestauracao() {
+    if (!confirmacaoRestauracao) return;
+    const { registros: registrosAtualizados } = confirmacaoRestauracao;
+    setConfirmacaoRestauracao(null);
+    const salvou = await aplicarRestauracaoDeCampos(registrosAtualizados, confirmacaoRestauracao.campos);
+    if (!salvou) return;
+
+    const ids = registrosAtualizados.map((registro) => registro.id);
+    setIdsRestaurados(new Set(ids));
+    if (feedbackRestauracaoRef.current) clearTimeout(feedbackRestauracaoRef.current);
+    feedbackRestauracaoRef.current = setTimeout(() => setIdsRestaurados(new Set()), 1800);
   }
 
   /**
@@ -471,35 +543,6 @@ export function Emails({ slug, dados }: EmailsProps) {
     await deletarRegistros([...idsParaDeletar]);
   }
 
-  /**
-   * "Restaurar": remove a chave `backup_dados.status` dos selecionados (o
-   * antigo `status_alterado = false` não existe mais como campo — a
-   * ausência da chave já é a marcação, seção 3 de
-   * `EdicaoIndividualdeRegistro.md`) e recalcula o status de todo o
-   * conjunto conforme as regras de prioridade (seção 7 — o registro "volta
-   * a ser processado normalmente pelo sistema"). Segue a mesma regra
-   * assimétrica de restauração de `status` usada pela Etapa 5
-   * (`restaurarCampos`): nunca escreve um valor literal de volta, só
-   * remove a trava e deixa `recalcularStatusAutomatico` decidir.
-   */
-  async function handleRestaurar() {
-    const agora = new Date().toISOString();
-    const comStatusResetado = registros.map((registro) => {
-      if (!selecionados.has(registro.id) || !registro.backup_dados) return registro;
-
-      const { status: _statusProtegido, ...backupRestante } = registro.backup_dados;
-      const temChavesRestantes = Object.keys(backupRestante).length > 0;
-
-      return {
-        ...registro,
-        backup_dados: temChavesRestantes ? backupRestante : undefined,
-        last_updated: agora,
-      };
-    });
-    const registrosAtualizados = recalcularStatusAutomatico(comStatusResetado);
-    await persistirRegistros(registrosAtualizados);
-  }
-
   return (
     <>
       <Header slug={slug} nome={tituloPagina} registros={registros} email={email} onSalvarEmail={persistirEmailConteudo} />
@@ -511,7 +554,13 @@ export function Emails({ slug, dados }: EmailsProps) {
           </div>
         </div>
 
-        {erroSalvamento && <p className="erro-salvamento">{erroSalvamento}</p>}
+        {statusSalvamento === 'salvando' && (
+          <p className="status-salvamento" role="status" aria-live="polite">Salvando...</p>
+        )}
+        {statusSalvamento === 'salvo' && !erroSalvamento && (
+          <p className="status-salvamento status-salvamento-sucesso" role="status" aria-live="polite">Salvo</p>
+        )}
+        {erroSalvamento && <p className="erro-salvamento" role="alert">{erroSalvamento}</p>}
 
         <EmailCounters contadores={contadores} />
 
@@ -551,12 +600,13 @@ export function Emails({ slug, dados }: EmailsProps) {
               onAtualizarStatusIndividual={(id, status) => void handleAtualizarStatusIndividual(id, status)}
               onEditarCampo={(registro, campo) => void handleEditarCampo(registro, campo)}
               onRestaurarCampos={(registro, campos) => void handleRestaurarCampos(registro, campos)}
+              idsRestaurados={idsRestaurados}
               onAbrirConflitoRestaurarCampos={handleAbrirConflitoRestaurarCampos}
+              onAbrirConflitoRestaurarCamposEmMassa={handleAbrirConflitoRestaurarCamposEmMassa}
               onAtualizarStatusEmMassa={(status) => void handleAtualizarStatus(status)}
               todosSelecionadosDeletados={todosSelecionadosDeletados}
               onDeletar={handleDeletarClick}
               onConfirmarEnvio={handleConfirmarEnvioClick}
-              onRestaurar={() => void handleRestaurar()}
             />
           </>
         )}
@@ -581,8 +631,21 @@ export function Emails({ slug, dados }: EmailsProps) {
         {conflitoRestaurarCampos && (
           <RestaurarCamposModal
             campos={conflitoRestaurarCampos.camposDisponiveis}
+            quantidadeRegistros={conflitoRestaurarCampos.registros.length}
             onCancelar={handleCancelarConflitoRestaurarCampos}
             onConfirmar={(camposEscolhidos) => void handleConfirmarConflitoRestaurarCampos(camposEscolhidos)}
+          />
+        )}
+
+        {confirmacaoRestauracao && (
+          <ConfirmDialog
+            ariaLabel="Confirmar restauração"
+            titulo="Restaurar valores originais?"
+            descricao={`${confirmacaoRestauracao.registros.length} registro(s) terão ${confirmacaoRestauracao.campos.length} campo(s) restaurado(s). Essa ação desfaz a correção manual.`}
+            rotuloCancelar="Cancelar"
+            rotuloConfirmar="Restaurar"
+            onCancelar={() => setConfirmacaoRestauracao(null)}
+            onConfirmar={() => void confirmarRestauracao()}
           />
         )}
       </div>

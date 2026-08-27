@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { EmailRecord, TStatusManual } from '../types/email';
 import { STATUS_SELECIONAVEIS } from '../types/email';
 import { copiarTexto } from './utils/clipboard';
-import { isValidEmail } from './EmailStatus';
 import { restaurarCampos, type TCampoRestauravel } from './utils/restaurarCampos';
+import { isValidEmail } from './EmailStatus';
 import {
   IconeArrastar,
   IconeConfirmarEnvio,
@@ -41,8 +41,7 @@ export type TCampoEditavel = 'nome' | 'email';
  * Função pura, sem efeitos colaterais (não persiste nada) — chamada pelo
  * handler de confirmação da edição inline de célula (`confirmarEdicaoCelula`,
  * Etapa 4, logo abaixo) antes de propagar o registro atualizado para
- * `persistirRegistros` (`emails.tsx`). Não faz revalidação
- * de e-mail (`isValidEmail`, `EmailStatus.ts`) nem recálculo de status: o
+ * `persistirRegistros` (`emails.tsx`). Não faz recálculo de status: o
  * chamador decide o que fazer com o valor já validado antes de invocar esta
  * função, e não recalcula status aqui porque a edição de `nome`/`email` não
  * necessariamente afeta o status (só a edição de `email` pode, e mesmo
@@ -126,14 +125,6 @@ interface Props {
    */
   onConfirmarEnvio?: () => void;
   /**
-   * Chamada ao clicar em "Restaurar" no dropdown de ações do cabeçalho.
-   * Disponível para qualquer grupo selecionado (deletado, válido, inválido
-   * ou enviado) — não depende de `todosSelecionadosDeletados`. Remove a
-   * chave `backup_dados.status` dos selecionados e deixa o sistema
-   * recalcular o status normalmente a partir da regra automática (seção 5.2).
-   */
-  onRestaurar?: () => void;
-  /**
    * Chamada ao confirmar (blur ou Enter) a edição inline de `nome`/`email`
    * de um registro (Etapa 4). O registro recebido já vem com `backup_dados`
    * atualizado pela regra "primeira vez vence" (`capturarEdicaoCampo`,
@@ -141,13 +132,14 @@ interface Props {
    * precisa persistir (`persistirRegistros`, `emails.tsx`) e, quando
    * `campo === 'email'`, recalcular o status automático do conjunto (a
    * edição pode formar ou desfazer um grupo de duplicados). A validação de
-   * formato do e-mail (`isValidEmail`) já acontece aqui dentro, antes desta
-   * chamada — só chega até o chamador uma edição sintaticamente válida.
+  * formato do e-mail é aplicado pelo recálculo de status no chamador.
    * Quando ausente, as células de `nome`/`email` continuam como texto
    * estático não editável (mesmo padrão condicional de
    * `onAtualizarStatusIndividual` sobre o select de status).
    */
   onEditarCampo?: (registroAtualizado: EmailRecord, campo: TCampoEditavel) => void;
+  /** Registros que receberam feedback visual temporário após uma restauração. */
+  idsRestaurados?: ReadonlySet<number>;
   /**
    * Chamada ao clicar no botão "Restaurar" de uma linha (Etapa 6, `td-acoes`)
    * quando `backup_dados` daquele registro tem **exatamente 1 chave** — o
@@ -185,6 +177,29 @@ interface Props {
     registro: EmailRecord,
     camposDisponiveis: TCampoRestauravel[]
   ) => void;
+  /**
+   * Chamada ao clicar em "Restaurar campos" no dropdown de ações do
+   * cabeçalho (variante em massa da seção 5 do planner), disponível quando
+   * ao menos um registro selecionado tem `backup_dados` com 1+ chave.
+   * Recebe só os registros selecionados que de fato têm algo em
+   * `backup_dados` (os demais não têm nada para restaurar, e ficam de fora
+   * para não exigir filtro repetido de quem escuta) e a **união** de todos
+   * os campos alterados entre eles, para que quem escuta (`emails.tsx`)
+   * monte o mesmo `RestaurarCamposModal` da Etapa 7, agora em modo "em
+   * massa". O no-op por registro/campo que não se aplica (tabela de
+   * exemplo da seção 5) já é responsabilidade de `restaurarCampos` (Etapa
+   * 5) — este componente só decide quais registros e campos entram na
+   * escolha, não a aplica.
+   *
+   * Nome deliberadamente distinto de `onRestaurar` (que já existe e cobre
+   * só a remoção em lote de `backup_dados.status`, sem escolha de campos e
+   * sem passar por modal algum) — os dois convivem no mesmo dropdown, mas
+   * não têm relação entre si.
+   */
+  onAbrirConflitoRestaurarCamposEmMassa?: (
+    registros: EmailRecord[],
+    camposDisponiveis: TCampoRestauravel[]
+  ) => void;
 }
 
 /** Tabela com ID, Nome, E-mail e Status de cada registro (seção 6). */
@@ -200,13 +215,15 @@ export function EmailTable({
   todosSelecionadosDeletados,
   onDeletar,
   onConfirmarEnvio,
-  onRestaurar,
   onEditarCampo,
+  idsRestaurados,
   onRestaurarCampos,
   onAbrirConflitoRestaurarCampos,
+  onAbrirConflitoRestaurarCamposEmMassa,
 }: Props) {
   // Qual coluna mostrou "Copiado!" por último (null = nenhuma, ou o feedback já expirou).
   const [colunaCopiada, setColunaCopiada] = useState<TColunaCopiavel | null>(null);
+  const [erroEdicaoEmail, setErroEdicaoEmail] = useState<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Célula de nome/e-mail atualmente em edição (Etapa 4) — no máximo uma por
@@ -218,9 +235,6 @@ export function EmailTable({
     null
   );
   const [valorEdicao, setValorEdicao] = useState('');
-  // Sinaliza e-mail digitado sintaticamente inválido (revalidação com
-  // `isValidEmail`, seção 4): mantém a edição aberta em vez de confirmar.
-  const [erroEdicaoEmail, setErroEdicaoEmail] = useState(false);
   const inputEdicaoRef = useRef<HTMLInputElement | null>(null);
 
   // Há registros selecionados no momento (usado tanto pelos hooks abaixo
@@ -343,13 +357,13 @@ export function EmailTable({
   function iniciarEdicaoCelula(registro: EmailRecord, campo: TCampoEditavel) {
     setEdicaoCelula({ id: registro.id, campo });
     setValorEdicao(registro[campo]);
-    setErroEdicaoEmail(false);
+    setErroEdicaoEmail(null);
   }
 
   /** Sai do modo de edição sem persistir nada — usado pelo Esc (reversão, seção 2). */
   function cancelarEdicaoCelula() {
     setEdicaoCelula(null);
-    setErroEdicaoEmail(false);
+    setErroEdicaoEmail(null);
   }
 
   /**
@@ -362,8 +376,8 @@ export function EmailTable({
    * - Valor idêntico ao atual (inclusive só espaços a mais): encerra a
    *   edição silenciosamente, sem capturar nem persistir — não é uma
    *   correção de fato.
-   * - `email` sintaticamente inválido (`isValidEmail`): mantém a edição
-   *   aberta, sinalizando o erro, em vez de confirmar (seção 4/Teste 2).
+    * - `email` sintaticamente inválido mantém a edição aberta e exibe erro
+    *   inline; nenhum valor inválido é persistido.
    * - Valor vazio (após trim): mesmo tratamento de "sem correção" acima —
    *   apagar um nome/e-mail por engano ao editar não é uma correção válida.
    */
@@ -372,13 +386,13 @@ export function EmailTable({
     const { campo } = edicaoCelula;
     const valorFinal = valorEdicao.trim();
 
-    if (valorFinal === '' || valorFinal === registro[campo]) {
-      cancelarEdicaoCelula();
+    if (campo === 'email' && !isValidEmail(valorFinal)) {
+      setErroEdicaoEmail('Informe um e-mail válido.');
       return;
     }
 
-    if (campo === 'email' && !isValidEmail(valorFinal)) {
-      setErroEdicaoEmail(true);
+    if (valorFinal === '' || valorFinal === registro[campo]) {
+      cancelarEdicaoCelula();
       return;
     }
 
@@ -403,6 +417,15 @@ export function EmailTable({
           className={`celula-editavel ${onEditarCampo ? '' : 'celula-editavel-desabilitada'}`}
           onClick={() => onEditarCampo && iniciarEdicaoCelula(registro, campo)}
           title={onEditarCampo ? `Clique para editar o ${campo}` : undefined}
+          tabIndex={onEditarCampo ? 0 : undefined}
+          role={onEditarCampo ? 'button' : undefined}
+          aria-label={onEditarCampo ? `Editar ${campo} do registro ${registro.id}` : undefined}
+          onKeyDown={(evento) => {
+            if (onEditarCampo && (evento.key === 'Enter' || evento.key === ' ')) {
+              evento.preventDefault();
+              iniciarEdicaoCelula(registro, campo);
+            }
+          }}
         >
           {registro[campo]}
         </span>
@@ -410,29 +433,35 @@ export function EmailTable({
     }
 
     return (
-      <input
-        ref={inputEdicaoRef}
-        type="text"
-        className={`input-edicao-inline ${erroEdicaoEmail ? 'input-edicao-invalido' : ''}`}
-        value={valorEdicao}
-        onChange={(evento) => {
-          setValorEdicao(evento.target.value);
-          if (erroEdicaoEmail) setErroEdicaoEmail(false);
-        }}
-        onBlur={() => confirmarEdicaoCelula(registro)}
-        onKeyDown={(evento) => {
-          if (evento.key === 'Enter') {
-            evento.preventDefault();
-            confirmarEdicaoCelula(registro);
-          } else if (evento.key === 'Escape') {
-            evento.preventDefault();
-            cancelarEdicaoCelula();
-          }
-        }}
-        aria-label={`Editar ${campo} do registro ${registro.id}`}
-        aria-invalid={erroEdicaoEmail || undefined}
-        title={erroEdicaoEmail ? 'E-mail inválido — corrija ou pressione Esc para cancelar' : undefined}
-      />
+      <>
+        <input
+          ref={inputEdicaoRef}
+          type="text"
+          className="input-edicao-inline"
+          value={valorEdicao}
+          onChange={(evento) => {
+            setValorEdicao(evento.target.value);
+          }}
+          onBlur={() => confirmarEdicaoCelula(registro)}
+          onKeyDown={(evento) => {
+            if (evento.key === 'Enter') {
+              evento.preventDefault();
+              confirmarEdicaoCelula(registro);
+            } else if (evento.key === 'Escape') {
+              evento.preventDefault();
+              cancelarEdicaoCelula();
+            }
+          }}
+          aria-label={`Editar ${campo} do registro ${registro.id}`}
+          aria-invalid={campo === 'email' && erroEdicaoEmail ? 'true' : undefined}
+          aria-describedby={campo === 'email' && erroEdicaoEmail ? `erro-edicao-email-${registro.id}` : undefined}
+        />
+        {campo === 'email' && erroEdicaoEmail && (
+          <span id={`erro-edicao-email-${registro.id}`} className="erro-edicao-inline" role="alert">
+            {erroEdicaoEmail}
+          </span>
+        )}
+      </>
     );
   }
 
@@ -463,6 +492,43 @@ export function EmailTable({
     }
 
     onAbrirConflitoRestaurarCampos?.(registro, camposDisponiveis);
+  }
+
+  /**
+   * Clique em "Restaurar campos" no dropdown de ações do cabeçalho —
+  * variante em massa (seção 5 do planner). Filtra, dentre os selecionados,
+   * só os registros que de fato têm algo em `backup_dados` (os demais não
+   * têm nada para restaurar) e calcula a união de todos os campos alterados
+   * entre eles, para repassar a `onAbrirConflitoRestaurarCamposEmMassa` —
+  * mesmo prop que decide, do lado de fora, como montar o modal em massa
+  * (Etapa 7), exceto quando há um único registro e um único campo, caso
+  * em que segue diretamente o fluxo individual.
+   */
+  function handleAbrirRestaurarCamposEmMassa() {
+    const candidatos = registros.filter(
+      (registro) =>
+        selecionados.has(registro.id) &&
+        registro.backup_dados &&
+        Object.keys(registro.backup_dados).length > 0
+    );
+    if (candidatos.length === 0) return;
+
+    const camposDisponiveis = Array.from(
+      new Set(
+        candidatos.flatMap(
+          (registro) => Object.keys(registro.backup_dados ?? {}) as TCampoRestauravel[]
+        )
+      )
+    );
+
+    if (candidatos.length === 1 && camposDisponiveis.length === 1) {
+      const [registro] = candidatos;
+      const registroAtualizado = restaurarCampos(registro, camposDisponiveis);
+      onRestaurarCampos?.(registroAtualizado, camposDisponiveis);
+      return;
+    }
+
+    onAbrirConflitoRestaurarCamposEmMassa?.(candidatos, camposDisponiveis);
   }
 
   /**
@@ -630,7 +696,7 @@ export function EmailTable({
             </span>
           </th>
           <th className="th-acoes">
-            {(onConfirmarEnvio || onDeletar || onRestaurar) && (
+            {(onConfirmarEnvio || onDeletar || onAbrirConflitoRestaurarCamposEmMassa) && (
               <div className="th-acoes-menu" ref={menuAcoesRef}>
                 <button
                   ref={botaoAcoesRef}
@@ -663,20 +729,26 @@ export function EmailTable({
                       </button>
                     )}
 
-                    {onRestaurar && (
-                      <button
-                        type="button"
-                        className="acoes-dropdown-item acoes-dropdown-item-info"
-                        onClick={() => {
-                          setMenuAcoesAberto(false);
-                          onRestaurar();
-                        }}
-                        role="menuitem"
-                      >
-                        <span>Restaurar</span>
-                        <IconeRestaurar />
-                      </button>
-                    )}
+                    {onAbrirConflitoRestaurarCamposEmMassa &&
+                      registros.some(
+                        (registro) =>
+                          selecionados.has(registro.id) &&
+                          registro.backup_dados &&
+                          Object.keys(registro.backup_dados).length > 0
+                      ) && (
+                        <button
+                          type="button"
+                          className="acoes-dropdown-item acoes-dropdown-item-info"
+                          onClick={() => {
+                            setMenuAcoesAberto(false);
+                            handleAbrirRestaurarCamposEmMassa();
+                          }}
+                          role="menuitem"
+                        >
+                          <span>Restaurar</span>
+                          <IconeRestaurar />
+                        </button>
+                      )}
 
                     {!todosSelecionadosDeletados && onDeletar && (
                       <button
@@ -723,6 +795,9 @@ export function EmailTable({
               <td>{renderCelulaEditavel(registro, 'email')}</td>
               <td>{renderStatus(registro)}</td>
               <td className="td-acoes">
+                {idsRestaurados?.has(registro.id) && (
+                  <span className="feedback-restaurado" role="status">Restaurado</span>
+                )}
                 {onRestaurarCampos &&
                   registro.backup_dados &&
                   Object.keys(registro.backup_dados).length > 0 && (
