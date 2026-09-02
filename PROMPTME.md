@@ -4,13 +4,11 @@
 
 # 1. Visão Geral do Projeto
 
-**Nome:** Sistema de Organização e Envio de E-mails (`sistema-emails`).
+**Nome:** Malote (`malote`).
 
-**Objetivo:** aplicação web **local** (roda no computador do usuário, sem hospedagem) que importa uma planilha (`.csv`/`.xlsx`) de contatos, sincroniza esses dados com um arquivo JSON, e oferece uma interface React para consultar, buscar, filtrar, ordenar, selecionar, alterar status e excluir/restaurar registros de e-mail antes de um envio em massa feito por fora do sistema.
+**Objetivo:** aplicação web **local** (roda no computador do usuário, sem hospedagem) que importa uma planilha (`.csv`/`.xlsx`) de contatos, sincroniza esses dados com um arquivo JSON, e oferece uma interface React para consultar, buscar, filtrar, ordenar, selecionar, alterar status, excluir/restaurar registros e realizar envios de e-mail em massa.
 
 **Problema que resolve:** listas de contatos exportadas de formulários/sistemas de relatórios de treinamento chegam bagunçadas, com possíveis duplicatas, e-mails inválidos e necessidade de rastrear quais contatos já receberam e-mail. Fazer isso manualmente em planilha é lento e propenso a erro. O sistema centraliza essa curadoria em uma interface dedicada.
-
-**O sistema NÃO envia e-mails.** Ele apenas prepara/organiza os destinatários (ex.: para copiar e colar em outra ferramenta de disparo).
 
 **Público-alvo:** uma única pessoa/operador rodando o projeto localmente (não é multiusuário, não tem login, não tem hospedagem — ver seção 19 "Dívidas Técnicas").
 
@@ -75,7 +73,7 @@ Não existe botão "Salvar" — toda mutação na UI já dispara a persistência
 # 3. Estrutura das Pastas
 
 ```
-sistema-emails/
+malote/
 ├── data/                → entrada/saída de dados (planilhas + JSON oficial)
 ├── public/              → documentação do projeto (não é "public" de assets estáticos comuns)
 ├── src/
@@ -261,8 +259,6 @@ Persistência (persistirRegistros → salvarEmails → PUT /api/emails → middl
    ↓
 Em caso de falha na persistência: reverte o estado local para o valor anterior e mostra erroSalvamento
 ```
-
-**Exportação/envio real de e-mails:** fora do escopo do sistema. O "fim" do fluxo dentro da aplicação é: usuário seleciona registros → copia nome/e-mail (`copiarTexto`) → cola em outra ferramenta.
 
 ---
 

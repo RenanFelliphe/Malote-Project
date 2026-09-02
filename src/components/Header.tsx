@@ -310,7 +310,7 @@ export function Header({
       <header className="app-header">
         <Link to="/" className="app-header-logo">
           <IconePlanilha />
-          <span>Sistema de E-mails</span>
+          <span>Malote</span>
         </Link>
 
         <nav className="app-header-nav" />

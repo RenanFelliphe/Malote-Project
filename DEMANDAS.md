@@ -68,7 +68,7 @@ Tabela viva: toda demanda já levantada tem uma linha aqui, mesmo depois de remo
 | 4 | Histórico de Alterações | Registrado | Horas–dias (versão simples) | — | — |
 | 2 | Variáveis no Texto (merge tags) | Registrado | Dias | — | 1 (para "fechar o ciclo") |
 | 6 | Armazenamento Duplo (Banco + Local) | Registrado | Semanas | — | 1 (recomendado) |
-| 1 | Envio Automático dos E-mails | Registrado | Semanas — projeto à parte | 6 (recomendado) | — |
+| 1 | Envio Automático dos E-mails | Registrado | Semanas | 6 (recomendado) | — |
 
 ---
 
@@ -650,13 +650,13 @@ Esta demanda se sobrepõe conceitualmente à seção 9 ("Planos Futuros") de `DE
 ## Demanda 1 — Envio Automático dos E-mails
 
 **Status:** Registrado
-**Esforço estimado:** Semanas — recomenda-se tratar como projeto à parte, não como feature incremental
+**Esforço estimado:** Semanas — tratar como uma etapa prioritária do próprio sistema
 **Depende de:** Demanda 6 (recomendado, não bloqueante — ver observação em Escopo)
 **Bloqueia:** —
 
 ### Contexto
 
-Hoje o sistema é uma ferramenta de **organização de destinatários**: importa planilhas, valida e-mails, identifica duplicados, e permite copiar a lista selecionada para colar manualmente em outro programa (Outlook). O envio em si nunca foi parte do escopo (ver seção 1 da especificação: *"O sistema não realizará o envio de e-mails"*).
+Hoje o sistema organiza destinatários: importa planilhas, valida e-mails, identifica duplicados e permite selecionar os registros para um disparo controlado.
 
 A visão de longo prazo é transformar o sistema em um **disparador controlado de e-mails com proteção anti-spam**: o sistema passa a enviar de fato, não apenas organizar quem vai receber. O objetivo é evitar que envios em massa (dezenas ou centenas de uma vez) façam o remetente ser identificado como spam pelos provedores (Gmail, Outlook etc.), através de um envio **fatiado em blocos, espaçado no tempo**.
 

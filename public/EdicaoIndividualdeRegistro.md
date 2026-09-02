@@ -4,7 +4,7 @@
 
 ## 1. Contexto
 
-O **Sistema de Organização e Envio de E-mails** é uma aplicação React/TypeScript que permite importar planilhas de contatos, validar e-mails, marcar registros como enviados/deletados e exportar o resultado. Hoje, para corrigir um erro de digitação num registro (`nome` ou `email`), o único caminho é reimportar a planilha inteira via `sync.ts` no terminal — não existe edição pontual pela interface.
+O **Malote** é uma aplicação React/TypeScript que permite importar planilhas de contatos, validar e-mails, marcar registros como enviados/deletados e exportar o resultado. Hoje, para corrigir um erro de digitação num registro (`nome` ou `email`), o único caminho é reimportar a planilha inteira via `sync.ts` no terminal — não existe edição pontual pela interface.
 
 A própria tabela (`src/components/EmailTable.tsx`) já resolve esse problema para o campo `status`: `renderStatus` substitui o badge por um `<select>` inline quando o registro está sob edição. O objetivo desta demanda é estender o mesmo espírito de edição inline para `nome` e `email`.
 

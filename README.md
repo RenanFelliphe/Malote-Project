@@ -1,4 +1,4 @@
-# Sistema de Organização e Envio de E-mails
+# Malote
 
 ## Visão geral
 
@@ -11,7 +11,7 @@ Este projeto é uma aplicação local para organizar, visualizar e gerenciar lis
 - atualizar status manualmente ou em massa;
 - manter um arquivo JSON como fonte oficial dos dados.
 
-O sistema não envia e-mails automaticamente. Sua função é apenas preparar e organizar os destinatários para envio posterior.
+O sistema prepara os destinatários e oferece suporte ao envio de e-mails automaticamente.
 
 ## Objetivo do projeto
 
@@ -180,7 +180,6 @@ Esta versão ainda é local e tem alguns limites importantes:
 
 - não há backend real nem banco de dados;
 - não há importação via interface, apenas por terminal;
-- o sistema não envia e-mails;
 - a sincronização depende da estrutura das colunas da planilha;
 - se a nova planilha tiver nomes de colunas muito diferentes, pode ser necessário ajustar o código de identificação de colunas;
 - a persistência é feita em um arquivo JSON local, não em um serviço remoto.

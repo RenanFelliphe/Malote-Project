@@ -1,4 +1,4 @@
-# Sistema de Organização e Envio de E-mails — Especificação (v3)
+# Malote — Especificação (v3)
 
 > **Escopo desta versão:** esta fase do projeto roda **localmente**, sem hospedagem, sem geração de slug e sem página dinâmica de importação. O objetivo imediato é ler planilhas já existentes (hoje, 2) e organizar o envio dos e-mails. A visão de longo prazo (importação via interface, cards, rotas dinâmicas, hospedagem) está descrita na seção **9. Planos Futuros**.
 
@@ -12,10 +12,10 @@ Criar um sistema local para organizar e facilitar o envio de e-mails em massa po
 2. Sincronizar seus dados com um arquivo JSON;
 3. Exibir uma interface HTML/React para consulta e gerenciamento;
 4. Buscar, filtrar, ordenar e selecionar registros;
-5. Copiar e-mails para envio em massa;
+5. Preparar e realizar o envio de e-mails em massa;
 6. Atualizar e persistir os status dos registros.
 
-O sistema não realizará o envio de e-mails. Seu objetivo é apenas organizar os destinatários.
+O sistema organiza os destinatários e oferece suporte ao envio de e-mails.
 
 ### Stack técnica
 

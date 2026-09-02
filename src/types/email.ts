@@ -1,5 +1,5 @@
 /**
- * Modelo de dados do Sistema de Organização e Envio de E-mails.
+ * Modelo de dados do Malote.
  * Ver seção 4 da especificação (Especificacao_Sistema_Emails_v3.md).
  */
 

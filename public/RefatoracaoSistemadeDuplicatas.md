@@ -2,7 +2,7 @@
 
 ## 1. Contexto do projeto
 
-O **Sistema de Organização e Envio de E-mails** é uma aplicação React/TypeScript que permite importar planilhas de contatos, validar e-mails, identificar duplicatas, marcar registros como enviados/deletados manualmente e exportar o resultado. Os dados vivem em `data/emails.json`, que é a fonte oficial e é atualizado de duas formas:
+O **Malote** é uma aplicação React/TypeScript que permite importar planilhas de contatos, validar e-mails, identificar duplicatas, marcar registros como enviados/deletados manualmente e exportar o resultado. Os dados vivem em `data/emails.json`, que é a fonte oficial e é atualizado de duas formas:
 
 - pela interface (`src/pages/emails.tsx`), a cada ação do usuário;
 - pelo script de sincronização de terminal (`src/scripts/sync.ts`), quando uma nova planilha é importada.

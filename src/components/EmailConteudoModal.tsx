@@ -55,8 +55,7 @@ interface Props {
  * Etapa 9 (RefatoracaoToolbarEmail.md): botão "Anexar arquivo" abaixo do
  * editor, com lista dos arquivos escolhidos (cada um removível antes de
  * salvar). É só UI local (`anexos` nunca é lido por `onSalvar` nem enviado
- * a lugar nenhum) — preparação para quando o disparo automático de e-mails
- * ganhar suporte a anexo. Por isso a lista de anexos também não entra em
+ * a lugar nenhum). Por isso a lista de anexos também não entra em
  * `alteracoesPendentes`: fechar o modal sem salvar não pede confirmação por
  * causa só dos anexos, já que nada seria perdido que já não se perdesse ao
  * reabrir o modal (nenhum arquivo é de fato retido em lugar nenhum).
