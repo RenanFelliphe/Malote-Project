@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { EmailConteudo, EmailRecord, EmailsData, TFiltro, TStatus, TStatusManual } from '../types/email';
 import { calcularPaginacao } from '../components/utils/paginacao';
-import { calcularContadores, processarRegistros, ORDENACAO_PADRAO, TODOS_OS_STATUS, type TOrdenacao } from '../components/utils/emailData';
+import { calcularContadores, processarRegistros, buscar, CONTADOR_LABELS, ORDENACAO_PADRAO, TODOS_OS_STATUS, type TOrdenacao } from '../components/utils/emailData';
 import { recalcularStatusAutomatico, normalizeEmail } from '../components/EmailStatus';
 import { EmailCounters } from '../components/EmailCounters';
 import { EmailToolbar } from '../components/EmailToolbar';
@@ -97,6 +97,29 @@ export function Emails({ slug, dados }: EmailsProps) {
   const registrosProcessados = useMemo(
     () => processarRegistros(registros, { statusFiltrados, termoBusca, ordenacao }),
     [registros, statusFiltrados, termoBusca, ordenacao]
+  );
+
+  /**
+   * Resultado da busca isolada do filtro de status — usado apenas para
+   * diagnosticar o estado "sem resultados" (abaixo): se a busca por termo,
+   * ignorando o filtro de status ativo, encontra algo, o registro existe na
+   * planilha e está apenas sendo ocultado pelo filtro. Nesse caso a
+   * mensagem/CTA exibidos devem apontar para o filtro, não para a busca —
+   * evita que o usuário conclua que o registro não existe quando ele só
+   * está fora do recorte de status selecionado no momento.
+   */
+  const correspondentesSemFiltroDeStatus = useMemo(
+    () => buscar(registros, termoBusca),
+    [registros, termoBusca]
+  );
+
+  /** Rótulos dos status atualmente selecionados no filtro (para a mensagem de "sem resultados"). */
+  const rotulosStatusFiltrados = useMemo(
+    () =>
+      CONTADOR_LABELS.filter((item) => item.key !== 'total' && statusFiltrados.has(item.key as TStatus)).map(
+        (item) => item.label
+      ),
+    [statusFiltrados]
   );
 
   const paginacao = useMemo(
@@ -593,9 +616,21 @@ export function Emails({ slug, dados }: EmailsProps) {
         />
 
         {registrosProcessados.length === 0 ? (
-          <p className="sem-resultados">
-            Nenhum e-mail encontrado{termoBusca ? ` para "${termoBusca}"` : ''}.
-          </p>
+          correspondentesSemFiltroDeStatus.length > 0 ? (
+            <div className="sem-resultados sem-resultados-filtrado">
+              <p>
+                Nenhum registro encontrado{termoBusca ? ` para "${termoBusca}"` : ''} com os status selecionados
+                {rotulosStatusFiltrados.length > 0 ? `: ${rotulosStatusFiltrados.join(', ')}` : ''}.
+              </p>
+              <button type="button" className="botao-remover-filtros" onClick={() => alternarFiltro('todos')}>
+                Remover filtros
+              </button>
+            </div>
+          ) : (
+            <p className="sem-resultados">
+              Nenhum registro encontrado{termoBusca ? ` para "${termoBusca}"` : ''}.
+            </p>
+          )
         ) : (
           <>
             <div className="linha-selecao-paginacao">

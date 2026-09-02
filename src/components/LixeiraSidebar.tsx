@@ -82,6 +82,7 @@ export function LixeiraSidebar({ aberto, onFechar, onContagemAtualizada }: Props
   // preenchido (ver `ResultadoRestauracaoProjeto`, Etapa 8). Só o primeiro
   // da fila é exibido por vez, num `ConflitoRestauracaoModal`.
   const [conflitosPendentes, setConflitosPendentes] = useState<ResultadoRestauracaoProjeto[]>([]);
+  const [confirmacaoRestauracao, setConfirmacaoRestauracao] = useState<string[] | null>(null);
   // Exclusão permanente (Etapa 10) — `confirmacaoExclusao` guarda o lote
   // pendente de confirmação (`null` quando o `ConfirmDialog` está fechado);
   // tanto o botão por item quanto o da barra de seleção e "Esvaziar
@@ -134,6 +135,7 @@ export function LixeiraSidebar({ aberto, onFechar, onContagemAtualizada }: Props
       setErroRestauracao(null);
       setErroExclusao(null);
       setConfirmacaoExclusao(null);
+      setConfirmacaoRestauracao(null);
     }
   }, [aberto]);
 
@@ -188,6 +190,17 @@ export function LixeiraSidebar({ aberto, onFechar, onContagemAtualizada }: Props
     } finally {
       setRestaurando(false);
     }
+  }
+
+  function abrirConfirmarRestauracao() {
+    if (slugsSelecionados.size === 0) return;
+    setConfirmacaoRestauracao([...slugsSelecionados]);
+  }
+
+  async function handleConfirmarRestauracao() {
+    if (!confirmacaoRestauracao) return;
+    setConfirmacaoRestauracao(null);
+    await handleRestaurar();
   }
 
   /**
@@ -305,6 +318,10 @@ export function LixeiraSidebar({ aberto, onFechar, onContagemAtualizada }: Props
     confirmacaoExclusao?.length === 1
       ? `Tem certeza que deseja excluir permanentemente a planilha "${nomeParaExclusaoUnica ?? ''}"? Esta ação é irreversível e não poderá ser desfeita.`
       : `Tem certeza que deseja excluir permanentemente as ${confirmacaoExclusao?.length ?? 0} planilhas selecionadas? Esta ação é irreversível e não poderá ser desfeita.`;
+  const descricaoConfirmacaoRestauracao =
+    confirmacaoRestauracao?.length === 1
+      ? `Tem certeza que deseja restaurar a planilha "${itens.find((item) => item.slug === confirmacaoRestauracao[0])?.projeto ?? ''}"?`
+      : `Tem certeza que deseja restaurar as ${confirmacaoRestauracao?.length ?? 0} planilhas selecionadas?`;
 
   return (
     <>
@@ -425,11 +442,10 @@ export function LixeiraSidebar({ aberto, onFechar, onContagemAtualizada }: Props
                   <button
                     type="button"
                     className="dialog-botao-primario lixeira-sidebar-barra-selecao-restaurar"
-                    onClick={() => void handleRestaurar()}
+                    onClick={abrirConfirmarRestauracao}
                     disabled={restaurando || excluindo}
                   >
                     <FiRotateCcw aria-hidden="true" />
-                    {restaurando ? 'Restaurando...' : 'Restaurar'}
                   </button>
                   <button
                     type="button"
@@ -438,7 +454,6 @@ export function LixeiraSidebar({ aberto, onFechar, onContagemAtualizada }: Props
                     disabled={restaurando || excluindo}
                   >
                     <IconeLixeira />
-                    {excluindo ? 'Excluindo...' : 'Excluir permanentemente'}
                   </button>
                 </div>
               </div>
@@ -456,6 +471,18 @@ export function LixeiraSidebar({ aberto, onFechar, onContagemAtualizada }: Props
           rotuloConfirmar="Excluir"
           onCancelar={() => setConfirmacaoExclusao(null)}
           onConfirmar={() => void handleConfirmarExclusaoPermanente()}
+        />
+      )}
+
+      {confirmacaoRestauracao && (
+        <ConfirmDialog
+          ariaLabel="Confirmar restauração"
+          titulo="Restaurar planilha(s)"
+          descricao={descricaoConfirmacaoRestauracao}
+          rotuloCancelar="Cancelar"
+          rotuloConfirmar="Restaurar"
+          onCancelar={() => setConfirmacaoRestauracao(null)}
+          onConfirmar={() => void handleConfirmarRestauracao()}
         />
       )}
 

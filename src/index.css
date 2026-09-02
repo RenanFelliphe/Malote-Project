@@ -886,6 +886,34 @@ select {
   color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
+
+.sem-resultados-filtrado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.sem-resultados-filtrado p {
+  margin: 0;
+}
+
+.botao-remover-filtros {
+  padding: 0.5rem 1.1rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.botao-remover-filtros:hover {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
 /* --- Filtros (pílulas) --- */
 
 .filtros {
@@ -4341,8 +4369,20 @@ li.marcado .exportar-lista-status-item {
   gap: 0.75rem;
   padding: 0.75rem 0.85rem;
   border: 1px solid var(--color-border);
+  border-left: 3px dashed var(--color-border-strong);;
   border-radius: var(--radius-md);
   background: var(--color-bg-subtle);
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.lixeira-item:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+}
+
+.lixeira-item:has(.checkbox-customizado-input:checked) {
+  border-left-color: var(--color-accent);
+  border-left-style: solid;
 }
 
 /* Checkbox de seleção por item (Etapa 8 de implementacaoDelecao.md),
@@ -4378,7 +4418,7 @@ li.marcado .exportar-lista-status-item {
 .lixeira-item-prazo {
   flex-shrink: 0;
   padding: 0.2rem 0.5rem;
-  border-radius: var(--radius-full);
+  border-radius: 6px;
   background: var(--color-neutral-bg);
   color: var(--color-neutral);
   font-size: 0.72rem;
@@ -4440,6 +4480,7 @@ li.marcado .exportar-lista-status-item {
    basta um bloco em fluxo normal. */
 .lixeira-sidebar-barra-selecao {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
