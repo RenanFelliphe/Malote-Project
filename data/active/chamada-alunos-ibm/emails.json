@@ -1,23 +1,20 @@
 {
   "projeto": "Chamada Alunos IBM",
   "criado_em": "2026-08-25T16:44:40.368Z",
-  "atualizado_em": "2026-08-27T11:29:14.259Z",
+  "atualizado_em": "2026-09-02T12:18:54.667Z",
   "email": {
-    "titulo": "",
-    "conteudo": "",
-    "atualizado_em": ""
+    "titulo": "Ainda dá tempo de concluir seu curso na IBM SkillsBuild!⏰",
+    "conteudo": "<p style=\"text-align: left;\">Olá!</p><p style=\"text-align: left;\">Você já está inscrito(a) em um dos cursos oferecidos pela <strong>IBM SkillsBuild</strong>, em parceria com o <strong>Instituto Energisa</strong> e o <strong>Rio Pomba Valley</strong>.</p><p style=\"text-align: left;\">Se você ainda não concluiu sua formação, <strong>ainda dá tempo de retomar os estudos e finalizar o curso!</strong></p><p style=\"text-align: left;\">Essa é uma oportunidade para continuar desenvolvendo seus conhecimentos, adquirir novas habilidades e fortalecer sua preparação para o mercado de trabalho.</p><p style=\"text-align: left;\">📚 <strong>Acesse a IBM SkillsBuild e continue sua jornada de aprendizagem.</strong></p><p style=\"text-align: left;\">Não deixe essa oportunidade passar. Reserve um tempo para os estudos e avance mais um passo na sua formação!</p><p style=\"text-align: left;\">Abraços,</p><p style=\"text-align: left;\"><strong>Equipe Rio Pomba Valley</strong><br><strong>Instituto Energisa</strong></p>",
+    "atualizado_em": "2026-09-02T12:18:54.651Z"
   },
   "registros": [
     {
       "id": 1,
       "nome": "A Rafael P Alves",
       "email": "arafael5@gmail.com",
-      "status": "inválido",
+      "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-08-27T11:29:14.218Z",
-      "backup_dados": {
-        "status": true
-      }
+      "last_updated": "2026-09-02T12:16:56.387Z"
     },
     {
       "id": 2,

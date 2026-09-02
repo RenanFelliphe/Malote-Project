@@ -14,6 +14,7 @@ import { ConflitoExclusaoModal } from '../components/ConflitoExclusaoModal';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { DuplicadosConflitoModal } from '../components/DuplicadosConflitoModal';
 import { Header } from '../components/Header';
+import { IconeFechar } from '../components/Icons';
 import { salvarEmails } from '../services/emailsApi';
 
 /**
@@ -45,6 +46,7 @@ export function Emails({ slug, dados }: EmailsProps) {
   const [quantidade, setQuantidade] = useState<number>(() => Math.max(1, Math.min(100, dados.registros.length)));
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [grupoDuplicadoAberto, setGrupoDuplicadoAberto] = useState<EmailRecord[] | null>(null);
+  const [confirmacaoLimparSelecao, setConfirmacaoLimparSelecao] = useState(false);
   const [conflitoExclusao, setConflitoExclusao] = useState<{
     enviados: EmailRecord[];
     aDeletar: EmailRecord[];
@@ -498,6 +500,15 @@ export function Emails({ slug, dados }: EmailsProps) {
     void handleAtualizarStatus('enviado');
   }
 
+  function handleLimparSelecaoClick() {
+    setConfirmacaoLimparSelecao(true);
+  }
+
+  function handleConfirmarLimpezaSelecao() {
+    setSelecionados(new Set());
+    setConfirmacaoLimparSelecao(false);
+  }
+
   /**
    * Clique em "Deletar": registros "enviado" nunca podem ser deletados
    * (seção 7 — "Restrição para enviados"). Se a seleção contiver algum,
@@ -562,7 +573,11 @@ export function Emails({ slug, dados }: EmailsProps) {
         )}
         {erroSalvamento && <p className="erro-salvamento" role="alert">{erroSalvamento}</p>}
 
-        <EmailCounters contadores={contadores} />
+        <EmailCounters
+          contadores={contadores}
+          statusFiltrados={statusFiltrados}
+          onAlternarFiltro={alternarFiltro}
+        />
 
         <EmailToolbar
           termoBusca={termoBusca}
@@ -573,8 +588,6 @@ export function Emails({ slug, dados }: EmailsProps) {
             setPaginaAtual(1);
           }}
           quantidadeMax={registrosProcessados.length}
-          statusFiltrados={statusFiltrados}
-          onAlternarFiltro={alternarFiltro}
           ordenacao={ordenacao}
           onOrdenacaoChange={setOrdenacao}
         />
@@ -586,7 +599,20 @@ export function Emails({ slug, dados }: EmailsProps) {
         ) : (
           <>
             <div className="linha-selecao-paginacao">
-              <p className="contador-selecionados">{selecionados.size} selecionado(s)</p>
+              <div className="contador-selecao">
+                <p className="contador-selecionados">{selecionados.size} selecionado(s)</p>
+                {selecionados.size > 0 && (
+                  <button
+                    type="button"
+                    className="botao-limpar-selecao"
+                    aria-label="Desmarcar todos os registros selecionados"
+                    title="Desmarcar todos os registros selecionados"
+                    onClick={handleLimparSelecaoClick}
+                  >
+                    <IconeFechar />
+                  </button>
+                )}
+              </div>
               <Paginacao paginacao={paginacao} onPaginaChange={setPaginaAtual} />
             </div>
 
@@ -646,6 +672,18 @@ export function Emails({ slug, dados }: EmailsProps) {
             rotuloConfirmar="Restaurar"
             onCancelar={() => setConfirmacaoRestauracao(null)}
             onConfirmar={() => void confirmarRestauracao()}
+          />
+        )}
+
+        {confirmacaoLimparSelecao && (
+          <ConfirmDialog
+            ariaLabel="Confirmar limpeza da seleção"
+            titulo="Desmarcar registros selecionados?"
+            descricao={`${selecionados.size} registro(s) selecionado(s) serão desmarcados.`}
+            rotuloCancelar="Cancelar"
+            rotuloConfirmar="Desmarcar"
+            onCancelar={() => setConfirmacaoLimparSelecao(false)}
+            onConfirmar={handleConfirmarLimpezaSelecao}
           />
         )}
       </div>

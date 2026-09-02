@@ -8,7 +8,7 @@
  * novos arrays/objetos, o que mantém a lógica fácil de testar e
  * reaproveitar (inclusive futuramente no modal da Etapa 4).
  */
-import type { EmailCounters, EmailRecord, TFiltro, TStatus } from '../../types/email';
+import type { EmailCounters, EmailRecord, TStatus } from '../../types/email';
 
 /** Cada critério de ordenação individual disponível na interface (seção 6). */
 export type TCriterioOrdenacao = 'id' | 'alfabetica' | 'status';
@@ -31,16 +31,6 @@ export const CRITERIO_ORDENACAO_LABELS: Record<TCriterioOrdenacao, string> = {
   alfabetica: 'Ordem alfabética',
   status: 'Status',
 };
-
-/** Opções de filtro exibidas na interface, na ordem em que devem aparecer (seção 6). */
-export const FILTROS: { value: TFiltro; label: string }[] = [
-  { value: 'todos', label: 'Todos' },
-  { value: 'válido', label: 'Válidos' },
-  { value: 'inválido', label: 'Inválidos' },
-  { value: 'duplicado', label: 'Duplicados' },
-  { value: 'deletado', label: 'Deletados' },
-  { value: 'enviado', label: 'Enviados' },
-];
 
 /** Todos os status existentes (seção 5.2), na ordem em que aparecem nos filtros/contadores. */
 export const TODOS_OS_STATUS: TStatus[] = ['válido', 'inválido', 'duplicado', 'deletado', 'enviado'];
