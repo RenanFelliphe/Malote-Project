@@ -33,9 +33,11 @@ function lerTemaPreferido(): TTheme {
  * Provider de tema (claro/escuro), compartilhado por toda a aplicação.
  *
  * Além de guardar o estado em memória, sincroniza duas coisas a cada
- * mudança: o atributo `data-theme` em `<html>` (usado pelo CSS para trocar
- * as variáveis de cor, ver `index.css`) e o `localStorage` (para a escolha
- * sobreviver a um recarregamento de página).
+ * mudança: o atributo `data-theme` em `<html>` (usado pelo CSS para ativar
+ * `[data-theme='light']` ou `[data-theme='dark']` e suas variáveis de cor,
+ * ver `index.css`) e o `localStorage` (para a escolha sobreviver a um
+ * recarregamento de página). O HTML começa com `data-theme="light"` para
+ * evitar uma tela sem cores antes da montagem do React.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [tema, setTema] = useState<TTheme>(lerTemaPreferido);

@@ -12,97 +12,102 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
 :root {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; /* Tipografia geral da aplicação. */
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; /* Contadores, IDs, paginação e valores técnicos. */
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-full: 999px;
+  --radius-sm: 6px; /* Campos compactos, ícones e controles pequenos. */
+  --radius-md: 10px; /* Botões, inputs, dropdowns e cartões menores. */
+  --radius-lg: 14px; /* Cartões, tabelas, modais e painéis principais. */
+  --radius-xl: 18px; /* Reserva para superfícies de maior destaque. */
+  --radius-full: 999px; /* Pílulas, badges, toggles e paginação. */
 
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-6: 1.5rem;
+  --space-1: 0.25rem; /* Espaçamento mínimo entre elementos compactos. */
+  --space-2: 0.5rem; /* Gaps e paddings de controles pequenos. */
+  --space-3: 0.75rem; /* Separação de campos, listas e ações. */
+  --space-4: 1rem; /* Espaçamento padrão entre blocos. */
+  --space-6: 1.5rem; /* Espaçamento amplo de seções e painéis. */
 
-  --transition-fast: 0.15s ease;
-  --transition-base: 0.2s ease;
+  --transition-fast: 0.15s ease; /* Hover, foco e mudanças rápidas de controles. */
+  --transition-base: 0.2s ease; /* Tema, toggles e transições estruturais. */
+}
 
+[data-theme='light'] {
   color-scheme: light;
 
-  /* --- Superfícies e texto --- */
-  --color-bg: #f5f6fa;
-  --color-bg-subtle: #eceef3;
-  --color-surface: #ffffff;
-  --color-surface-hover: #f8f9fc;
-  --color-border: #e2e5ec;
-  --color-border-strong: #cbd0dc;
-  --color-text: #14161e;
-  --color-text-secondary: #5a5f6e;
-  --color-text-tertiary: #8b8f9f;
+  /* --- Superfícies e texto (paleta couro/terracota) --- */
+  --color-bg: #F0E2CF;             /* Fundo geral de páginas e áreas externas. */
+  --color-bg-subtle: #E4D3B8;      /* Cabeçalhos, campos secundários e controles inativos. */
+  --color-surface: #FBF5EC;        /* Cards, tabelas, modais, dropdowns e inputs. */
+  --color-surface-hover: #F5EBDA;  /* Hover de cards, linhas, itens e controles. */
+  --color-border: #D9C3A5;         /* Bordas padrão de campos, cards, tabelas e divisores. */
+  --color-border-strong: #B85C38;  /* Bordas de destaque, indicadores e estados inativos. */
+  --color-text: #1D1A17;           /* Títulos, texto principal e conteúdo dos controles. */
+  --color-text-secondary: #5C3A2E; /* Subtítulos, labels e texto auxiliar. */
+  --color-text-tertiary: #8B5E3C;  /* Placeholders, metadados e indicadores discretos. */
 
-  /* --- Acento (cobalt) --- */
-  --color-accent: #3452e0;
-  --color-accent-hover: #2a41c2;
-  --color-accent-soft: #e8ecfd;
-  --color-accent-contrast: #ffffff;
-  --color-focus: #3452e0;
+  /* --- Acento (terracota, no lugar do cobalt) --- */
+  --color-accent: #C8754D;          /* Ações primárias, seleção e destaque da interface. */
+  --color-accent-hover: #B85C38;    /* Hover de ações primárias e links de destaque. */
+  --color-accent-soft: #F0E2CF;     /* Fundo suave de seleção, foco e ícones destacados. */
+  --color-accent-contrast: #1D1A17; /* Texto sobre botões e fundos de acento. */
+  --color-focus: #C8754D;           /* Contorno de foco visível e acessível. */
 
   /* --- Semânticas de status --- */
-  --color-success: #147a4a;
-  --color-success-bg: #e0f4ea;
-  --color-danger: #c22f16;
-  --color-danger-bg: #fbe3de;
-  --color-warning: #93690a;
-  --color-warning-bg: #faefd2;
-  --color-neutral: #5a5f6e;
-  --color-neutral-bg: #eaecf1;
-  --color-info: #2551c9;
-  --color-info-bg: #e5ebfc;
+  --color-success: #147a4a; /* Status válido, sucesso e confirmação de ações. */
+  --color-success-bg: #e0f4ea; /* Fundos de sucesso e estados concluídos. */
+  --color-danger: #c22f16; /* Erros, exclusão e ações destrutivas. */
+  --color-danger-bg: #fbe3de; /* Alertas de erro e ações perigosas. */
+  --color-warning: #93690a; /* Status duplicado, atenção e conflitos. */
+  --color-warning-bg: #faefd2; /* Avisos, conflitos e estados de atenção. */
+  --color-neutral: #5a5f6e; /* Status deletado e indicadores neutros. */
+  --color-neutral-bg: #eaecf1; /* Fundo de status neutros e itens desativados. */
+  --color-info: #2551c9; /* Status enviado, restauração e informação. */
+  --color-info-bg: #e5ebfc; /* Fundos de informação e restauração. */
 
-  /* --- Sombras --- */
-  --shadow-sm: 0 1px 2px rgba(20, 22, 30, 0.06);
-  --shadow-md: 0 6px 18px rgba(20, 22, 30, 0.08);
-  --shadow-lg: 0 20px 48px rgba(20, 22, 30, 0.16);
-  --overlay-bg: rgba(15, 17, 24, 0.5);
+  /* --- Sombras (tingidas com o Preto da paleta) --- */
+  --shadow-sm: 0 1px 2px rgba(29, 26, 23, 0.08); /* Elevação sutil de botões e cards. */
+  --shadow-md: 0 6px 18px rgba(29, 26, 23, 0.10); /* Elevação de cards ativos e barras flutuantes. */
+  --shadow-lg: 0 20px 48px rgba(29, 26, 23, 0.18); /* Modais, dropdowns e sidebars. */
+  --overlay-bg: rgba(29, 26, 23, 0.5); /* Sobreposição de modais e sidebar. */
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --color-bg: #0b0d13;
-  --color-bg-subtle: #11141c;
-  --color-surface: #171a24;
-  --color-surface-hover: #1d212c;
-  --color-border: #272c39;
-  --color-border-strong: #363c4d;
-  --color-text: #eef0f5;
-  --color-text-secondary: #9ba0b0;
-  --color-text-tertiary: #686e80;
+  /* --- Superfícies e texto --- */
+  --color-bg: #1D1A17;             /* Fundo geral de páginas e áreas externas. */
+  --color-bg-subtle: #241F1A;      /* Cabeçalhos, campos secundários e controles inativos. */
+  --color-surface: #2A241F;        /* Cards, tabelas, modais, dropdowns e inputs. */
+  --color-surface-hover: #332C24;  /* Hover de cards, linhas, itens e controles. */
+  --color-border: #332C24;         /* Bordas padrão de campos, cards, tabelas e divisores. */
+  --color-border-strong: #8B5E3C;  /* Bordas de destaque, indicadores e estados inativos. */
+  --color-text: #F0E2CF;           /* Títulos, texto principal e conteúdo dos controles. */
+  --color-text-secondary: #D9C3A5; /* Subtítulos, labels e texto auxiliar. */
+  --color-text-tertiary: #B89A7A;  /* Placeholders, metadados e indicadores discretos. */
 
-  --color-accent: #7a90ff;
-  --color-accent-hover: #93a5ff;
-  --color-accent-soft: #1e2547;
-  --color-accent-contrast: #0b0d13;
-  --color-focus: #7a90ff;
+  /* --- Acento --- */
+  --color-accent: #C8754D;          /* Ações primárias, seleção e destaque da interface. */
+  --color-accent-hover: #D9895F;    /* Hover de ações primárias e links de destaque. */
+  --color-accent-soft: #3A2A22;     /* Fundo suave de seleção, foco e ícones destacados. */
+  --color-accent-contrast: #1D1A17; /* Texto sobre botões e fundos de acento. */
+  --color-focus: #C8754D;           /* Contorno de foco visível e acessível. */
 
-  --color-success: #3fcb8c;
-  --color-success-bg: #103525;
-  --color-danger: #f37a63;
-  --color-danger-bg: #3a1d17;
-  --color-warning: #e6bb4c;
-  --color-warning-bg: #392c0e;
-  --color-neutral: #9ba0b0;
-  --color-neutral-bg: #1e222c;
-  --color-info: #7a9dff;
-  --color-info-bg: #16213f;
+  /* --- Semânticas de status --- */
+  --color-success: #3fcb8c; /* Status válido, sucesso e confirmação de ações. */
+  --color-success-bg: #103525; /* Fundos de sucesso e estados concluídos. */
+  --color-danger: #f37a63; /* Erros, exclusão e ações destrutivas. */
+  --color-danger-bg: #3a1d17; /* Alertas de erro e ações perigosas. */
+  --color-warning: #e6bb4c; /* Status duplicado, atenção e conflitos. */
+  --color-warning-bg: #392c0e; /* Avisos, conflitos e estados de atenção. */
+  --color-neutral: #9ba0b0; /* Status deletado e indicadores neutros. */
+  --color-neutral-bg: #1e222c; /* Fundo de status neutros e itens desativados. */
+  --color-info: #7a9dff; /* Status enviado, restauração e informação. */
+  --color-info-bg: #16213f; /* Fundos de informação e restauração. */
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.55);
-  --overlay-bg: rgba(0, 0, 0, 0.65);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4); /* Elevação sutil de botões e cards. */
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.45); /* Elevação de cards ativos e barras flutuantes. */
+  --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.55); /* Modais, dropdowns e sidebars. */
+  --overlay-bg: rgba(0, 0, 0, 0.65); /* Sobreposição de modais e sidebar. */
 }
 
 /* =========================================================================
@@ -1564,9 +1569,9 @@ select {
  * na cor do texto de cada status.
  */
 .status-select {
-  display: inline-block;
-  padding: 0.2rem 1.35rem 0.2rem 0.65rem;
-  border-radius: var(--radius-full);
+  display: flex;
+  padding: 0.3rem .65rem 0.3rem .65rem;
+  border-radius: var(--radius-sm);
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.3;
@@ -1577,14 +1582,6 @@ select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-image:
-    linear-gradient(45deg, transparent 50%, currentColor 50%),
-    linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position:
-    calc(100% - 0.7rem) calc(50% - 1px),
-    calc(100% - 0.55rem) calc(50% - 1px);
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) inset;
   transition: box-shadow var(--transition-fast), filter var(--transition-fast);
 }
@@ -4710,18 +4707,6 @@ li.marcado .exportar-lista-status-item {
    componente desta etapa (`MergeCampoConflito`) e as seções que o
    antecedem dependem delas para não renderizar sem nenhum estilo.
    ========================================================================= */
-
-/* `.importacao-stepper-resumo` é `display: none` por padrão (só aparece
-   em telas estreitas, como alternativa compacta ao stepper de bolhas do
-   wizard de importação — ver `@media (max-width: 720px)` mais acima). Os
-   dois wizards desta demanda não usam o stepper de bolhas (comprimento
-   variável de seções, ver cabeçalho de `AtualizarRegistrosModal.tsx`), só
-   este rótulo — precisa ficar visível também em telas largas dentro
-   destes modais especificamente. */
-.modal-atualizar-registros .importacao-stepper-resumo,
-.modal-atualizar-dados .importacao-stepper-resumo {
-  display: block;
-}
 
 .atualizar-progresso {
   height: 4px;

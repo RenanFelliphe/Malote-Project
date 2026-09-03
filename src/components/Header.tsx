@@ -108,14 +108,12 @@ interface Props {
  * "Atualizar planilha" (Etapa 2 de AtualizacaoDaPlanilhaViaUI.md) não abre
  * uma ação direta — alterna um submenu inline com as duas opções da
  * Demanda 3: "Atualizar Registros" (abre o seletor de arquivo do SO, mesmo
- * padrão de `abrirSeletorDeArquivo` em `pages/home.tsx`, e a partir da
- * Etapa 5 abre `AtualizarRegistrosModal` com o arquivo escolhido) e
- * "Atualizar Dados" (abre um modal direto, sem seletor — reprocessa a
- * planilha já persistida no projeto; `AtualizarDadosModal` ainda não
- * existe — é a Etapa 7 do planner, até lá escolher essa opção só fecha o
- * menu). Igual às demais ações que dependem de um projeto específico
- * aberto (Editar e-mail, Exportar, Deletar), o item fica desabilitado na
- * Home.
+ * padrão de `abrirSeletorDeArquivo` em `pages/home.tsx`, e abre
+ * `AtualizarRegistrosModal` com o arquivo escolhido) e "Atualizar Dados"
+ * (abre `AtualizarDadosModal` direto, sem seletor — reprocessa a planilha
+ * já persistida no projeto). Igual às demais ações que dependem de um
+ * projeto específico aberto (Editar e-mail, Exportar, Deletar), o item
+ * fica desabilitado na Home.
  */
 export function Header({
   slug,
@@ -144,10 +142,7 @@ export function Header({
   // nome do arquivo escolhido é só exibido como confirmação temporária
   // (ver JSX), para a seleção continuar sendo testável nesta etapa.
   const [arquivoSelecionadoAtualizarRegistros, setArquivoSelecionadoAtualizarRegistros] = useState<File | null>(null);
-  // Estado do modal "Atualizar Dados" (Etapa 7 de AtualizacaoDaPlanilhaViaUI.md)
-  // — deliberadamente não introduzido na Etapa 2 (ver comentário de
-  // `handleClicarAtualizarDados` original), agora que `AtualizarDadosModal`
-  // existe.
+  // Estado do modal "Atualizar Dados" (Etapa 7 de AtualizacaoDaPlanilhaViaUI.md).
   const [modalAtualizarDadosAberto, setModalAtualizarDadosAberto] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const botaoRef = useRef<HTMLButtonElement>(null);

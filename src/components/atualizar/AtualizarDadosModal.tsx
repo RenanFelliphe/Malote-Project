@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { IconeCheck } from '../Icons';
 import { Dialog } from '../Dialog';
 import { ConfirmDialog } from '../ConfirmDialog';
 import { ColunaSeletora } from '../import/ColunaSeletora';
@@ -47,22 +48,13 @@ const ORDEM_SECOES_CONFLITO: TipoSecaoConflito[] = ['enviado', 'atributo-alterad
 
 type Secao = 'projeto' | 'colunas' | TipoSecaoConflito | 'resumo';
 
-const ROTULO_SECAO: Record<Secao, string> = {
-  projeto: 'Projeto',
-  colunas: 'Colunas',
-  enviado: 'Conflito — Registros enviados',
-  'atributo-alterado': 'Conflito — Atributo alterado',
-  resumo: 'Resumo',
-};
-
-/** Progresso aproximado (0-100) para a barra do wizard — 5 posições fixas conceituais. */
-const PROGRESSO_POR_SECAO: Record<Secao, number> = {
-  projeto: 0,
-  colunas: 25,
-  enviado: 50,
-  'atributo-alterado': 75,
-  resumo: 100,
-};
+const ETAPAS: { numero: Secao; rotulo: string }[] = [
+  { numero: 'projeto', rotulo: 'Projeto' },
+  { numero: 'colunas', rotulo: 'Colunas' },
+  { numero: 'enviado', rotulo: 'Registros enviados' },
+  { numero: 'atributo-alterado', rotulo: 'Atributo alterado' },
+  { numero: 'resumo', rotulo: 'Resumo' },
+];
 
 function quantoAConflitos(resultado: ResultadoMerge, tipo: TipoSecaoConflito): number {
   return tipo === 'enviado' ? resultado.conflitos.enviado.length : resultado.conflitos.atributoAlterado.length;
@@ -82,8 +74,7 @@ function proximaSecao(resultado: ResultadoMerge, apartirIndice: number): Secao {
  * AtualizacaoDaPlanilhaViaUI.md) — 3 seções: Projeto (nome de exibição e
  * nome do arquivo/rota), Colunas (remapeamento sem exigir novo upload) e
  * Resumo. Reaproveita o mesmo casco de `AtualizarRegistrosModal` (Dialog
- * com footer fixo, rótulo textual + barra de progresso em vez do stepper
- * de bolhas do wizard de importação) e o mesmo motor de merge sem estado
+ * com footer fixo e stepper de etapas rotuladas) e o mesmo motor de merge sem estado
  * (`calcularMerge`, Etapa 4), mas com um subconjunto menor de seções de
  * conflito navegáveis — só "Enviado" e "Atributo alterado" se aplicam
  * quando a origem da mudança é um remapeamento de colunas, não uma
@@ -378,10 +369,29 @@ export function AtualizarDadosModal({ slug, nomeAtual, registrosAtuais, emailAtu
         </>
       }
     >
-      <p className="importacao-stepper-resumo">{ROTULO_SECAO[secaoAtual]}</p>
-      <div className="atualizar-progresso" role="progressbar" aria-valuenow={PROGRESSO_POR_SECAO[secaoAtual]}>
-        <div className="atualizar-progresso-preenchido" style={{ width: `${PROGRESSO_POR_SECAO[secaoAtual]}%` }} />
-      </div>
+      <p className="importacao-stepper-resumo">
+        Etapa {ETAPAS.findIndex(({ numero }) => numero === secaoAtual) + 1} de {ETAPAS.length} —{' '}
+        {ETAPAS.find(({ numero }) => numero === secaoAtual)?.rotulo}
+      </p>
+
+      <ol className="importacao-stepper" aria-hidden="true">
+        {ETAPAS.map(({ numero, rotulo }, indice) => {
+          const indiceAtual = ETAPAS.findIndex((etapa) => etapa.numero === secaoAtual);
+          const concluida = indice < indiceAtual;
+          const ativa = numero === secaoAtual;
+          return (
+            <li
+              key={numero}
+              className={`importacao-stepper-item ${ativa ? 'ativa' : ''} ${concluida ? 'concluida' : ''}`}
+            >
+              <span className="importacao-stepper-bolha">
+                {concluida ? <IconeCheck /> : indice + 1}
+              </span>
+              <span className="importacao-stepper-rotulo">{rotulo}</span>
+            </li>
+          );
+        })}
+      </ol>
 
       <div className="importacao-corpo">
         {secaoAtual === 'projeto' && (

@@ -62,8 +62,8 @@ Tabela viva: toda demanda já levantada tem uma linha aqui, mesmo depois de remo
 
 | # | Demanda | Status | Esforço | Depende de | Bloqueia |
 |---|---|---|---|---|---|
-| 5 | Edição Individual de Registro | Mapeado | Dias | — | 3 (novo requisito: conflito de sync) |
-| 3 | Atualizar Planilha via UI | Mapeado | Dias | 5 (modelo `backup_dados`) | — |
+| 5 | Edição Individual de Registro | ✅ Concluída | Dias | — | 3 (novo requisito: conflito de sync) |
+| 3 | Atualizar Planilha via UI | ✅ Concluída | Dias | 5 (modelo `backup_dados`) | — |
 | 7 | Mapeamento de ID Personalizado | Registrado | Horas–dias | — | — |
 | 4 | Histórico de Alterações | Registrado | Horas–dias (versão simples) | — | — |
 | 2 | Variáveis no Texto (merge tags) | Registrado | Dias | — | 1 (para "fechar o ciclo") |
@@ -74,7 +74,7 @@ Tabela viva: toda demanda já levantada tem uma linha aqui, mesmo depois de remo
 
 ## Demanda 5 — Edição Individual de Registro
 
-**Status:** Mapeado
+**Status:** ✅ Concluída
 **Esforço estimado:** Dias — cresceu de escopo em relação à ideia original, ao unificar a proteção de nome/e-mail/status num único mecanismo
 **Depende de:** —
 **Bloqueia:** Demanda 3 (a reimportação de planilha precisa saber lidar com registros protegidos por `backup_dados`)
@@ -207,7 +207,7 @@ Em ambos os casos, ao confirmar a escolha, a restauração de cada campo selecio
 
 ## Demanda 3 — Atualizar Planilha via UI
 
-**Status:** Mapeado
+**Status:** ✅ Concluída
 **Esforço estimado:** Dias
 **Depende de:** Demanda 5 (o fluxo de conflito depende do modelo `backup_dados` existir)
 **Bloqueia:** —
@@ -384,47 +384,79 @@ Foi retirada do escopo da Demanda 3 porque, para fazer sentido, precisa nascer n
 ### Escopo
 
 **Cobre:**
-- Novo controle (`<select>`) na etapa de mapeamento, tanto no `EtapaMapeamento.tsx` (wizard de importação, criação de projeto) quanto na seção "Colunas" da Demanda 3 (`AtualizarDadosModal`), para escolher explicitamente qual coluna da planilha representa o `id` do registro.
-- Comportamento padrão preservado quando o usuário não escolhe nada: mesma regra atual (ordem da linha, ou coluna detectada automaticamente por `identifyColumns.ts`).
 - Validação de unicidade dos valores da coluna escolhida como ID (avisar se houver valores repetidos, já que isso quebra o casamento de registros na sincronização).
+  tanto no `EtapaMapeamento.tsx` (wizard de importação) quanto na seção "Colunas" do
+  `AtualizarDadosModal.tsx` (Demanda 3).
+- Comportamento padrão preservado quando o usuário não escolhe nada: mesma regra atual (ordem da linha, ou coluna detectada automaticamente por `identifyColumns.ts`).
+- Validação de unicidade e preenchimento: se a coluna escolhida tiver valores vazios
+  ou duplicados, **bloquear a confirmação** e exibir feedback
+- **Exclusividade entre atributos:** ao selecionar uma coluna para representar um dos
+  3 atributos (id, nome, email), ela deixa de estar disponível para os outros dois —
+  vale nos dois pontos de entrada (wizard de importação e `AtualizarDadosModal`).
+  Implica subir o estado de "colunas em uso" para o componente pai e propagar como
+  lista de exclusão para os 3 seletores.
 
 **Não cobre nesta fase:**
+- Múltiplas colunas com prioridade para ID (decisão tomada: fica fixo em 1 coluna —
+  ver justificativa na seção de decisões).
 - Migração de `id` para projetos já existentes que mudarem de estratégia de identificação (ex.: projeto criado sem coluna de ID explícita passa a ter uma) — o risco de desalinhamento entre reimportações ao trocar de estratégia de ID no meio do caminho de um projeto já existente é uma nota de atenção a levantar na implementação, não uma migração automática coberta aqui.
 
-### Decisões em aberto
+### Questões
 
 - Se a coluna de ID escolhida tiver valores vazios ou duplicados, o sistema deve bloquear a confirmação ou só avisar e seguir com o fallback de ordem de linha para os casos problemáticos?
+
+### Decisões
+
+- ~~Bloquear ou avisar?~~ → **Bloquear**, dado explicitamente pelo usuário.
+- ~~ID com 1 coluna fixa ou múltiplas com prioridade (como nome/email)?~~ →
+  **1 coluna fixa.** ID não tem a propriedade de "variantes intercambiáveis" que
+  nome/email têm; permitir fallback entre colunas de ID reintroduziria divergência
+  silenciosa entre importações — o próprio problema que a demanda existe para evitar.
+  Componente: `<select>` simples, mais leve que `ColunaSeletora.tsx`.
 
 ### Etapas de Implementação `[Inicial]`
 
 > Quebra preliminar — revisar ao iniciar e ao ver como a Demanda 3 evoluiu (esta demanda toca os dois mesmos pontos de mapeamento que ela usa).
 
-**Etapa 1 — Seletor de coluna de ID**
-- Novo `<select>` na etapa de mapeamento, listando as colunas identificadas pela planilha, com opção "Nenhuma (usar ordem da linha)" como padrão.
+**Etapa 1 — Estado compartilhado de "colunas em uso"**
+- Subir para o componente pai (`EtapaMapeamento.tsx`) o cálculo de quais colunas já
+  estão selecionadas para nome/email/id.
+- Definir a forma desse estado (provavelmente `Record<'id'|'nome'|'email', string[]>`
+  ou equivalente) e como ele desce para os 3 seletores.
 
-**Etapa 2 — Validação de unicidade**
-- Ao escolher uma coluna, verificar duplicidade/vazios nos valores e exibir aviso (conforme decisão em aberto).
+**Etapa 2 — Seletor de coluna de ID**
+- Novo `<select>` simples, opção "Gerar Automaticamente" como padrão, listando as
+  colunas da planilha **exceto** as já em uso por nome/email.
 
-**Etapa 3 — Reaproveitar no wizard de importação**
-- Adicionar o seletor em `EtapaMapeamento.tsx` (criação de projeto).
+**Etapa 3 — Exclusividade em `ColunaSeletora.tsx`**
+- Adaptar `ColunaSeletora.tsx` para aceitar lista de exclusão externa (colunas usadas
+  pelos outros 2 atributos) e desabilitá-las nas opções de nome/email.
 
-**Etapa 4 — Reaproveitar na Demanda 3**
-- Adicionar o mesmo seletor na seção "Colunas" do `AtualizarDadosModal` (Demanda 3), com a mesma validação.
+**Etapa 4 — Validação de unicidade/vazio (bloqueante)**
+- Ao escolher uma coluna de ID, verificar duplicidade/vazios nos valores; bloquear
+  confirmação e exibir feedback se houver problema.
+
+**Etapa 5 — Reaproveitar no wizard de importação**
+- Integrar Etapas 1–4 em `EtapaMapeamento.tsx`.
+
+**Etapa 6 — Reaproveitar na Demanda 3**
+- Integrar o mesmo seletor + exclusividade + validação na seção "Colunas" do
+  `AtualizarDadosModal.tsx`.
 
 ### Arquivos Necessários
 
 **Arquivos Fonte:**
 - `src/scripts/utils/identifyColumns.ts` — lógica atual de detecção automática de colunas, base para a nova opção explícita de ID.
 - `src/components/import/EtapaMapeamento.tsx` — ponto de inserção do seletor no wizard de importação (Etapa 3).
-- `src/components/atualizar/AtualizarDadosModal.tsx` *(criado pela Demanda 3)* — ponto de inserção do seletor na seção "Colunas" (Etapa 4).
+- `src/components/import/ColunaSeletora.tsx`
+- `src/components/atualizar/AtualizarDadosModal.tsx` — ponto de inserção do seletor na seção "Colunas" (Etapa 4).
+
 
 **Arquivos Alterados:**
-- `src/components/import/EtapaMapeamento.tsx` — novo seletor de coluna de ID (Etapa 3).
-- `src/components/atualizar/AtualizarDadosModal.tsx` — novo seletor de coluna de ID (Etapa 4).
-- `src/scripts/utils/identifyColumns.ts` — validação de unicidade dos valores da coluna escolhida (Etapa 2).
+- Os 4 acima.
 
 **Arquivos Criados:**
-- Nenhum arquivo novo previsto — a demanda estende componentes já existentes/planejados por outras demandas.
+- Nenhum arquivo novo previsto.
 
 ---
 

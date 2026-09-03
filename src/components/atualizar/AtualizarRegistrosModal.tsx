@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { IconeCheck } from '../Icons';
 import { Dialog } from '../Dialog';
 import { ConfirmDialog } from '../ConfirmDialog';
 import { parsearPlanilha, type PlanilhaParseada } from '../import/utils/parseSheetBrowser';
@@ -70,24 +71,14 @@ function proximaSecao(resultado: ResultadoMerge, apartirIndice: number): Secao {
   return 'resumo-final';
 }
 
-/** Progresso aproximado (0-100) para a barra do wizard — 6 posições fixas conceituais. */
-const PROGRESSO_POR_SECAO: Record<Secao, number> = {
-  'resumo-inicial': 0,
-  enviado: 20,
-  'deletado-revivido': 40,
-  sumido: 60,
-  'atributo-alterado': 80,
-  'resumo-final': 100,
-};
-
-const ROTULO_SECAO: Record<Secao, string> = {
-  'resumo-inicial': 'Resumo inicial',
-  enviado: 'Conflito — Registros enviados',
-  'deletado-revivido': 'Conflito — Registros deletados/revividos',
-  sumido: 'Conflito — Registros sumidos da planilha',
-  'atributo-alterado': 'Conflito — Atributo alterado',
-  'resumo-final': 'Resumo final',
-};
+const ETAPAS: { numero: Secao; rotulo: string }[] = [
+  { numero: 'resumo-inicial', rotulo: 'Resumo inicial' },
+  { numero: 'enviado', rotulo: 'Registros enviados' },
+  { numero: 'deletado-revivido', rotulo: 'Deletados/revividos' },
+  { numero: 'sumido', rotulo: 'Registros sumidos' },
+  { numero: 'atributo-alterado', rotulo: 'Atributo alterado' },
+  { numero: 'resumo-final', rotulo: 'Resumo final' },
+];
 
 /**
  * Assistente do fluxo "Atualizar Registros" (Etapa 5 de
@@ -367,12 +358,12 @@ export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailA
     setSalvando(true);
     setErroSalvar(null);
     try {
-      // Ordem definida na Etapa 8 (ainda pendente de revisão final): a
-      // planilha bruta só é sobrescrita depois de todas as seções de
-      // conflito confirmadas, para não perder o arquivo anterior caso o
-      // usuário cancele no meio do wizard.
-      await enviarSheet(slug, arquivo);
+      // Ordem definida na Etapa 8: os registros são persistidos primeiro;
+      // a planilha bruta só é sobrescrita depois de `salvarEmails` ter
+      // sucesso, para não perder o arquivo anterior caso a gravação dos
+      // registros falhe no meio do caminho.
       await salvarEmails(slug, { email: emailAtual, registros: snapshot });
+      await enviarSheet(slug, arquivo);
       window.location.reload();
     } catch (erro) {
       setErroSalvar(erro instanceof Error ? erro.message : 'Não foi possível concluir a atualização.');
@@ -444,10 +435,29 @@ export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailA
 
       {mostrarConteudo && resultadoAtual && (
         <>
-          <p className="importacao-stepper-resumo">{ROTULO_SECAO[secaoAtual]}</p>
-          <div className="atualizar-progresso" role="progressbar" aria-valuenow={PROGRESSO_POR_SECAO[secaoAtual]}>
-            <div className="atualizar-progresso-preenchido" style={{ width: `${PROGRESSO_POR_SECAO[secaoAtual]}%` }} />
-          </div>
+          <p className="importacao-stepper-resumo">
+            Etapa {ETAPAS.findIndex(({ numero }) => numero === secaoAtual) + 1} de {ETAPAS.length} —{' '}
+            {ETAPAS.find(({ numero }) => numero === secaoAtual)?.rotulo}
+          </p>
+
+          <ol className="importacao-stepper" aria-hidden="true">
+            {ETAPAS.map(({ numero, rotulo }, indice) => {
+              const indiceAtual = ETAPAS.findIndex((etapa) => etapa.numero === secaoAtual);
+              const concluida = indice < indiceAtual;
+              const ativa = numero === secaoAtual;
+              return (
+                <li
+                  key={numero}
+                  className={`importacao-stepper-item ${ativa ? 'ativa' : ''} ${concluida ? 'concluida' : ''}`}
+                >
+                  <span className="importacao-stepper-bolha">
+                    {concluida ? <IconeCheck /> : indice + 1}
+                  </span>
+                  <span className="importacao-stepper-rotulo">{rotulo}</span>
+                </li>
+              );
+            })}
+          </ol>
 
           <div className="importacao-corpo">
             {secaoAtual === 'resumo-inicial' && (

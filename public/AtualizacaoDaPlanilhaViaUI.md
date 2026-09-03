@@ -263,7 +263,9 @@ Validado isoladamente (mesma limitação das etapas anteriores — ZIP sem `pack
 
 **Por quê:** fecha o segundo fluxo desta demanda — permite corrigir metadados do projeto sem precisar do arquivo original em mãos de novo, resolvendo a limitação identificada no contexto (seção 1).
 
-### Etapa 8 — Confirmação e feedback final
+### Etapa 8 — Confirmação e feedback final ✅ concluída
+
+**Nota de execução:** revisão pós-Etapa 7 encontrou a ordem de gravação de `AtualizarRegistrosModal.confirmarAtualizacao` invertida em relação ao que esta etapa exige — `enviarSheet` estava sendo chamado antes de `salvarEmails`, o que sobrescrevia `sheet.<ext>` mesmo que a gravação dos registros viesse a falhar em seguida. Corrigido para `salvarEmails` → `enviarSheet` → `window.location.reload()`, batendo com o comentário já existente no código e com o critério de aprovação da seção 8.2 ("`sheet.<ext>` é sobrescrito ao final de uma reimportação bem-sucedida"). `AtualizarDadosModal` já seguia a ordem correta (`renomearProjeto` → `salvarEmails` → `navigate`/`reload`), sem necessidade de ajuste.
 
 **O que fazer:**
 - Ao confirmar cada fluxo, garantir que a ordem de chamadas está correta (ex.: no fluxo Atualizar Registros, persistir `sheet.<ext>` antes ou depois de `registros`? recomenda-se depois de todas as resoluções de conflito confirmadas, para não sobrescrever o arquivo bruto se o usuário cancelar o wizard no meio do caminho).
