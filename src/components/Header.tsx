@@ -6,6 +6,8 @@ import { ThemeToggle } from './ThemeToggle';
 import { ExportarModal, type PlanilhaParaExportar } from './ExportarModal';
 import { EmailConteudoModal } from './EmailConteudoModal';
 import { ConfirmDialog } from './ConfirmDialog';
+import { AtualizarRegistrosModal } from './atualizar/AtualizarRegistrosModal';
+import { AtualizarDadosModal } from './atualizar/AtualizarDadosModal';
 import { copiarHtml, copiarTexto } from './utils/clipboard';
 import { deletarProjetos } from '../services/projetosApi';
 import {
@@ -13,9 +15,13 @@ import {
   IconeConfiguracoes,
   IconeCopiar,
   IconeEditarEmail,
+  IconeEditarStatus,
   IconeExportar,
+  IconeImportar,
   IconeLixeira,
   IconePlanilha,
+  IconeSetaBaixo,
+  IconeSetaCima,
 } from './Icons';
 
 /** Duração do feedback visual "copiado" nos botões do Header (mesmo valor usado em `EmailTable`). */
@@ -94,14 +100,22 @@ interface Props {
  * página (título + subtítulo) continua separado, dentro do container
  * com padding.
  *
- * O botão de configurações abre um dropdown com cinco itens. Quatro têm
- * funcionalidade real ("Trocar tema", "Editar e-mail", "Exportar
- * planilha" e, a partir da Etapa 3 de implementacaoDelecao.md, "Deletar
- * planilha" — habilitado apenas com um projeto aberto, já que a exclusão
- * em lote pela Home é a Etapa 4); "Atualizar planilha" continua existindo
- * apenas como espaço reservado para quando o fluxo de reimportação for
- * implementado — fica desabilitado de propósito, para não sugerir uma ação
- * que a aplicação ainda não sabe executar.
+ * O botão de configurações abre um dropdown com cinco itens: "Trocar tema",
+ * "Editar e-mail", "Atualizar planilha", "Exportar planilha" e, a partir da
+ * Etapa 3 de implementacaoDelecao.md, "Deletar planilha" (habilitado apenas
+ * com um projeto aberto, já que a exclusão em lote pela Home é a Etapa 4).
+ *
+ * "Atualizar planilha" (Etapa 2 de AtualizacaoDaPlanilhaViaUI.md) não abre
+ * uma ação direta — alterna um submenu inline com as duas opções da
+ * Demanda 3: "Atualizar Registros" (abre o seletor de arquivo do SO, mesmo
+ * padrão de `abrirSeletorDeArquivo` em `pages/home.tsx`, e a partir da
+ * Etapa 5 abre `AtualizarRegistrosModal` com o arquivo escolhido) e
+ * "Atualizar Dados" (abre um modal direto, sem seletor — reprocessa a
+ * planilha já persistida no projeto; `AtualizarDadosModal` ainda não
+ * existe — é a Etapa 7 do planner, até lá escolher essa opção só fecha o
+ * menu). Igual às demais ações que dependem de um projeto específico
+ * aberto (Editar e-mail, Exportar, Deletar), o item fica desabilitado na
+ * Home.
  */
 export function Header({
   slug,
@@ -118,8 +132,26 @@ export function Header({
   const [confirmarDeletarAberto, setConfirmarDeletarAberto] = useState(false);
   const [erroDelecao, setErroDelecao] = useState<string | null>(null);
   const [campoCopiado, setCampoCopiado] = useState<'titulo' | 'conteudo' | null>(null);
+  // Submenu de "Atualizar planilha" (Etapa 2 de AtualizacaoDaPlanilhaViaUI.md)
+  // — estado próprio, não reaproveita `menuAberto`, porque o dropdown
+  // principal e o submenu podem estar em combinações diferentes (menu
+  // aberto com submenu fechado é o estado inicial de toda abertura).
+  const [submenuAtualizarAberto, setSubmenuAtualizarAberto] = useState(false);
+  // Arquivo escolhido no seletor do SO para "Atualizar Registros" — mesmo
+  // papel de `arquivoSelecionado` em `pages/home.tsx` (ImportWizardModal).
+  // O assistente que deveria abrir a partir deste arquivo
+  // (`AtualizarRegistrosModal`) só existe a partir da Etapa 5; até lá, o
+  // nome do arquivo escolhido é só exibido como confirmação temporária
+  // (ver JSX), para a seleção continuar sendo testável nesta etapa.
+  const [arquivoSelecionadoAtualizarRegistros, setArquivoSelecionadoAtualizarRegistros] = useState<File | null>(null);
+  // Estado do modal "Atualizar Dados" (Etapa 7 de AtualizacaoDaPlanilhaViaUI.md)
+  // — deliberadamente não introduzido na Etapa 2 (ver comentário de
+  // `handleClicarAtualizarDados` original), agora que `AtualizarDadosModal`
+  // existe.
+  const [modalAtualizarDadosAberto, setModalAtualizarDadosAberto] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const botaoRef = useRef<HTMLButtonElement>(null);
+  const inputArquivoAtualizarRegistrosRef = useRef<HTMLInputElement | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const location = useLocation();
@@ -202,12 +234,26 @@ export function Header({
     setEmailSalvoLocalmente(novoEmail);
   }
 
+  /**
+   * Fecha o dropdown principal e, junto, o submenu de "Atualizar planilha"
+   * (Etapa 2) — os dois vivem na mesma estrutura, então nenhum caminho de
+   * fechamento (clique fora, Esc, ou qualquer item do menu sendo escolhido)
+   * deve deixar o submenu aberto para a próxima vez que o menu abrir. Usado
+   * no lugar de `setMenuAberto(false)` direto em todos os pontos de saída,
+   * para não precisar de um efeito derivando um estado do outro (o que o
+   * lint do projeto já sinalizou como cascading render ao ser tentado).
+   */
+  function fecharMenu() {
+    setMenuAberto(false);
+    setSubmenuAtualizarAberto(false);
+  }
+
   useEffect(() => {
     if (!menuAberto) return;
 
     function aoClicarFora(evento: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(evento.target as Node)) {
-        setMenuAberto(false);
+        fecharMenu();
       }
     }
 
@@ -220,7 +266,7 @@ export function Header({
 
     function aoPressionarTecla(evento: KeyboardEvent) {
       if (evento.key === 'Escape') {
-        setMenuAberto(false);
+        fecharMenu();
         botaoRef.current?.focus();
       }
     }
@@ -230,7 +276,7 @@ export function Header({
   }, [menuAberto]);
 
   function abrirExportacao() {
-    setMenuAberto(false);
+    fecharMenu();
     setModalExportarAberto(true);
   }
 
@@ -244,7 +290,7 @@ export function Header({
    */
   function handleClicarExportarPlanilha() {
     if (onAtivarSelecaoExportacao) {
-      setMenuAberto(false);
+      fecharMenu();
       onAtivarSelecaoExportacao();
       return;
     }
@@ -252,8 +298,52 @@ export function Header({
   }
 
   function abrirEdicaoEmail() {
-    setMenuAberto(false);
+    fecharMenu();
     setModalEmailAberto(true);
+  }
+
+  /**
+   * Clique em "Atualizar planilha" (Etapa 2): alterna o submenu inline com
+   * as duas opções da Demanda 3, sem fechar o dropdown principal — mesmo
+   * espírito de um item de menu com `aria-haspopup="menu"` que expande em
+   * vez de disparar uma ação direta.
+   */
+  function handleClicarAtualizarPlanilha() {
+    setSubmenuAtualizarAberto((atual) => !atual);
+  }
+
+  /**
+   * "Atualizar Registros" (seção 4 do planner): abre o seletor de arquivo
+   * do SO, mesmo padrão de `abrirSeletorDeArquivo` em `pages/home.tsx`. A
+   * seleção grava o arquivo em `arquivoSelecionadoAtualizarRegistros`, que
+   * passa a abrir `AtualizarRegistrosModal` (Etapa 5) — só é possível
+   * chegar aqui com `projetoAberto` (item desabilitado sem projeto),
+   * então `slug`/`registros`/`email` sempre existem quando o modal
+   * precisa deles (ver checagem no JSX).
+   */
+  function handleClicarAtualizarRegistros() {
+    fecharMenu();
+    inputArquivoAtualizarRegistrosRef.current?.click();
+  }
+
+  function handleArquivoAtualizarRegistrosEscolhido(evento: React.ChangeEvent<HTMLInputElement>) {
+    const arquivo = evento.target.files?.[0] ?? null;
+    setArquivoSelecionadoAtualizarRegistros(arquivo);
+    // Mesmo motivo do equivalente em `pages/home.tsx`: permite escolher o
+    // mesmo arquivo de novo em seguida, já que "change" só dispara outra
+    // vez se o valor do input for resetado.
+    evento.target.value = '';
+  }
+
+  /**
+   * "Atualizar Dados" (seção 4 do planner, Etapa 7): abre `AtualizarDadosModal`
+   * direto, sem seletor de arquivo — o assistente busca a planilha já
+   * persistida no servidor. Mesmo padrão de `modalExportarAberto`/
+   * `modalEmailAberto` já usados neste componente.
+   */
+  function handleClicarAtualizarDados() {
+    fecharMenu();
+    setModalAtualizarDadosAberto(true);
   }
 
   /**
@@ -262,7 +352,7 @@ export function Header({
    * menu fica desabilitado sem um projeto aberto.
    */
   function abrirConfirmarDelecao() {
-    setMenuAberto(false);
+    fecharMenu();
     setErroDelecao(null);
     setConfirmarDeletarAberto(true);
   }
@@ -276,7 +366,7 @@ export function Header({
    */
   function handleClicarDeletarPlanilha() {
     if (onAtivarSelecaoDelecao) {
-      setMenuAberto(false);
+      fecharMenu();
       onAtivarSelecaoDelecao();
       return;
     }
@@ -349,7 +439,10 @@ export function Header({
             type="button"
             ref={botaoRef}
             className="app-header-config-botao"
-            onClick={() => setMenuAberto((atual) => !atual)}
+            onClick={() => {
+              setMenuAberto((atual) => !atual);
+              setSubmenuAtualizarAberto(false);
+            }}
             aria-haspopup="menu"
             aria-expanded={menuAberto}
             aria-label="Configurações"
@@ -381,16 +474,48 @@ export function Header({
                 )
               }
               
-              <button
-                type="button"
-                role="menuitem"
-                className="app-header-config-item app-header-config-item-botao"
-                disabled
-                title="Em breve"
-              >
-                <IconeAtualizarPlanilha />
-                Atualizar planilha
-              </button>
+              <div className="app-header-config-item-grupo">
+                <button
+                  type="button"
+                  role="menuitem"
+                  aria-haspopup="menu"
+                  aria-expanded={submenuAtualizarAberto}
+                  className="app-header-config-item app-header-config-item-botao"
+                  onClick={handleClicarAtualizarPlanilha}
+                  disabled={!projetoAberto}
+                  title={projetoAberto ? undefined : 'Abra um projeto para atualizar a planilha'}
+                >
+                  <IconeAtualizarPlanilha />
+                  Atualizar planilha
+                  <span className="app-header-config-item-chevron">
+                    {submenuAtualizarAberto ? <IconeSetaCima /> : <IconeSetaBaixo />}
+                  </span>
+                </button>
+
+                {submenuAtualizarAberto && (
+                  <div className="app-header-config-submenu" role="menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
+                      onClick={handleClicarAtualizarRegistros}
+                    >
+                      <IconeImportar />
+                      Atualizar registros
+                    </button>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
+                      onClick={handleClicarAtualizarDados}
+                    >
+                      <IconeEditarStatus />
+                      Atualizar dados
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <button
                 type="button"
@@ -419,6 +544,14 @@ export function Header({
           )}
         </div>
         {erroDelecao && <p className="erro-salvamento erro-salvamento-header">{erroDelecao}</p>}
+
+        <input
+          ref={inputArquivoAtualizarRegistrosRef}
+          type="file"
+          accept=".csv,.xlsx"
+          className="input-arquivo-escondido"
+          onChange={handleArquivoAtualizarRegistrosEscolhido}
+        />
       </header>
 
       {modalExportarAberto && (
@@ -442,6 +575,45 @@ export function Header({
           rotuloConfirmar="Deletar"
           onCancelar={() => setConfirmarDeletarAberto(false)}
           onConfirmar={() => void handleConfirmarDelecao()}
+        />
+      )}
+
+      {/*
+       * Etapa 5 de AtualizacaoDaPlanilhaViaUI.md: assistente do fluxo
+       * "Atualizar Registros", aberto com o arquivo escolhido no seletor
+       * do SO. `slug`/`registros` só faltam quando não há projeto aberto,
+       * mas nesse caso o item do menu que leva a
+       * `arquivoSelecionadoAtualizarRegistros` já fica desabilitado — a
+       * checagem aqui é só para satisfazer o tipo (`slug?`/`registros?`).
+       */}
+      {arquivoSelecionadoAtualizarRegistros && slug && registros && (
+        <AtualizarRegistrosModal
+          slug={slug}
+          arquivo={arquivoSelecionadoAtualizarRegistros}
+          registrosAtuais={registros}
+          emailAtual={emailAtual}
+          onFechar={() => setArquivoSelecionadoAtualizarRegistros(null)}
+        />
+      )}
+
+      {/*
+       * Etapa 7 de AtualizacaoDaPlanilhaViaUI.md: assistente do fluxo
+       * "Atualizar Dados". `slug`/`registros` só faltam quando não há
+       * projeto aberto, mas nesse caso o item do menu que leva a
+       * `modalAtualizarDadosAberto` já fica desabilitado — a checagem
+       * aqui é só para satisfazer o tipo (`slug?`/`registros?`), mesmo
+       * padrão do modal de "Atualizar Registros" acima. `nome` cai para
+       * `slug` na ausência de um nome de exibição definido, mesma
+       * tolerância já aplicada ao restante deste componente (ver
+       * `planilhaParaExportar`).
+       */}
+      {modalAtualizarDadosAberto && slug && registros && (
+        <AtualizarDadosModal
+          slug={slug}
+          nomeAtual={nome ?? slug}
+          registrosAtuais={registros}
+          emailAtual={emailAtual}
+          onFechar={() => setModalAtualizarDadosAberto(false)}
         />
       )}
     </>

@@ -43,6 +43,163 @@ function slugEhSeguro(slug: unknown): slug is string {
 }
 
 /**
+ * Nome físico da planilha bruta persistida ao lado de `emails.json` é
+ * sempre `sheet.<ext>` (Etapa 1 de AtualizacaoDaPlanilhaViaUI.md, seção
+ * 3) — a extensão acompanha o formato do arquivo mais recentemente
+ * importado/reimportado (csv ou xlsx), por isso não é fixa.
+ */
+function extensaoDoArquivo(nomeOuCaminho: string): string {
+  const ext = path.extname(nomeOuCaminho).slice(1).toLowerCase()
+  return ext.length > 0 ? ext : 'xlsx'
+}
+
+/**
+ * Localiza o `sheet.<ext>` já persistido num diretório de projeto,
+ * independentemente da extensão atual — necessário porque uma
+ * reimportação pode trocar o formato (csv ↔ xlsx) em relação à planilha
+ * anterior, e o arquivo antigo precisa ser removido antes de gravar o
+ * novo (ver `persistirSheetBruto`).
+ */
+function encontrarArquivoSheetExistente(diretorioProjeto: string): string | null {
+  const entradas = fs.readdirSync(diretorioProjeto, { withFileTypes: true })
+  const encontrado = entradas.find(
+    (entrada) => entrada.isFile() && /^sheet\.[^.]+$/.test(entrada.name),
+  )
+  return encontrado ? path.resolve(diretorioProjeto, encontrado.name) : null
+}
+
+/**
+ * Grava `sheet.<ext>` a partir do conteúdo em base64 recebido do
+ * navegador — mesmo formato usado tanto na criação (`POST /api/projetos`)
+ * quanto na reimportação (`POST /api/emails/:slug/sheet`, novo nesta
+ * Etapa 1). Remove qualquer `sheet.<ext>` anterior antes de gravar, para
+ * não deixar duas cópias com extensões diferentes caso o formato do
+ * arquivo tenha mudado entre uma importação e outra.
+ */
+function persistirSheetBruto(diretorioProjeto: string, nomeArquivo: string, conteudoBase64: string): void {
+  const existente = encontrarArquivoSheetExistente(diretorioProjeto)
+  if (existente) {
+    fs.rmSync(existente)
+  }
+  const ext = extensaoDoArquivo(nomeArquivo)
+  fs.writeFileSync(path.resolve(diretorioProjeto, `sheet.${ext}`), Buffer.from(conteudoBase64, 'base64'))
+}
+
+/**
+ * Valida o formato `{ nomeArquivo, conteudoBase64 }` usado tanto pelo
+ * campo `arquivo` de `POST /api/projetos` quanto pelo corpo inteiro de
+ * `POST /api/emails/:slug/sheet`.
+ */
+function arquivoBrutoValido(valor: unknown): valor is { nomeArquivo: string; conteudoBase64: string } {
+  return (
+    valor !== null &&
+    typeof valor === 'object' &&
+    !Array.isArray(valor) &&
+    typeof (valor as { nomeArquivo?: unknown }).nomeArquivo === 'string' &&
+    (valor as { nomeArquivo: string }).nomeArquivo.length > 0 &&
+    typeof (valor as { conteudoBase64?: unknown }).conteudoBase64 === 'string'
+  )
+}
+
+/**
+ * Resolve e valida o diretório de um projeto ativo a partir do slug —
+ * mesma checagem repetida em vários handlers deste arquivo, extraída
+ * aqui para os dois novos handlers de `/api/emails/:slug/sheet` (Etapa
+ * 1), que precisam dela duas vezes (GET e POST) sem duplicar a validação
+ * de path traversal.
+ */
+function resolverDiretorioProjetoAtivo(slug: string): string {
+  if (!slugEhSeguro(slug)) {
+    throw new ApiError(400, 'Slug de projeto inválido.')
+  }
+  const diretorioProjeto = path.resolve(activeDirectory, slug)
+  const caminhoRelativo = path.relative(activeDirectory, diretorioProjeto)
+  const emailsJsonPath = path.resolve(diretorioProjeto, 'emails.json')
+  if (
+    caminhoRelativo.startsWith('..') ||
+    path.isAbsolute(caminhoRelativo) ||
+    !fs.statSync(diretorioProjeto, { throwIfNoEntry: false })?.isDirectory() ||
+    !fs.statSync(emailsJsonPath, { throwIfNoEntry: false })?.isFile()
+  ) {
+    throw new ApiError(404, 'Projeto não encontrado.')
+  }
+  return diretorioProjeto
+}
+
+function contentTypeParaExtensaoSheet(ext: string): string {
+  if (ext === 'csv') return 'text/csv; charset=utf-8'
+  if (ext === 'xlsx') return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  return 'application/octet-stream'
+}
+
+/**
+ * Handler de `GET /api/emails/:slug/sheet` (novo, Etapa 1) — devolve os
+ * bytes brutos de `sheet.<ext>` já persistido, para o fluxo "Atualizar
+ * Dados > Colunas" (Etapa 7) reparsear no navegador sem exigir novo
+ * upload.
+ */
+function handleObterSheet(res: import('node:http').ServerResponse, slug: string) {
+  try {
+    const diretorioProjeto = resolverDiretorioProjetoAtivo(slug)
+    const caminhoSheet = encontrarArquivoSheetExistente(diretorioProjeto)
+    if (!caminhoSheet) {
+      throw new ApiError(404, 'Planilha bruta não encontrada para este projeto.')
+    }
+    const ext = extensaoDoArquivo(caminhoSheet)
+    res.statusCode = 200
+    res.setHeader('Content-Type', contentTypeParaExtensaoSheet(ext))
+    res.setHeader('Content-Disposition', `attachment; filename="sheet.${ext}"`)
+    res.end(fs.readFileSync(caminhoSheet))
+  } catch (err) {
+    const status = err instanceof ApiError ? err.status : 500
+    res.statusCode = status
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify({
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    }))
+  }
+}
+
+/**
+ * Handler de `POST /api/emails/:slug/sheet` (novo, Etapa 1) — recebe
+ * `{ nomeArquivo, conteudoBase64 }` e sobrescreve `sheet.<ext>`. Usado
+ * pelo fluxo "Atualizar Registros" (Etapa 5), ao confirmar o wizard —
+ * ordem exata em relação ao `PUT /api/emails/:slug` final fica decidida
+ * na Etapa 8, para não sobrescrever o arquivo bruto se o usuário cancelar
+ * o wizard no meio do caminho.
+ */
+function handleSalvarSheet(
+  req: import('node:http').IncomingMessage,
+  res: import('node:http').ServerResponse,
+  slug: string,
+) {
+  let body = ''
+  req.on('data', (chunk) => { body += chunk })
+  req.on('end', () => {
+    try {
+      const diretorioProjeto = resolverDiretorioProjetoAtivo(slug)
+      const dados = JSON.parse(body || '{}')
+      if (!arquivoBrutoValido(dados)) {
+        throw new ApiError(400, 'Corpo inválido: esperado objeto { nomeArquivo, conteudoBase64 }.')
+      }
+      persistirSheetBruto(diretorioProjeto, dados.nomeArquivo, dados.conteudoBase64)
+      res.statusCode = 200
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ ok: true }))
+    } catch (err) {
+      const status = err instanceof ApiError ? err.status : 500
+      res.statusCode = status
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+      }))
+    }
+  })
+}
+
+/**
  * Middleware de dev server que persiste `data/<slug>/emails.json`.
  *
  * A partir da migração descrita em REFATORACAO-EMAIL-TITULO-CONTEUDO.md, o
@@ -50,12 +207,43 @@ function slugEhSeguro(slug: unknown): slug is string {
  * não mais um array puro de registros. `salvarEmails` (services/emailsApi.ts)
  * envia apenas `{ email, registros }`; os metadados do projeto são preservados
  * pelo merge feito aqui, no servidor.
+ *
+ * Etapa 3 de AtualizacaoDaPlanilhaViaUI.md: o corpo passa a aceitar também
+ * um campo `projeto` opcional (nome de exibição) — quando presente,
+ * atualiza `EmailsData.projeto` junto com `email`/`registros` no mesmo
+ * merge; quando ausente (todo chamador anterior a esta etapa), o
+ * comportamento não muda: `dadosAtuais.projeto` continua preservado como
+ * antes. Usado pela seção "Projeto" do fluxo "Atualizar Dados" (Etapa 7)
+ * quando só o nome de exibição muda (sem precisar do `PATCH
+ * /api/projetos/:slug`, que só entra em jogo quando o nome do
+ * arquivo/rota muda).
  */
 function emailsApiPlugin() {
   return {
     name: 'emails-api',
     configureServer(server: import('vite').ViteDevServer) {
       server.middlewares.use('/api/emails', (req, res) => {
+        // Novo, Etapa 1 de AtualizacaoDaPlanilhaViaUI.md: GET/POST
+        // /api/emails/:slug/sheet — planilha bruta persistida ao lado de
+        // emails.json. Checado antes da rota abaixo, que segue tratando o
+        // path inteiro (sem sub-rota) como PUT de { email, registros }.
+        const caminhoSemQuery = (req.url ?? '/').split('?')[0]
+        const segmentos = caminhoSemQuery.split('/').filter(Boolean)
+        if (segmentos.length === 2 && segmentos[1] === 'sheet') {
+          const slug = decodeURIComponent(segmentos[0])
+          if (req.method === 'GET') {
+            handleObterSheet(res, slug)
+            return
+          }
+          if (req.method === 'POST') {
+            handleSalvarSheet(req, res, slug)
+            return
+          }
+          res.statusCode = 405
+          res.end('Method Not Allowed')
+          return
+        }
+
         if (req.method !== 'PUT') {
           res.statusCode = 405
           res.end('Method Not Allowed')
@@ -91,11 +279,12 @@ function emailsApiPlugin() {
               !Array.isArray(dados) &&
               dados.email &&
               typeof dados.email === 'object' &&
-              Array.isArray(dados.registros)
+              Array.isArray(dados.registros) &&
+              (dados.projeto === undefined || typeof dados.projeto === 'string')
 
             if (!formatoValido) {
               throw new Error(
-                'Corpo inválido: esperado objeto { email, registros }.'
+                'Corpo inválido: esperado objeto { email, registros, projeto? }.'
               )
             }
 
@@ -103,6 +292,7 @@ function emailsApiPlugin() {
             const dadosMesclados = {
               ...dadosAtuais,
               atualizado_em: new Date().toISOString(),
+              projeto: dados.projeto ?? dadosAtuais.projeto,
               email: dados.email,
               registros: dados.registros,
             }
@@ -408,20 +598,25 @@ function projetosApiPlugin() {
               dados.email &&
               typeof dados.email === 'object' &&
               !Array.isArray(dados.email) &&
-              Array.isArray(dados.registros)
+              Array.isArray(dados.registros) &&
+              // Novo, Etapa 1 de AtualizacaoDaPlanilhaViaUI.md: a planilha
+              // bruta enviada passa a ser persistida junto ao projeto (ver
+              // `persistirSheetBruto`), não só o EmailRecord[] já processado.
+              arquivoBrutoValido(dados.arquivo)
 
             if (!formatoValido) {
               throw new ApiError(
                 400,
-                'Corpo inválido: esperado objeto { slug, projeto, email, registros }.'
+                'Corpo inválido: esperado objeto { slug, projeto, email, registros, arquivo }.'
               )
             }
 
-            const { slug, projeto, email, registros } = dados as {
+            const { slug, projeto, email, registros, arquivo } = dados as {
               slug: string
               projeto: string
               email: EmailsData['email']
               registros: EmailsData['registros']
+              arquivo: { nomeArquivo: string; conteudoBase64: string }
             }
 
             if (!slugEhSeguro(slug)) {
@@ -452,6 +647,9 @@ function projetosApiPlugin() {
             fs.mkdirSync(diretorioProjeto, { recursive: true })
             const emailsJsonPath = path.resolve(diretorioProjeto, 'emails.json')
             fs.writeFileSync(emailsJsonPath, JSON.stringify(dadosProjeto, null, 2) + '\n', 'utf-8')
+            // Novo, Etapa 1: cópia extra do arquivo original, ao lado de
+            // emails.json — sem alterar o restante do fluxo de criação.
+            persistirSheetBruto(diretorioProjeto, arquivo.nomeArquivo, arquivo.conteudoBase64)
 
             res.statusCode = 201
             res.setHeader('Content-Type', 'application/json')

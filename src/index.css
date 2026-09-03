@@ -313,6 +313,66 @@ select {
   color: var(--color-danger);
 }
 
+/*
+  Submenu de "Atualizar planilha" (Etapa 2 de AtualizacaoDaPlanilhaViaUI.md)
+  — não fazia parte da lista original de arquivos desta demanda; passou a
+  ser tocado nesta etapa porque o submenu, sem indentação própria, ficava
+  visualmente indistinguível dos demais itens do dropdown.
+*/
+.app-header-config-item-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.app-header-config-item-chevron {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  color: var(--color-text-tertiary);
+}
+
+.app-header-config-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--color-border);
+  margin-left: 0.6rem;
+}
+
+.app-header-config-item-submenu {
+  font-size: 0.8rem;
+}
+
+.app-header-atualizar-arquivo-selecionado {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.app-header-atualizar-arquivo-selecionado-fechar {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 0.15rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+
+.app-header-atualizar-arquivo-selecionado-fechar:hover {
+  color: var(--color-text);
+}
+
 /* =========================================================================
    Página
    ========================================================================= */
@@ -4637,4 +4697,228 @@ li.marcado .exportar-lista-status-item {
   color: var(--cor-sucesso, #237a4b);
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+/* =========================================================================
+   Atualizar Planilha — wizards "Atualizar Registros" / "Atualizar Dados"
+   (AtualizacaoDaPlanilhaViaUI.md, Etapas 5/6)
+
+   Ajuste de rota (Etapa 6): nenhuma destas classes estava estilizada em
+   entregas anteriores, embora `AtualizarRegistrosModal.tsx` (Etapa 5) já
+   as usasse — `src/index.css` só tinha sido tocado, até aqui, pelo ajuste
+   de rota da Etapa 2 (submenu do Header). Adicionadas agora porque o
+   componente desta etapa (`MergeCampoConflito`) e as seções que o
+   antecedem dependem delas para não renderizar sem nenhum estilo.
+   ========================================================================= */
+
+/* `.importacao-stepper-resumo` é `display: none` por padrão (só aparece
+   em telas estreitas, como alternativa compacta ao stepper de bolhas do
+   wizard de importação — ver `@media (max-width: 720px)` mais acima). Os
+   dois wizards desta demanda não usam o stepper de bolhas (comprimento
+   variável de seções, ver cabeçalho de `AtualizarRegistrosModal.tsx`), só
+   este rótulo — precisa ficar visível também em telas largas dentro
+   destes modais especificamente. */
+.modal-atualizar-registros .importacao-stepper-resumo,
+.modal-atualizar-dados .importacao-stepper-resumo {
+  display: block;
+}
+
+.atualizar-progresso {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border);
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+}
+
+.atualizar-progresso-preenchido {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width var(--transition-fast);
+}
+
+.etapa-atualizar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.etapa-atualizar-instrucao {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+}
+
+.atualizar-alerta-conflitos {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  background: var(--color-surface-hover);
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-md);
+}
+
+/* --- Listas de conflito (theirs/ours e sumidos) --- */
+
+.lista-conflitos,
+.lista-sumidos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lista-conflitos-item,
+.lista-sumidos-item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  background: var(--color-surface);
+}
+
+.lista-conflitos-titulo,
+.lista-sumidos-titulo {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.lista-conflitos-campos {
+  font-weight: 400;
+  color: var(--color-text-tertiary);
+}
+
+.conflito-valores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.7rem;
+}
+
+.conflito-valor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.conflito-valor-rotulo {
+  font-size: 0.72rem;
+  color: var(--color-text-tertiary);
+}
+
+.conflito-opcoes {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.opcao-decisao {
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.opcao-decisao:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.opcao-decisao.selecionada {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+/* --- Ações em massa (Etapa 6 — MergeCampoConflito) --- */
+
+.conflito-acoes-massa {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.75rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.conflito-acoes-massa-contador {
+  font-size: 0.78rem;
+  color: var(--color-text-tertiary);
+  margin-right: auto;
+}
+
+.botao-acao-massa {
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.botao-acao-massa:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+/* --- Notas informativas (resumo final) --- */
+
+.notas-informativas {
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.85rem;
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
+
+.notas-informativas-titulo {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.notas-informativas ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.erro-salvamento {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 720px) {
+  .conflito-valores {
+    grid-template-columns: 1fr;
+  }
+
+  .conflito-acoes-massa {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .conflito-acoes-massa-contador {
+    margin-right: 0;
+  }
 }

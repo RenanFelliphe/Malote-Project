@@ -33,22 +33,56 @@ async function extrairMensagemDeErro(resposta: Response): Promise<string | undef
 }
 
 /**
+ * Converte um `File` em base64 para envio embutido no corpo JSON de
+ * `criarProjeto`/`enviarSheet` (Etapa 1 de AtualizacaoDaPlanilhaViaUI.md)
+ * — evita depender de `multipart/form-data` e mantém consistência com o
+ * restante da API, que já é JSON em toda parte. Processado em blocos de
+ * 0x8000 bytes para não estourar a pilha de `String.fromCharCode` em
+ * arquivos maiores.
+ */
+export async function arquivoParaBase64(arquivo: File): Promise<string> {
+  const buffer = await arquivo.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  const TAMANHO_BLOCO = 0x8000;
+  let binario = '';
+  for (let indice = 0; indice < bytes.length; indice += TAMANHO_BLOCO) {
+    const bloco = bytes.subarray(indice, indice + TAMANHO_BLOCO);
+    binario += String.fromCharCode(...bloco);
+  }
+  return btoa(binario);
+}
+
+/**
  * Cria um projeto novo via `POST /api/projetos` (Etapa 5), persistindo
  * `data/active/<slug>/emails.json` do zero — mesmo padrão de
  * `salvarEmails` (services/emailsApi.ts) já existente, mas para criação em
  * vez de atualização. Em sucesso, devolve o `slug` confirmado pelo
  * servidor (usado pela Etapa 8 para o redirecionamento pós-criação).
+ *
+ * A partir da Etapa 1 de AtualizacaoDaPlanilhaViaUI.md, também envia o
+ * `arquivo` original (planilha bruta) em base64, persistido pelo servidor
+ * como `sheet.<ext>` ao lado de `emails.json` — sem mudar o restante do
+ * fluxo de importação, que já tinha o `File` em mãos (prop `arquivo` de
+ * `ImportWizardModal`).
  */
 export async function criarProjeto(
   slug: string,
   projeto: string,
   email: EmailConteudo,
   registros: EmailRecord[],
+  arquivo: File,
 ): Promise<string> {
+  const conteudoBase64 = await arquivoParaBase64(arquivo);
   const resposta = await fetch('/api/projetos', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ slug, projeto, email, registros }),
+    body: JSON.stringify({
+      slug,
+      projeto,
+      email,
+      registros,
+      arquivo: { nomeArquivo: arquivo.name, conteudoBase64 },
+    }),
   });
 
   if (!resposta.ok) {
@@ -59,6 +93,41 @@ export async function criarProjeto(
     }
 
     throw new Error(mensagem ?? 'Falha ao criar o novo projeto.');
+  }
+
+  const dados = (await resposta.json()) as { ok: true; slug: string };
+  return dados.slug;
+}
+
+/**
+ * Renomeia a pasta/slug de um projeto ativo via `PATCH /api/projetos/:slug`
+ * (Etapa 3 de AtualizacaoDaPlanilhaViaUI.md) — endpoint já existente,
+ * construído originalmente para o conflito de restauração da lixeira
+ * (`origem: 'lixeira'`), reaproveitado tal como está (`origem: 'ativo'`)
+ * pela seção "Projeto" do fluxo "Atualizar Dados" (Etapa 7), quando o
+ * nome do arquivo/rota muda. Em sucesso, devolve o `slug` confirmado pelo
+ * servidor — usado tanto na chamada seguinte a `salvarEmails` quanto no
+ * redirecionamento para a nova rota (`/projetos/<slug>`).
+ *
+ * Reaproveita `ProjetoSlugDuplicadoError` para o `409` deste endpoint
+ * também — mesmo significado (colisão de nome de arquivo/slug) do `409`
+ * de `criarProjeto`.
+ */
+export async function renomearProjeto(slugAtual: string, novoSlug: string): Promise<string> {
+  const resposta = await fetch(`/api/projetos/${encodeURIComponent(slugAtual)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ novoSlug, origem: 'ativo' }),
+  });
+
+  if (!resposta.ok) {
+    const mensagem = await extrairMensagemDeErro(resposta);
+
+    if (resposta.status === 409) {
+      throw new ProjetoSlugDuplicadoError(mensagem);
+    }
+
+    throw new Error(mensagem ?? 'Falha ao renomear o projeto.');
   }
 
   const dados = (await resposta.json()) as { ok: true; slug: string };

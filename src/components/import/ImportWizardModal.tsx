@@ -133,7 +133,11 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
         : EMAIL_CONTEUDO_VAZIO;
 
       // Etapa 6: persiste de verdade via `POST /api/projetos` (Etapa 5).
-      const slugCriado = await criarProjeto(estado.nomeArquivoSlug, estado.nomeProjeto, email, registros);
+      // A partir da Etapa 1 de AtualizacaoDaPlanilhaViaUI.md, `criarProjeto`
+      // também envia `arquivo` (o `File` já recebido como prop deste
+      // componente) para o servidor persistir `sheet.<ext>` — nenhuma outra
+      // mudança neste fluxo de importação.
+      const slugCriado = await criarProjeto(estado.nomeArquivoSlug, estado.nomeProjeto, email, registros, arquivo);
 
       // Etapa 8: reload completo para o projeto recém-criado, não
       // navegação client-side — `PROJETOS` só é resolvido uma vez, via
