@@ -12,6 +12,7 @@ import {
   FiChevronUp,
   FiCopy,
   FiDownload,
+  FiDroplet,
   FiEdit3,
   FiFileText,
   FiItalic,
@@ -81,6 +82,10 @@ export function IconeTemaClaro() {
 
 export function IconeTemaEscuro() {
   return <FiMoon size={16} aria-hidden="true" />;
+}
+
+export function IconeEscolherTema() {
+  return <FiDroplet size={15} aria-hidden="true" />;
 }
 
 export function IconePaginaAnterior() {

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import type { EmailConteudo, EmailRecord } from '../types/email';
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeSelectorModal } from './ThemeSelectorModal';
 import { ExportarModal, type PlanilhaParaExportar } from './ExportarModal';
 import { EmailConteudoModal } from './EmailConteudoModal';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -16,6 +16,7 @@ import {
   IconeCopiar,
   IconeEditarEmail,
   IconeEditarStatus,
+  IconeEscolherTema,
   IconeExportar,
   IconeImportar,
   IconeLixeira,
@@ -100,7 +101,7 @@ interface Props {
  * página (título + subtítulo) continua separado, dentro do container
  * com padding.
  *
- * O botão de configurações abre um dropdown com cinco itens: "Trocar tema",
+ * O botão de configurações abre um dropdown com as ações de tema e planilha,
  * "Editar e-mail", "Atualizar planilha", "Exportar planilha" e, a partir da
  * Etapa 3 de implementacaoDelecao.md, "Deletar planilha" (habilitado apenas
  * com um projeto aberto, já que a exclusão em lote pela Home é a Etapa 4).
@@ -144,8 +145,10 @@ export function Header({
   const [arquivoSelecionadoAtualizarRegistros, setArquivoSelecionadoAtualizarRegistros] = useState<File | null>(null);
   // Estado do modal "Atualizar Dados" (Etapa 7 de AtualizacaoDaPlanilhaViaUI.md).
   const [modalAtualizarDadosAberto, setModalAtualizarDadosAberto] = useState(false);
+  const [modalTemaAberto, setModalTemaAberto] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const botaoRef = useRef<HTMLButtonElement>(null);
+  const botaoEscolherTemaRef = useRef<HTMLButtonElement>(null);
   const inputArquivoAtualizarRegistrosRef = useRef<HTMLInputElement | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -295,6 +298,16 @@ export function Header({
   function abrirEdicaoEmail() {
     fecharMenu();
     setModalEmailAberto(true);
+  }
+
+  function abrirSeletorDeTema() {
+    fecharMenu();
+    setModalTemaAberto(true);
+  }
+
+  function fecharSeletorDeTema() {
+    setModalTemaAberto(false);
+    requestAnimationFrame(() => botaoEscolherTemaRef.current?.focus());
   }
 
   /**
@@ -448,11 +461,6 @@ export function Header({
 
           {menuAberto && (
             <div className="app-header-config-dropdown" role="menu">
-              <div className="app-header-config-item app-header-config-item-tema" role="menuitem">
-                <span>Trocar tema</span>
-                <ThemeToggle />
-              </div>
-
               {
                 location.pathname != '/' && (
                   <button
@@ -535,6 +543,17 @@ export function Header({
                 <IconeLixeira />
                 Deletar planilha
               </button>
+
+              <button
+                type="button"
+                ref={botaoEscolherTemaRef}
+                role="menuitem"
+                className="app-header-config-item app-header-config-item-botao"
+                onClick={abrirSeletorDeTema}
+              >
+                <IconeEscolherTema />
+                Escolher Tema
+              </button>
             </div>
           )}
         </div>
@@ -552,6 +571,8 @@ export function Header({
       {modalExportarAberto && (
         <ExportarModal planilhas={planilhaParaExportar} onFechar={() => setModalExportarAberto(false)} />
       )}
+
+      {modalTemaAberto && <ThemeSelectorModal onFechar={fecharSeletorDeTema} />}
 
       {modalEmailAberto && (
         <EmailConteudoModal

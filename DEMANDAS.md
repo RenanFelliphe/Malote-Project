@@ -2,7 +2,7 @@
 
 > Este documento reúne as demandas levantadas para evolução do sistema, além da especificação já formalizada em `Especificacao_Sistema_Emails_v3.md`. Diferente da especificação (que descreve o que **já foi decidido e está pronto para ser implementado**), este arquivo registra objetivos e ideias em diferentes estágios de maturidade — desde melhorias pontuais até a visão de longo prazo do projeto — para que não se percam entre uma conversa e outra.
 >
-> As demandas estão organizadas na ordem recomendada de execução (não pela numeração de identificação, que é fixa e não muda): **5 → 3 → 7 → 4 → 2 → 6 → 1**.
+> As demandas estão organizadas na ordem recomendada de execução (não pela numeração de identificação, que é fixa e não muda): **5 → 3 → 7 → 4 → 2 → 6 → 1 → 8**.
 
 ## Como usar este documento
 
@@ -69,6 +69,7 @@ Tabela viva: toda demanda já levantada tem uma linha aqui, mesmo depois de remo
 | 2 | Variáveis no Texto (merge tags) | Registrado | Dias | — | 1 (para "fechar o ciclo") |
 | 6 | Armazenamento Duplo (Banco + Local) | Registrado | Semanas | — | 1 (recomendado) |
 | 1 | Envio Automático dos E-mails | Registrado | Semanas | 6 (recomendado) | — |
+| 8 | Sistema de Seleção de Temas | ✅ Concluída | Dias | — | — |
 
 ---
 
@@ -775,3 +776,68 @@ Não é uma questão de volume de código, é estrutural: hoje **não existe bac
 - `src/server/emailSender.ts` *(nome sugerido)* — client de envio real (Microsoft Graph API ou SMTP, conforme decisão em aberto) (Etapa 3).
 - `src/server/scheduler.ts` *(nome sugerido)* — processo Node standalone que executa os blocos pendentes, independente do navegador estar aberto (Etapa 4).
 - `src/services/disparoApi.ts` *(nome sugerido)* — client para configurar, pausar, retomar, cancelar e consultar o disparo.
+
+---
+
+## Demanda 8 — Sistema de Seleção de Temas
+
+**Status:** ✅ Concluída
+**Esforço estimado:** Dias
+**Depende de:** —
+**Bloqueia:** —
+
+### Contexto
+
+O sistema possuía uma alternância simples entre os temas claro e escuro, mas o `variables.css` passou a conter uma coleção de temas com identidades visuais próprias. A seleção precisava deixar de tratar os temas como apenas dois modos e oferecer uma experiência organizada para uma coleção extensa.
+
+### Escopo
+
+**Cobre:**
+- Catálogo centralizado com metadados, classificação, modo, descrição e cores de preview para todos os temas existentes.
+- Item "Escolher Tema" na Header e modal com filtros combinados por tipo e modo.
+- Preview imediato sem persistência durante a seleção.
+- Confirmação, cancelamento, fechamento por `X`, `ESC` ou backdrop, com retorno de foco.
+- Persistência pelo ID do tema, fallback seguro para Claro e layout responsivo com lista rolável.
+
+**Não cobre nesta fase:**
+- Criação ou alteração de paletas de cores existentes.
+- Temas definidos fora dos blocos já presentes em `variables.css`.
+- Personalização livre de cores pelo usuário.
+
+### Decisões
+
+- O registro central fica em `src/data/temas.ts` e usa `data-theme` apenas por ID.
+- Claro é o padrão; preferências inválidas também retornam para Claro.
+- `aplicarTema` atualiza somente o preview em memória; `definirTema` confirma e persiste.
+
+### Etapas de Implementação `[Inicial]`
+
+**Etapa 1 — Inventário e registro de temas**
+- Identificar todos os seletores `[data-theme]` de `variables.css`.
+- Criar os metadados tipados e as três cores representativas de cada tema.
+
+**Etapa 2 — Contexto e persistência**
+- Substituir o contrato Light/Dark por IDs de temas.
+- Aplicar o tema visualmente sem persistir previews e validar o fallback.
+
+**Etapa 3 — Modal e Header**
+- Remover "Trocar tema" e inserir "Escolher Tema" abaixo de "Deletar planilha".
+- Implementar filtros, cards com radio, cores e ícone de modo.
+
+**Etapa 4 — Acessibilidade e validação**
+- Reaproveitar `Dialog` para foco, teclado, ESC, backdrop e retorno de foco.
+- Validar build, lint, responsividade e referências do mecanismo antigo.
+
+### Arquivos Alterados
+
+- `index.html` — Claro como tema inicial do documento.
+- `Demandas.md` — registro desta demanda.
+- `src/components/Header.tsx` — novo item e abertura do seletor.
+- `src/components/Icons.tsx` — ícone do seletor.
+- `src/contexts/ThemeContext.tsx` — catálogo de IDs, preview e persistência separada.
+- `src/index.css` — estilos do catálogo e remoção do toggle antigo.
+
+### Arquivos Criados
+
+- `src/data/temas.ts` — registro centralizado dos temas.
+- `src/components/ThemeSelectorModal.tsx` — modal de seleção e preview.
