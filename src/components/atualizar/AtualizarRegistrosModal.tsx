@@ -25,6 +25,21 @@ interface Props {
   registrosAtuais: EmailRecord[];
   emailAtual: EmailConteudo;
   onFechar: () => void;
+  /**
+   * `colunaId` persistido do projeto (Demanda 7 — Mapeamento de ID
+   * Personalizado, Etapa 3). Ausente/`undefined` = "Gerar Automaticamente"
+   * (mesmo fallback de `EmailsData.colunaId`) — este fluxo **não** tem
+   * seletor próprio (Etapa 9): só lê a escolha já feita em "Atualizar
+   * Dados > Colunas" (Etapa 8) e repassa ao motor de merge, para que o
+   * `id` usado para casar registros na reimportação não divirja
+   * silenciosamente do `id` usado na criação/último remapeamento do
+   * projeto.
+   *
+   * Ajuste de rota (fechado): `Header.tsx` repassa esta prop, e
+   * `pages/emails.tsx` já passa `colunaId={dados.colunaId}` para
+   * `Header.tsx` — cadeia de wiring completa, sem pendências.
+   */
+  colunaId?: string;
 }
 
 type DecisaoEnviado = 'manter-enviado' | 'desenviar';
@@ -114,7 +129,14 @@ const ETAPAS: { numero: Secao; rotulo: string }[] = [
  * seção, fora do escopo desta etapa. "Cancelar" continua disponível a
  * qualquer momento e descarta todo o progresso, sem persistir nada.
  */
-export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailAtual, onFechar }: Props) {
+export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailAtual, onFechar, colunaId }: Props) {
+  // Normaliza a prop (`undefined` quando ausente/projeto sem estratégia de
+  // ID definida) para o `string | null` esperado por `calcularMerge` —
+  // mesmo padrão de `colunaIdSelecionado` em `AtualizarDadosModal.tsx`,
+  // só que aqui não é estado editável: este fluxo só lê a escolha já
+  // persistida (ver comentário da prop `colunaId` em `Props`).
+  const colunaIdNormalizado = colunaId ?? null;
+
   const [planilha, setPlanilha] = useState<PlanilhaParseada | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erroLeitura, setErroLeitura] = useState<string | null>(null);
@@ -171,10 +193,37 @@ export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailA
     [planilha]
   );
 
+  // Demanda 7 — Mapeamento de ID Personalizado, Etapa 9: `colunaIdNormalizado`
+  // (persistido do projeto, lido só uma vez via prop — sem seletor próprio
+  // neste fluxo) substitui o `null` fixo que este fluxo usava antes desta
+  // etapa. Se a coluna não existir na planilha reimportada (renomeada/
+  // removida), `resolverIdDaLinha` (dentro de `calcularMerge`) já cai no
+  // fallback de ordem de linha sozinho — `colunaIdAusenteNaPlanilha`
+  // abaixo só detecta esse caso para exibir o aviso visível exigido pelo
+  // critério de aceite (não muda o cálculo do merge em si).
   const resultadoAtual = useMemo<ResultadoMerge | null>(() => {
     if (!planilha) return null;
-    return calcularMerge(snapshot, planilha.linhas, colunasDetectadas, TIPOS_CONFLITO_ATUALIZAR_REGISTROS);
-  }, [planilha, snapshot, colunasDetectadas]);
+    return calcularMerge(
+      snapshot,
+      planilha.linhas,
+      colunasDetectadas,
+      TIPOS_CONFLITO_ATUALIZAR_REGISTROS,
+      colunaIdNormalizado
+    );
+  }, [planilha, snapshot, colunasDetectadas, colunaIdNormalizado]);
+
+  /**
+   * Verdadeiro quando o projeto tem uma estratégia de ID explícita
+   * (`colunaId` persistido) mas a planilha reimportada não traz mais essa
+   * coluna no cabeçalho — o merge acima já caiu sozinho no fallback de
+   * ordem de linha (`resolverIdDaLinha`); aqui só sinalizamos isso de
+   * forma visível, em vez de deixar silencioso (Etapa 9, critério 7.2
+   * "Aviso de coluna ausente").
+   */
+  const colunaIdAusenteNaPlanilha = useMemo(
+    () => Boolean(colunaIdNormalizado) && Boolean(planilha) && !planilha!.headers.includes(colunaIdNormalizado!),
+    [colunaIdNormalizado, planilha]
+  );
 
   // Estatísticas cruas da planilha reimportada (independente do merge),
   // no mesmo modelo do resumo final de `EtapaRevisao` — usadas apenas na
@@ -346,7 +395,8 @@ export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailA
       novoSnapshot,
       planilha!.linhas,
       colunasDetectadas,
-      TIPOS_CONFLITO_ATUALIZAR_REGISTROS
+      TIPOS_CONFLITO_ATUALIZAR_REGISTROS,
+      colunaIdNormalizado
     );
 
     setSnapshot(novoSnapshot);
@@ -435,6 +485,14 @@ export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailA
 
       {mostrarConteudo && resultadoAtual && (
         <>
+          {colunaIdAusenteNaPlanilha && (
+            <p className="atualizar-alerta-colunaid-ausente" role="alert">
+              A coluna "{colunaId}", usada como identificador deste projeto, não foi encontrada na planilha
+              reimportada (pode ter sido renomeada ou removida). Os registros estão sendo casados pela ordem das
+              linhas nesta atualização.
+            </p>
+          )}
+
           <p className="importacao-stepper-resumo">
             Etapa {ETAPAS.findIndex(({ numero }) => numero === secaoAtual) + 1} de {ETAPAS.length} —{' '}
             {ETAPAS.find(({ numero }) => numero === secaoAtual)?.rotulo}

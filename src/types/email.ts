@@ -175,6 +175,22 @@ export interface EmailsData {
    * pela lixeira; limpo (removido) ao restaurar.
    */
   deletado_em?: string;
+  /**
+   * Nome da coluna da planilha usada como origem do `id` dos registros
+   * deste projeto (Demanda 7 — Mapeamento de ID Personalizado). Ausente/
+   * `undefined` equivale a "Gerar Automaticamente": o `id` é a ordem
+   * original da linha na planilha, mesmo comportamento de antes desta
+   * demanda — por isso não há migração necessária para projetos já
+   * existentes, que simplesmente nunca têm este campo definido.
+   *
+   * Gravado na criação do projeto (`construirRegistros.ts`) e regravável
+   * depois em "Atualizar Dados > Colunas" (`AtualizarDadosModal.tsx`), que
+   * também repassa este valor ao motor de merge (`calcularMerge.ts`) a
+   * cada remapeamento. O fluxo "Atualizar Registros"
+   * (`AtualizarRegistrosModal.tsx`) apenas lê este campo — não tem UI
+   * própria para alterá-lo.
+   */
+  colunaId?: string;
   email: EmailConteudo;
   registros: EmailRecord[];
 }

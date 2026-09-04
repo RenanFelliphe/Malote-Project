@@ -64,6 +64,22 @@ export async function arquivoParaBase64(arquivo: File): Promise<string> {
  * como `sheet.<ext>` ao lado de `emails.json` — sem mudar o restante do
  * fluxo de importação, que já tinha o `File` em mãos (prop `arquivo` de
  * `ImportWizardModal`).
+ *
+ * Demanda 7 (Mapeamento de ID Personalizado, Etapa 7): novo parâmetro
+ * opcional `colunaId`, enviado no corpo como campo próprio para o servidor
+ * persistir em `EmailsData.colunaId` (`emails.json`). `undefined`/ausente
+ * preserva o comportamento anterior a esta demanda ("Gerar
+ * Automaticamente"). Opcional (não um parâmetro obrigatório a mais como em
+ * `calcularMerge`/Etapa 3) para não arriscar quebrar outros chamadores de
+ * `criarProjeto` que não fazem parte dos arquivos desta demanda e que eu
+ * não tenho como enumerar aqui.
+ *
+ * PENDÊNCIA: enviar este campo no corpo da requisição só tem efeito se o
+ * middleware do servidor (`projetosApiPlugin`, citado no comentário de
+ * `ProjetoSlugDuplicadoError` acima como estando em `vite.config.ts`) for
+ * ajustado para ler `colunaId` do corpo e gravá-lo em `EmailsData` ao
+ * montar `emails.json`. Esse arquivo não está disponível nesta entrega —
+ * a persistência de fato só fecha quando ele for enviado e ajustado.
  */
 export async function criarProjeto(
   slug: string,
@@ -71,6 +87,7 @@ export async function criarProjeto(
   email: EmailConteudo,
   registros: EmailRecord[],
   arquivo: File,
+  colunaId?: string | null,
 ): Promise<string> {
   const conteudoBase64 = await arquivoParaBase64(arquivo);
   const resposta = await fetch('/api/projetos', {
@@ -82,6 +99,7 @@ export async function criarProjeto(
       email,
       registros,
       arquivo: { nomeArquivo: arquivo.name, conteudoBase64 },
+      colunaId: colunaId ?? null,
     }),
   });
 

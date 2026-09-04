@@ -280,7 +280,13 @@ function emailsApiPlugin() {
               dados.email &&
               typeof dados.email === 'object' &&
               Array.isArray(dados.registros) &&
-              (dados.projeto === undefined || typeof dados.projeto === 'string')
+              (dados.projeto === undefined || typeof dados.projeto === 'string') &&
+              // Demanda 7 (Mapeamento de ID Personalizado, Etapa 8): campo
+              // opcional — ausente/`undefined` (chamadores que ainda não
+              // enviam o campo, ex. `AtualizarRegistrosModal` até a Etapa
+              // 9) preserva `colunaId` já persistido; `null`/string
+              // sobrescreve.
+              (dados.colunaId === undefined || dados.colunaId === null || typeof dados.colunaId === 'string')
 
             if (!formatoValido) {
               throw new Error(
@@ -289,12 +295,24 @@ function emailsApiPlugin() {
             }
 
             const dadosAtuais = JSON.parse(fs.readFileSync(emailsJsonPath, 'utf-8'))
-            const dadosMesclados = {
+            const dadosMesclados: Record<string, unknown> = {
               ...dadosAtuais,
               atualizado_em: new Date().toISOString(),
               projeto: dados.projeto ?? dadosAtuais.projeto,
               email: dados.email,
               registros: dados.registros,
+            }
+            // Demanda 7 (Mapeamento de ID Personalizado, Etapa 8): só mexe
+            // em `colunaId` quando o chamador manda o campo de verdade
+            // (mesmo ausente que os outros pontos desta demanda) — chamadores
+            // antigos que não enviam `colunaId` continuam preservando o
+            // valor já persistido via `...dadosAtuais` acima, sem regressão.
+            if (dados.colunaId !== undefined) {
+              if (typeof dados.colunaId === 'string' && dados.colunaId !== '') {
+                dadosMesclados.colunaId = dados.colunaId
+              } else {
+                delete dadosMesclados.colunaId
+              }
             }
 
             fs.writeFileSync(emailsJsonPath, JSON.stringify(dadosMesclados, null, 2) + '\n', 'utf-8')
@@ -602,7 +620,13 @@ function projetosApiPlugin() {
               // Novo, Etapa 1 de AtualizacaoDaPlanilhaViaUI.md: a planilha
               // bruta enviada passa a ser persistida junto ao projeto (ver
               // `persistirSheetBruto`), não só o EmailRecord[] já processado.
-              arquivoBrutoValido(dados.arquivo)
+              arquivoBrutoValido(dados.arquivo) &&
+              // Demanda 7 (Mapeamento de ID Personalizado, Etapa 7): campo
+              // opcional — ausente/`undefined` (chamadores antigos de
+              // `criarProjeto`) ou `null` (client atual, "Gerar
+              // Automaticamente") são válidos; só bloqueia se vier um tipo
+              // que não seja string nem null.
+              (dados.colunaId === undefined || dados.colunaId === null || typeof dados.colunaId === 'string')
 
             if (!formatoValido) {
               throw new ApiError(
@@ -611,12 +635,13 @@ function projetosApiPlugin() {
               )
             }
 
-            const { slug, projeto, email, registros, arquivo } = dados as {
+            const { slug, projeto, email, registros, arquivo, colunaId } = dados as {
               slug: string
               projeto: string
               email: EmailsData['email']
               registros: EmailsData['registros']
               arquivo: { nomeArquivo: string; conteudoBase64: string }
+              colunaId?: string | null
             }
 
             if (!slugEhSeguro(slug)) {
@@ -642,6 +667,13 @@ function projetosApiPlugin() {
               atualizado_em: agora,
               email,
               registros,
+              // Demanda 7 (Mapeamento de ID Personalizado, Etapa 7): grava o
+              // campo só quando uma coluna de verdade foi escolhida — `null`
+              // (client) ou `undefined` (chamadores antigos) viram ausência
+              // do campo no JSON persistido, mesmo padrão de "Gerar
+              // Automaticamente" já usado em todo o resto da demanda
+              // (`EmailsData.colunaId` é opcional, não `string | null`).
+              ...(typeof colunaId === 'string' && colunaId !== '' ? { colunaId } : {}),
             }
 
             fs.mkdirSync(diretorioProjeto, { recursive: true })

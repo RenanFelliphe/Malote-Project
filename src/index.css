@@ -713,7 +713,7 @@ select {
   gap: 3rem;
 }
 
-.toolbar-linha-1{
+.toolbar-linha-1 {
   flex-wrap: nowrap;
 }
 
@@ -815,6 +815,7 @@ select {
   background: var(--color-accent);
   color: var(--color-accent-contrast);
 }
+
 /* --- Filtros (pílulas) --- */
 
 .filtros {
@@ -1197,7 +1198,7 @@ select {
  * paginação ficavam juntos antes — a paginação foi movida para cá para
  * ficar ao lado do contador, ver `pages/emails.tsx`).
  */
- 
+
 .linha-selecao-paginacao {
   display: flex;
   flex-wrap: wrap;
@@ -1646,15 +1647,18 @@ button.status-badge-clicavel:hover {
 .modal-lista,
 .coluna-seletora-lista,
 .preview-planilha-tabela-wrapper {
-  scrollbar-width: none;        /* Firefox */
-  -ms-overflow-style: none;     /* IE/Edge legado */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge legado */
 }
 
 .importacao-corpo::-webkit-scrollbar,
 .modal-lista::-webkit-scrollbar,
 .coluna-seletora-lista::-webkit-scrollbar,
 .preview-planilha-tabela-wrapper::-webkit-scrollbar {
-  display: none;                /* ou width: 0; height: 0; como já fizeram no bloco existente */
+  display: none;
+  /* ou width: 0; height: 0; como já fizeram no bloco existente */
 }
 
 .dialog-content.modal-exportar,
@@ -1791,7 +1795,7 @@ button.status-badge-clicavel:hover {
   max-width: 680px;
 }
 
-.theme-selector-modal > .dialog-rodape {
+.theme-selector-modal>.dialog-rodape {
   position: sticky;
   bottom: -1.5rem;
   z-index: 2;
@@ -1836,7 +1840,11 @@ button.status-badge-clicavel:hover {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  height: fit-content;
+  min-height: 3rem;
+}
+
+.theme-selector-secao:nth-of-type(1) {
+  min-height: fit-content;
 }
 
 .theme-selector-secao h3 {
@@ -1860,6 +1868,15 @@ button.status-badge-clicavel:hover {
 
 .theme-selector-lista-recomendados {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.theme-selector-secao:last-child {
+  flex: 1;
+}
+
+.theme-selector-secao:last-child .theme-selector-lista {
+  flex: 1;
+  max-height: none;
 }
 
 .theme-selector-lista::-webkit-scrollbar {
@@ -1926,14 +1943,18 @@ button.status-badge-clicavel:hover {
   font-size: 0.9rem;
 }
 
-.theme-selector-texto span,
-.theme-selector-texto small {
+.theme-selector-texto span {
   color: var(--color-text-secondary);
   font-size: 0.78rem;
   line-height: 1.3;
 }
 
-.theme-selector-texto small {
+.theme-selector-nome {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 0.85rem;
+  line-height: 1.3;
   color: var(--color-accent);
   font-weight: 600;
 }
@@ -2293,12 +2314,12 @@ button.status-badge-clicavel:hover {
   border-color: var(--color-accent);
 }
 
-.checkbox-customizado-input:checked ~ .checkbox-customizado-caixa {
+.checkbox-customizado-input:checked~.checkbox-customizado-caixa {
   border-color: var(--color-accent);
   background: var(--color-accent);
 }
 
-.checkbox-customizado-input:focus-visible ~ .checkbox-customizado-caixa {
+.checkbox-customizado-input:focus-visible~.checkbox-customizado-caixa {
   box-shadow: 0 0 0 2px var(--color-accent-soft), 0 0 0 3px var(--color-accent);
 }
 
@@ -2306,7 +2327,7 @@ button.status-badge-clicavel:hover {
   border-color: var(--color-border-strong);
 }
 
-.checkbox-customizado-input:disabled ~ .checkbox-customizado-caixa {
+.checkbox-customizado-input:disabled~.checkbox-customizado-caixa {
   background: var(--color-surface);
 }
 
@@ -3581,6 +3602,7 @@ li.marcado .exportar-lista-status-item {
     transition-duration: 0.001ms !important;
   }
 }
+
 /* =========================================================================
    Assistente de Importação de Planilha
    ========================================================================= */
@@ -3948,6 +3970,25 @@ li.marcado .exportar-lista-status-item {
   font-size: 0.8rem;
   color: var(--color-text-tertiary);
   text-align: center;
+}
+
+/* --- Exclusividade entre atributos (Demanda 7 — Mapeamento de ID Personalizado) --- */
+
+.coluna-seletora-lista label.coluna-seletora-opcao-desabilitada {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.coluna-seletora-lista label.coluna-seletora-opcao-desabilitada:hover {
+  background: transparent;
+}
+
+.coluna-seletora-motivo-desabilitada {
+  margin-left: auto;
+  padding-left: 0.5rem;
+  font-size: 0.72rem;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
 }
 
 .texto-destacado {
@@ -4435,7 +4476,8 @@ li.marcado .exportar-lista-status-item {
   gap: 0.75rem;
   padding: 0.75rem 0.85rem;
   border: 1px solid var(--color-border);
-  border-left: 3px dashed var(--color-border-strong);;
+  border-left: 3px dashed var(--color-border-strong);
+  ;
   border-radius: var(--radius-md);
   background: var(--color-bg-subtle);
   transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
@@ -4580,6 +4622,7 @@ li.marcado .exportar-lista-status-item {
   gap: 0.4rem;
   white-space: nowrap;
 }
+
 /* =========================================================================
    ConflitoRestauracaoModal (Etapa 9 de implementacaoDelecao.md)
 

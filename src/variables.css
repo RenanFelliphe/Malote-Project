@@ -925,7 +925,7 @@
   --shadow-lg: 0 0 40px rgba(84, 216, 255, 0.15);
 }
 
-[data-theme='executive'] {
+[data-theme='office'] {
   color-scheme: light;
 
   --color-bg: #F2F4F7;

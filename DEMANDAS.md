@@ -64,7 +64,7 @@ Tabela viva: toda demanda já levantada tem uma linha aqui, mesmo depois de remo
 |---|---|---|---|---|---|
 | 5 | Edição Individual de Registro | ✅ Concluída | Dias | — | 3 (novo requisito: conflito de sync) |
 | 3 | Atualizar Planilha via UI | ✅ Concluída | Dias | 5 (modelo `backup_dados`) | — |
-| 7 | Mapeamento de ID Personalizado | Registrado | Horas–dias | — | — |
+| 7 | Mapeamento de ID Personalizado | Em execução | Dias | — | — |
 | 4 | Histórico de Alterações | Registrado | Horas–dias (versão simples) | — | — |
 | 2 | Variáveis no Texto (merge tags) | Registrado | Dias | — | 1 (para "fechar o ciclo") |
 | 6 | Armazenamento Duplo (Banco + Local) | Registrado | Semanas | — | 1 (recomendado) |
@@ -371,93 +371,175 @@ Um único motor de merge, com dois pontos de entrada diferentes (planilha nova v
 
 ## Demanda 7 — Mapeamento de ID Personalizado
 
-**Status:** Registrado
-**Esforço estimado:** Horas–dias
+**Status:** Concluída (pendente validação manual — ver `MapeamentoDeIDPersonalizado.md`, seção 8)
+**Esforço estimado:** Dias
 **Depende de:** —
 **Bloqueia:** —
 
 ### Contexto
 
-Surgiu durante o destrinchamento da Demanda 3, como parte da seção "Colunas" do fluxo Atualizar Dados: a ideia original era permitir selecionar, na hora de remapear colunas, qual coluna da planilha deveria ser usada como `id` do registro. Só que hoje **nenhum** dos dois pontos de entrada (wizard de importação nem a futura Demanda 3) tem esse seletor — o `id` é sempre a ordem da linha na planilha, ou uma coluna de ID detectada automaticamente por `identifyColumns.ts` sem controle explícito do usuário sobre qual coluna usar quando há mais de uma candidata.
+Surgiu durante o destrinchamento da Demanda 3, como parte da seção "Colunas" do fluxo Atualizar Dados: a ideia original era permitir selecionar, na hora de remapear colunas, qual coluna da planilha deveria ser usada como `id` do registro. Só que hoje **nenhum** dos dois pontos de entrada (wizard de importação nem a futura Demanda 3) tem esse seletor — o `id` é sempre a ordem da linha na planilha, sem controle explícito do usuário sobre qual coluna usar quando há uma candidata melhor.
 
 Foi retirada do escopo da Demanda 3 porque, para fazer sentido, precisa nascer nos dois lugares ao mesmo tempo — se nascesse só na atualização, o `id` usado para casar registros na reimportação poderia divergir silenciosamente do `id` que o projeto usou na criação.
+
+**Revisão de escopo (pós-mapeamento):** ao rastrear o código antes de implementar, foi identificado que a estratégia de resolução de ID hoje está fragmentada em 3 lugares com comportamentos diferentes — `identifyColumns.ts` (Node/CLI, lista ampla de candidatos, não usado pelos fluxos do navegador), `calcularMerge.ts` (navegador, aceita só header exatamente `"id"`) e `construirRegistros.ts` (navegador, **nenhuma** detecção — sempre ordem da linha). Um seletor de UI sozinho, sem persistir a escolha em `EmailsData` e sem essas duas funções passarem a recebê-la como parâmetro explícito, não teria efeito real sobre o `id` gravado. O escopo abaixo já incorpora essa correção.
 
 ### Escopo
 
 **Cobre:**
-- Validação de unicidade dos valores da coluna escolhida como ID (avisar se houver valores repetidos, já que isso quebra o casamento de registros na sincronização).
-  tanto no `EtapaMapeamento.tsx` (wizard de importação) quanto na seção "Colunas" do
-  `AtualizarDadosModal.tsx` (Demanda 3).
-- Comportamento padrão preservado quando o usuário não escolhe nada: mesma regra atual (ordem da linha, ou coluna detectada automaticamente por `identifyColumns.ts`).
-- Validação de unicidade e preenchimento: se a coluna escolhida tiver valores vazios
-  ou duplicados, **bloquear a confirmação** e exibir feedback
+- Novo campo persistido em `EmailsData` (`types/email.ts`): `colunaId?: string` — nome
+  da coluna da planilha usada como origem do `id` deste projeto. Ausente/`undefined`
+  equivale a "Gerar Automaticamente" (comportamento atual: ordem da linha).
+- `construirRegistros.ts` (criação de projeto) passa a aceitar essa escolha e resolver
+  o `id` de cada linha a partir dela, com fallback para ordem de linha.
+- `calcularMerge.ts` deixa de detectar a coluna de ID internamente (heurística restrita
+  a header `"id"`) e passa a recebê-la como parâmetro explícito, fornecido pelo
+  chamador a partir do `colunaId` persistido do projeto.
+- `AtualizarRegistrosModal.tsx` (fluxo "Atualizar Registros", Demanda 3) passa a ler o
+  `colunaId` persistido do projeto e repassá-lo ao motor de merge — **sem** seletor
+  próprio de coluna nesse fluxo; trocar a estratégia de ID continua sendo uma ação
+  exclusiva de "Atualizar Dados > Colunas".
+- Seletor de coluna de ID (`<select>` simples) tanto no `EtapaMapeamento.tsx` (wizard
+  de importação) quanto na seção "Colunas" do `AtualizarDadosModal.tsx` (Demanda 3);
+  ao confirmar em qualquer um dos dois, a escolha é (re)gravada em `colunaId`.
 - **Exclusividade entre atributos:** ao selecionar uma coluna para representar um dos
   3 atributos (id, nome, email), ela deixa de estar disponível para os outros dois —
-  vale nos dois pontos de entrada (wizard de importação e `AtualizarDadosModal`).
-  Implica subir o estado de "colunas em uso" para o componente pai e propagar como
-  lista de exclusão para os 3 seletores.
+  vale nos dois pontos de entrada. Implica subir o estado de "colunas em uso" para o
+  componente pai e propagar como lista de exclusão para os 3 seletores.
+- Validação bloqueante ao escolher uma coluna de ID: valores vazios, duplicados **ou
+  não numéricos** (novo critério — ver Decisões) impedem a confirmação, com feedback
+  visível. Mesma validação reaproveitada na construção dos registros (Etapa 2).
+- Aviso ao usuário, no fluxo "Atualizar Registros", se a planilha reimportada não
+  tiver a coluna indicada por `colunaId` (ex.: coluna renomeada) — o merge cai no
+  fallback de ordem de linha, e isso precisa ficar visível, não silencioso.
 
 **Não cobre nesta fase:**
 - Múltiplas colunas com prioridade para ID (decisão tomada: fica fixo em 1 coluna —
   ver justificativa na seção de decisões).
-- Migração de `id` para projetos já existentes que mudarem de estratégia de identificação (ex.: projeto criado sem coluna de ID explícita passa a ter uma) — o risco de desalinhamento entre reimportações ao trocar de estratégia de ID no meio do caminho de um projeto já existente é uma nota de atenção a levantar na implementação, não uma migração automática coberta aqui.
+- Migração de `id` para projetos já existentes que mudarem de estratégia de
+  identificação (ex.: projeto criado sem coluna de ID explícita passa a ter uma) — o
+  risco de desalinhamento entre reimportações ao trocar de estratégia de ID no meio
+  do caminho de um projeto já existente é uma nota de atenção a levantar na
+  implementação, não uma migração automática coberta aqui.
+- Suporte a colunas de ID com valores não numéricos (strings livres, UUIDs, códigos
+  alfanuméricos) — decisão tomada de manter `EmailRecord.id: number` nesta fase (ver
+  Decisões); tratado como validação bloqueante, não como funcionalidade suportada.
 
 ### Questões
 
-- Se a coluna de ID escolhida tiver valores vazios ou duplicados, o sistema deve bloquear a confirmação ou só avisar e seguir com o fallback de ordem de linha para os casos problemáticos?
+- Se a coluna de ID escolhida tiver valores vazios ou duplicados, o sistema deve
+  bloquear a confirmação ou só avisar e seguir com o fallback de ordem de linha para
+  os casos problemáticos?
 
 ### Decisões
 
-- ~~Bloquear ou avisar?~~ → **Bloquear**, dado explicitamente pelo usuário.
+- ~~Bloquear ou avisar?~~ → **Bloquear**, dado explicitamente pelo usuário. Estendido
+  para também bloquear em caso de valor não numérico (ver decisão de tipo abaixo).
 - ~~ID com 1 coluna fixa ou múltiplas com prioridade (como nome/email)?~~ →
   **1 coluna fixa.** ID não tem a propriedade de "variantes intercambiáveis" que
   nome/email têm; permitir fallback entre colunas de ID reintroduziria divergência
   silenciosa entre importações — o próprio problema que a demanda existe para evitar.
   Componente: `<select>` simples, mais leve que `ColunaSeletora.tsx`.
+- ~~O escopo cobre só criação e remapeamento, ou também a reimportação ("Atualizar
+  Registros")?~~ → **Também a reimportação.** Sem isso, o problema que a demanda
+  resolve na criação reapareceria de forma silenciosa no fluxo de reimportação, que
+  hoje cairia de volta na heurística frágil de `calcularMerge.ts`. Não ganha UI
+  própria de seleção — só passa a *ler* a escolha já persistida.
+- ~~Onde persistir a escolha?~~ → **Novo campo `colunaId?: string` em `EmailsData`.**
+  Ausência do campo já é o fallback correto ("Gerar Automaticamente"), então não há
+  necessidade de migração para projetos existentes.
+- ~~IDs numéricos ou também string/alfanumérico (UUID, código com letras)?~~ →
+  **Só numéricos nesta fase.** Ampliar `EmailRecord.id` para `string | number` afeta
+  comparações, `Map`/índices por id, ordenação e outras partes do sistema fora do
+  escopo desta demanda — desproporcional ao esforço estimado. Fica registrado como
+  possível demanda futura; a validação bloqueante (vazio/duplicado/não numérico)
+  cobre o caso enquanto isso.
 
 ### Etapas de Implementação `[Inicial]`
 
-> Quebra preliminar — revisar ao iniciar e ao ver como a Demanda 3 evoluiu (esta demanda toca os dois mesmos pontos de mapeamento que ela usa).
+> Quebra preliminar — revisar ao iniciar e ao ver como a Demanda 3 evoluiu (esta
+> demanda toca os mesmos pontos de mapeamento que ela usa). Ordem pensada para que
+> modelo de dados e wiring do motor de merge existam **antes** de qualquer UI, já
+> que as etapas de seletor dependem de ter onde salvar/ler o valor escolhido.
 
-**Etapa 1 — Estado compartilhado de "colunas em uso"**
+**Etapa 1 — Modelo de dados: persistência da escolha**
+- Adicionar `colunaId?: string` a `EmailsData` (`types/email.ts`).
+- Ausente/`undefined` = "Gerar Automaticamente" (comportamento atual). Sem migração
+  necessária para projetos existentes.
+
+**Etapa 2 — Wiring em `construirRegistros.ts` (criação)**
+- Aceitar parâmetro opcional de coluna de ID; se informado, resolver o `id` de cada
+  linha a partir dela (mesma lógica de resolução usada em `calcularMerge.ts`,
+  incluindo fallback para ordem de linha em caso de valor vazio/não numérico); se
+  ausente, comportamento atual (`index + 1`) permanece.
+- Validar (bloqueante) unicidade/preenchimento/numericidade da coluna escolhida antes
+  de construir os registros, reaproveitando a validação da Etapa 5.
+
+**Etapa 3 — Wiring em `calcularMerge.ts` (merge)**
+- Remover a detecção interna de coluna de ID (heurística restrita a header
+  exatamente `"id"`); `calcularMerge` passa a receber a coluna como parâmetro
+  explícito (`colunaId: string | null`), fornecido pelo chamador.
+- Ajustar as chamadas existentes em `AtualizarDadosModal.tsx` para passar o
+  `colunaId` do projeto.
+
+**Etapa 4 — Estado compartilhado de "colunas em uso"**
 - Subir para o componente pai (`EtapaMapeamento.tsx`) o cálculo de quais colunas já
   estão selecionadas para nome/email/id.
 - Definir a forma desse estado (provavelmente `Record<'id'|'nome'|'email', string[]>`
   ou equivalente) e como ele desce para os 3 seletores.
 
-**Etapa 2 — Seletor de coluna de ID**
+**Etapa 5 — Seletor de coluna de ID + validação bloqueante**
 - Novo `<select>` simples, opção "Gerar Automaticamente" como padrão, listando as
   colunas da planilha **exceto** as já em uso por nome/email.
+- Ao escolher uma coluna, verificar vazios/duplicados/não numéricos nos valores;
+  bloquear confirmação e exibir feedback se houver problema.
 
-**Etapa 3 — Exclusividade em `ColunaSeletora.tsx`**
+**Etapa 6 — Exclusividade em `ColunaSeletora.tsx`**
 - Adaptar `ColunaSeletora.tsx` para aceitar lista de exclusão externa (colunas usadas
   pelos outros 2 atributos) e desabilitá-las nas opções de nome/email.
 
-**Etapa 4 — Validação de unicidade/vazio (bloqueante)**
-- Ao escolher uma coluna de ID, verificar duplicidade/vazios nos valores; bloquear
-  confirmação e exibir feedback se houver problema.
+**Etapa 7 — Reaproveitar no wizard de importação**
+- Integrar Etapas 4–6 em `EtapaMapeamento.tsx`; ao confirmar, o `colunaId` escolhido
+  é persistido em `EmailsData` na criação do projeto (via Etapa 2).
 
-**Etapa 5 — Reaproveitar no wizard de importação**
-- Integrar Etapas 1–4 em `EtapaMapeamento.tsx`.
-
-**Etapa 6 — Reaproveitar na Demanda 3**
+**Etapa 8 — Reaproveitar na Demanda 3 (Atualizar Dados > Colunas)**
 - Integrar o mesmo seletor + exclusividade + validação na seção "Colunas" do
-  `AtualizarDadosModal.tsx`.
+  `AtualizarDadosModal.tsx`; ao confirmar, `colunaId` é regravado em `EmailsData` e
+  repassado ao motor de merge (Etapa 3) para o remapeamento em curso.
+
+**Etapa 9 — Reaproveitar em "Atualizar Registros"**
+- `AtualizarRegistrosModal.tsx` lê o `colunaId` já persistido no projeto e repassa ao
+  motor de merge (Etapa 3) — sem seletor próprio nesse fluxo.
+- Se a coluna indicada por `colunaId` não existir na planilha reimportada, exibir
+  aviso visível de que o merge caiu no fallback de ordem de linha (não é regressão
+  desta demanda, mas precisa deixar de ser silencioso).
 
 ### Arquivos Necessários
 
 **Arquivos Fonte:**
-- `src/scripts/utils/identifyColumns.ts` — lógica atual de detecção automática de colunas, base para a nova opção explícita de ID.
-- `src/components/import/EtapaMapeamento.tsx` — ponto de inserção do seletor no wizard de importação (Etapa 3).
-- `src/components/import/ColunaSeletora.tsx`
-- `src/components/atualizar/AtualizarDadosModal.tsx` — ponto de inserção do seletor na seção "Colunas" (Etapa 4).
-
+- `src/scripts/utils/identifyColumns.ts` — lógica de detecção automática (Node/CLI),
+  referência para a nova opção explícita de ID.
 
 **Arquivos Alterados:**
-- Os 4 acima.
+- `src/types/email.ts` — novo campo `colunaId?: string` em `EmailsData` (Etapa 1).
+- `src/components/import/utils/construirRegistros.ts` — resolve `id` a partir da
+  coluna escolhida, com fallback (Etapa 2).
+- `src/scripts/utils/calcularMerge.ts` — recebe `colunaId` como parâmetro explícito
+  em vez de detectar internamente (Etapa 3).
+- `src/components/import/EtapaMapeamento.tsx` — estado compartilhado de colunas em
+  uso + seletor de ID + confirmação persiste `colunaId` (Etapas 4, 5, 7).
+- `src/components/import/ColunaSeletora.tsx` — aceita lista de exclusão externa
+  (Etapa 6).
+- `src/components/atualizar/AtualizarDadosModal.tsx` — reaproveita seletor +
+  exclusividade + validação; repassa `colunaId` ao motor de merge e regrava a
+  escolha (Etapa 8).
+- `src/components/atualizar/AtualizarRegistrosModal.tsx` — lê `colunaId` persistido
+  do projeto e repassa ao motor de merge (Etapa 9).
 
 **Arquivos Criados:**
-- Nenhum arquivo novo previsto.
+- `src/components/import/utils/validarColunaId.ts` *(nome sugerido)* — validação
+  bloqueante (vazio/duplicado/não numérico) compartilhada entre a Etapa 2
+  (construção) e a Etapa 5 (seletor/UI), evitando duplicar a lógica.
 
 ---
 

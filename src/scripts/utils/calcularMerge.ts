@@ -216,13 +216,6 @@ function pickFirstFilled(linha: LinhaPlanilha, colunas: string[]): string {
   return '';
 }
 
-function identificarColunaId(linhas: LinhaPlanilha[]): string | null {
-  if (linhas.length === 0) return null;
-  const headers = Object.keys(linhas[0]);
-  const candidata = headers.find((h) => h.trim().toLowerCase() === 'id');
-  return candidata ?? null;
-}
-
 function resolverIdDaLinha(linha: LinhaPlanilha, colunaId: string | null, indice: number): number {
   if (colunaId) {
     const valor = linha[colunaId];
@@ -288,17 +281,28 @@ function recalcularStatusENotas(
  *
  * Não muta `registrosAtuais` — sempre devolve objetos novos onde algo
  * mudou.
+ *
+ * `colunaId` (Demanda 7 — Mapeamento de ID Personalizado, Etapa 3):
+ * recebido explicitamente do chamador — normalmente o `colunaId`
+ * persistido no projeto (`EmailsData`) — em vez de detectado
+ * internamente. Antes desta etapa, `calcularMerge` adivinhava a coluna de
+ * ID procurando um cabeçalho igual a `"id"` (case-insensitive); essa
+ * heurística foi removida daqui porque divergia silenciosamente da
+ * escolha explícita do usuário. `colunaId: null` preserva o comportamento
+ * anterior a esta demanda (ordem da linha) — mesmo fallback de sempre,
+ * só que agora explícito em vez de depender de nenhum header bater com
+ * `"id"`.
  */
 export function calcularMerge(
   registrosAtuais: EmailRecord[],
   linhasNovas: LinhaPlanilha[],
   colunas: { nome: string[]; email: string[] },
-  tiposHabilitados: TipoConflito[]
+  tiposHabilitados: TipoConflito[],
+  colunaId: string | null
 ): ResultadoMerge {
   const habilitado = (tipo: TipoConflito) => tiposHabilitados.includes(tipo);
   const agora = new Date().toISOString();
 
-  const colunaId = identificarColunaId(linhasNovas);
   const linhasPorId = new Map<number, ValoresRegistro>();
   linhasNovas.forEach((linha, indice) => {
     const id = resolverIdDaLinha(linha, colunaId, indice);

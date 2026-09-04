@@ -37,7 +37,9 @@ export function ThemeSelectorModal({ onFechar, initialFocusRef }: Props) {
     (tipoSelecionado === 'todos' || theme.type === tipoSelecionado) &&
     (modoSelecionado === 'todos' || theme.mode === modoSelecionado)
   ));
-  const temasRecomendados = temasFiltrados.filter((theme) => RECOMMENDED_THEME_IDS.includes(theme.id));
+  const temasRecomendados = RECOMMENDED_THEME_IDS
+    .map((themeId) => temasFiltrados.find((theme) => theme.id === themeId))
+    .filter((theme): theme is ThemeDefinition => theme !== undefined);
 
   function selecionarTema(id: ThemeId) {
     setPreviewTheme(id);
@@ -70,8 +72,10 @@ export function ThemeSelectorModal({ onFechar, initialFocusRef }: Props) {
           {theme.mode === 'light' ? <IconeTemaClaro /> : <IconeTemaEscuro />}
         </span>
         <span className="theme-selector-texto">
-          <strong>{theme.name}</strong>
-          {!compacto && theme.id === temaInicial && <small>Tema atual</small>}
+          <div className="theme-selector-nome">
+            <strong>{theme.name}</strong>
+            {!compacto && theme.id === temaInicial && <small>Tema atual</small>}
+          </div>
           {!compacto && <span>{theme.description}</span>}
         </span>
       </button>

@@ -13,14 +13,29 @@ type DadosEditaveis = {
    * nome atual — nenhum chamador anterior a esta etapa precisa mudar.
    */
   projeto?: string;
+  /**
+   * Nome da coluna da planilha usada como origem do `id` dos registros
+   * deste projeto — Demanda 7 (Mapeamento de ID Personalizado), Etapa 8:
+   * `PUT /api/emails/:slug` passou a aceitar este campo (ver
+   * `vite.config.ts`, `emailsApiPlugin`) para regravar `EmailsData.colunaId`
+   * a partir da seção "Colunas" do fluxo "Atualizar Dados"
+   * (`AtualizarDadosModal.tsx`). Omitido (`undefined`), o servidor preserva
+   * o valor já persistido — mesma semântica de "omitir = não mexer" já
+   * usada por `projeto?` acima. Enviado como `string` (coluna escolhida)
+   * ou `null` ("Gerar Automaticamente"); o servidor remove o campo do
+   * `EmailsData` persistido ao receber `null`/string vazia, e grava a
+   * string quando não vazia.
+   */
+  colunaId?: string | null;
 };
 
 /**
- * Persiste `{ email, registros, projeto? }` no projeto indicado,
- * via o middleware configurado em vite.config.ts (seção 2.2 —
+ * Persiste `{ email, registros, projeto?, colunaId? }` no projeto
+ * indicado, via o middleware configurado em vite.config.ts (seção 2.2 —
  * toda alteração deve ser gravada imediatamente, sem botão Salvar). O
  * middleware preserva os metadados do projeto no arquivo existente,
- * exceto `projeto`, quando enviado (Etapa 3).
+ * exceto `projeto`, quando enviado (Etapa 3), e `colunaId`, quando
+ * enviado (Demanda 7, Etapa 8).
  *
  */
 export async function salvarEmails(slug: string, dados: DadosEditaveis): Promise<void> {

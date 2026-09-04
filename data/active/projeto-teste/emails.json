@@ -1,7 +1,7 @@
 {
   "projeto": "Projeto Teste",
   "criado_em": "2026-07-21T16:18:43.000Z",
-  "atualizado_em": "2026-09-03T14:23:04.323Z",
+  "atualizado_em": "2026-09-04T00:00:49.623Z",
   "email": {
     "titulo": "Parabéns pela conclusão do curso no Multiverso Rio Pomba Valley! 🎉",
     "conteudo": "<p style=\"text-align: left;\"><span style=\"font-size: 16px;\">Teste botão</span></p><p style=\"text-align: left;\"></p><p style=\"text-align: left;\"></p>",
@@ -13,7 +13,7 @@
       "nome": "Ana Souza",
       "email": "ana.souza1@exemplo.com",
       "status": "inválido",
-      "last_updated": "2026-09-03T14:23:04.317Z",
+      "last_updated": "2026-09-04T00:00:46.988Z",
       "backup_dados": {
         "status": true
       }
@@ -712,5 +712,6 @@
       "last_updated": "2026-07-15T12:52:47.755Z"
     }
   ],
-  "slug": "projeto-teste"
+  "slug": "projeto-teste",
+  "colunaId": "ID"
 }

@@ -4,7 +4,7 @@ export type ThemeId =
   | 'amethyst'
   | 'cyberpunk'
   | 'emerald'
-  | 'executive'
+  | 'office'
   | 'gold'
   | 'magma'
   | 'midnight'
@@ -40,7 +40,7 @@ export const themes: readonly ThemeDefinition[] = [
   { id: 'amethyst', name: 'Amethyst', type: 'colorido', mode: 'dark', description: 'Criativo e elegante, com tons ametistas.', colors: ['#18131F', '#2A2135', '#9B72D0'] },
   { id: 'cyberpunk', name: 'Cyberpunk', type: 'intenso', mode: 'dark', description: 'Neon vibrante com personalidade futurista.', colors: ['#080612', '#171127', '#00F5D4'] },
   { id: 'emerald', name: 'Emerald', type: 'colorido', mode: 'dark', description: 'Equilibrado e natural, com verde esmeralda.', colors: ['#151B17', '#243029', '#4FA878'] },
-  { id: 'executive', name: 'Executive', type: 'moderno', mode: 'light', description: 'Corporativo e refinado, com azul clássico.', colors: ['#F2F4F7', '#FFFFFF', '#1F4E79'] },
+  { id: 'office', name: 'Office', type: 'moderno', mode: 'light', description: 'Corporativo e refinado, com azul clássico.', colors: ['#F2F4F7', '#FFFFFF', '#1F4E79'] },
   { id: 'gold', name: 'Gold', type: 'colorido', mode: 'dark', description: 'Luxuoso e quente, com dourado discreto.', colors: ['#1D170D', '#342A17', '#D39A32'] },
   { id: 'magma', name: 'Magma', type: 'intenso', mode: 'dark', description: 'Dramático e energético, em laranja incandescente.', colors: ['#120605', '#30100A', '#FF5A1F'] },
   { id: 'midnight', name: 'Midnight', type: 'moderno', mode: 'dark', description: 'Profundo e tecnológico, com azul noturno.', colors: ['#0D1624', '#19283B', '#5F8FC2'] },
@@ -57,6 +57,6 @@ export const themes: readonly ThemeDefinition[] = [
   { id: 'vaporwave', name: 'Vaporwave', type: 'intenso', mode: 'dark', description: 'Expressivo e retrô, com neon rosa.', colors: ['#10091C', '#24143A', '#FF5CC8'] },
 ];
 
-export const RECOMMENDED_THEME_IDS: readonly ThemeId[] = ['light', 'dark', 'noir', 'executive', 'pearl', 'slate'];
+export const RECOMMENDED_THEME_IDS: readonly ThemeId[] = ['light', 'office', 'pearl', 'dark', 'noir', 'slate'];
 
 export const themeById = new Map(themes.map((theme) => [theme.id, theme]));

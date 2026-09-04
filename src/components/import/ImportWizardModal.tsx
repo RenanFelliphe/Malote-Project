@@ -10,6 +10,7 @@ import { EtapaRevisao } from './EtapaRevisao';
 import { parsearPlanilha, type PlanilhaParseada } from './utils/parseSheetBrowser';
 import { calcularEstatisticasPreliminares } from './utils/statsPreliminares';
 import { construirRegistros } from './utils/construirRegistros';
+import { validarColunaId } from './utils/validarColunaId';
 import { ESTADO_IMPORTACAO_INICIAL, type EstadoImportacao, type TEtapaImportacao } from './types';
 import { PROJETOS } from '../../data/projetos';
 import { EMAIL_CONTEUDO_VAZIO } from '../../types/email';
@@ -120,7 +121,17 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
       // Etapa 3: mesma regra de status (válido/inválido/duplicado) já usada
       // por `sync.ts`, aplicada às colunas mapeadas manualmente pelo
       // usuário nas Etapas 1/2 do wizard.
-      const registros = construirRegistros(planilha.linhas, estado.colunasNome, estado.colunasEmail);
+      // Demanda 7 (Mapeamento de ID Personalizado, Etapa 7): `estado.colunaId`
+      // repassado como 4º argumento — `etapa2Valida` já impede chegar aqui
+      // com uma coluna de ID inválida (vazia/duplicada/não numérica), mas
+      // `construirRegistros` também valida e lança `Error` como segunda
+      // camada de proteção (ex.: planilha mudou entre etapas do wizard).
+      const registros = construirRegistros(
+        planilha.linhas,
+        estado.colunasNome,
+        estado.colunasEmail,
+        estado.colunaId
+      );
 
       // Título/corpo (Etapa 3 do wizard, `EtapaDefinicao`) são opcionais —
       // se nenhum dos dois foi preenchido, o projeto nasce com o mesmo
@@ -137,7 +148,20 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
       // também envia `arquivo` (o `File` já recebido como prop deste
       // componente) para o servidor persistir `sheet.<ext>` — nenhuma outra
       // mudança neste fluxo de importação.
-      const slugCriado = await criarProjeto(estado.nomeArquivoSlug, estado.nomeProjeto, email, registros, arquivo);
+      //
+      // Demanda 7 (Mapeamento de ID Personalizado, Etapa 7): `estado.colunaId`
+      // repassado como 6º argumento, para o servidor persistir em
+      // `EmailsData.colunaId` — depende do middleware do servidor
+      // (`projetosApiPlugin`) ler e gravar esse campo; ver pendência
+      // registrada em `services/projetosApi.ts`.
+      const slugCriado = await criarProjeto(
+        estado.nomeArquivoSlug,
+        estado.nomeProjeto,
+        email,
+        registros,
+        arquivo,
+        estado.colunaId
+      );
 
       // Etapa 8: reload completo para o projeto recém-criado, não
       // navegação client-side — `PROJETOS` só é resolvido uma vez, via
@@ -160,7 +184,20 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
   const nomeProjetoValido = estado.nomeProjeto.trim() !== '';
   const nomeArquivoValido = estado.nomeArquivoSlug.trim() !== '';
   const etapa1Valida = nomeProjetoValido && nomeArquivoValido && !slugJaExiste;
-  const etapa2Valida = estado.colunasNome.length > 0 && estado.colunasEmail.length > 0;
+
+  // Demanda 7 (Mapeamento de ID Personalizado, Etapa 7): a validação
+  // bloqueante da coluna de ID (vazio/duplicado/não numérico) já é exibida
+  // dentro de `EtapaMapeamento` (Etapa 5), mas quem decide se o botão
+  // "Avançar" fica desabilitado é este container — mesma validação
+  // (`validarColunaId`), rodada aqui contra `planilha.linhas` e
+  // `estado.colunaId`, para satisfazer o critério de aceite de bloquear o
+  // avanço, não só mostrar a mensagem de erro.
+  const validacaoColunaId = useMemo(
+    () => (planilha ? validarColunaId(planilha.linhas, estado.colunaId) : { valido: true }),
+    [planilha, estado.colunaId]
+  );
+  const etapa2Valida =
+    estado.colunasNome.length > 0 && estado.colunasEmail.length > 0 && validacaoColunaId.valido;
 
   const mostrarConteudo = Boolean(planilha) && !carregando && !erro;
 
@@ -293,7 +330,12 @@ export function ImportWizardModal({ arquivo, onFechar }: Props) {
             )}
 
             {etapa === 2 && planilha && (
-              <EtapaMapeamento estado={estado} onEstadoChange={atualizarEstado} headers={planilha.headers} />
+              <EtapaMapeamento
+                estado={estado}
+                onEstadoChange={atualizarEstado}
+                headers={planilha.headers}
+                linhas={planilha.linhas}
+              />
             )}
 
             {etapa === 3 && planilha && <EtapaDefinicao estado={estado} onEstadoChange={atualizarEstado} />}

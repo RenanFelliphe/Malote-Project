@@ -15,6 +15,19 @@ interface Props {
   onReordenar: (novaOrdem: string[]) => void;
   /** Prefixo usado para gerar ids/aria únicos entre as duas seções (nome/e-mail). */
   idPrefix: string;
+  /**
+   * Colunas já em uso pelos outros atributos (Demanda 7 — Mapeamento de ID
+   * Personalizado, Etapa 6) — ficam com o checkbox desabilitado nas
+   * opções ainda não selecionadas aqui, para impedir que a mesma coluna
+   * seja marcada simultaneamente para mais de um atributo (nome/e-mail/id).
+   * Uma coluna já marcada `selecionadas` continua desmarcável mesmo que
+   * apareça nesta lista (não deveria acontecer na prática, já que quem
+   * monta a lista de exclusão externa exclui o que já está em
+   * `selecionadas` daqui, mas evita que o usuário fique com um checkbox
+   * travado caso a lista de exclusão externa mude sob ele). Opcional —
+   * `[]` quando omitido, mesmo comportamento de antes desta demanda.
+   */
+  colunasExcluidas?: string[];
 }
 
 /**
@@ -32,6 +45,7 @@ export function ColunaSeletora({
   onAlternarColuna,
   onReordenar,
   idPrefix,
+  colunasExcluidas = [],
 }: Props) {
   const [indiceArrastado, setIndiceArrastado] = useState<number | null>(null);
 
@@ -87,18 +101,24 @@ export function ColunaSeletora({
         ) : (
           headersFiltrados.map((coluna) => {
             const id = `${idPrefix}-${coluna}`;
+            const jaSelecionada = selecionadas.includes(coluna);
+            const desabilitada = !jaSelecionada && colunasExcluidas.includes(coluna);
             return (
               <li key={coluna}>
-                <label htmlFor={id}>
+                <label htmlFor={id} className={desabilitada ? 'coluna-seletora-opcao-desabilitada' : undefined}>
                   <input
                     id={id}
                     type="checkbox"
-                    checked={selecionadas.includes(coluna)}
+                    checked={jaSelecionada}
+                    disabled={desabilitada}
                     onChange={() => onAlternarColuna(coluna)}
                   />
                   <span className="coluna-seletora-nome">
                     <HighlightTexto texto={coluna} termo={busca} />
                   </span>
+                  {desabilitada && (
+                    <span className="coluna-seletora-motivo-desabilitada">Já usada por outro campo</span>
+                  )}
                 </label>
               </li>
             );

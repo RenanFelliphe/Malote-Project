@@ -89,6 +89,17 @@ interface Props {
    * Etapa 2/3).
    */
   onAtivarSelecaoExportacao?: () => void;
+  /**
+   * `colunaId` persistido do projeto atualmente aberto (Demanda 7 —
+   * Mapeamento de ID Personalizado). Ausente/`undefined` = "Gerar
+   * Automaticamente" (mesmo fallback de `EmailsData.colunaId`). Passado
+   * apenas pela tela de e-mails (mesma origem de `slug`/`nome`/`registros`
+   * — a Home lista vários projetos, não tem um único `colunaId` para
+   * expor). Repassado sem alteração a `AtualizarRegistrosModal` (Etapa 9 —
+   * só leitura, sem seletor próprio nesse fluxo) e a `AtualizarDadosModal`
+   * (Etapa 8 — valor inicial do seletor local `colunaIdSelecionado`).
+   */
+  colunaId?: string;
 }
 
 /**
@@ -124,6 +135,7 @@ export function Header({
   onSalvarEmail,
   onAtivarSelecaoDelecao,
   onAtivarSelecaoExportacao,
+  colunaId,
 }: Props) {
   const [menuAberto, setMenuAberto] = useState(false);
   const [modalExportarAberto, setModalExportarAberto] = useState(false);
@@ -601,6 +613,8 @@ export function Header({
        * mas nesse caso o item do menu que leva a
        * `arquivoSelecionadoAtualizarRegistros` já fica desabilitado — a
        * checagem aqui é só para satisfazer o tipo (`slug?`/`registros?`).
+       * `colunaId` repassado direto da prop (Demanda 7, Etapa 9) — este
+       * modal não tem seletor próprio, só lê a estratégia já persistida.
        */}
       {arquivoSelecionadoAtualizarRegistros && slug && registros && (
         <AtualizarRegistrosModal
@@ -609,6 +623,7 @@ export function Header({
           registrosAtuais={registros}
           emailAtual={emailAtual}
           onFechar={() => setArquivoSelecionadoAtualizarRegistros(null)}
+          colunaId={colunaId}
         />
       )}
 
@@ -621,7 +636,9 @@ export function Header({
        * padrão do modal de "Atualizar Registros" acima. `nome` cai para
        * `slug` na ausência de um nome de exibição definido, mesma
        * tolerância já aplicada ao restante deste componente (ver
-       * `planilhaParaExportar`).
+       * `planilhaParaExportar`). `colunaId` repassado direto da prop
+       * (Demanda 7, Etapa 8) — vira o valor inicial do seletor local
+       * `colunaIdSelecionado` dentro do modal.
        */}
       {modalAtualizarDadosAberto && slug && registros && (
         <AtualizarDadosModal
@@ -630,6 +647,7 @@ export function Header({
           registrosAtuais={registros}
           emailAtual={emailAtual}
           onFechar={() => setModalAtualizarDadosAberto(false)}
+          colunaId={colunaId}
         />
       )}
     </>

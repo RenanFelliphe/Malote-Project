@@ -21,6 +21,15 @@ export interface EstadoImportacao {
   buscaColunasNome: string;
   buscaColunasEmail: string;
   /**
+   * Coluna escolhida como origem do `id` dos registros deste projeto
+   * (Demanda 7 — Mapeamento de ID Personalizado, Etapa 7). `null` =
+   * "Gerar Automaticamente" (ordem da linha na planilha), mesmo
+   * comportamento de antes desta demanda. Lido/gravado por
+   * `EtapaMapeamento` e repassado a `construirRegistros` na confirmação
+   * da importação (`ImportWizardModal`).
+   */
+  colunaId: string | null;
+  /**
    * Título/corpo do e-mail preenchidos opcionalmente já durante a
    * importação (ver REFATORACAO-EMAIL-TITULO-CONTEUDO.md, Etapa 4).
    * Não bloqueiam o avanço de nenhuma etapa do wizard e, assim como o
@@ -40,6 +49,7 @@ export const ESTADO_IMPORTACAO_INICIAL: EstadoImportacao = {
   colunasEmail: [],
   buscaColunasNome: '',
   buscaColunasEmail: '',
+  colunaId: null,
   titulo: '',
   conteudo: '',
 };

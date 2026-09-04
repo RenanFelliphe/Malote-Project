@@ -15,6 +15,7 @@ import {
   type NotaStatusAlterado,
   type ResultadoMerge,
 } from '../../scripts/utils/calcularMerge';
+import { validarColunaId } from '../import/utils/validarColunaId';
 import { MergeCampoConflito } from './MergeCampoConflito';
 import type { EmailConteudo, EmailRecord } from '../../types/email';
 import { salvarEmails, obterSheet } from '../../services/emailsApi';
@@ -26,6 +27,18 @@ interface Props {
   registrosAtuais: EmailRecord[];
   emailAtual: EmailConteudo;
   onFechar: () => void;
+  /**
+   * `colunaId` persistido do projeto (Demanda 7 — Mapeamento de ID
+   * Personalizado, Etapa 3). Ausente/`undefined` = "Gerar Automaticamente"
+   * (mesmo fallback de `EmailsData.colunaId`). Usado só como valor
+   * inicial do seletor local (Etapa 8) — a partir daqui, a escolha em
+   * curso vive em `colunaIdSelecionado`, dentro deste componente.
+   *
+   * Ajuste de rota (fechado): `Header.tsx` repassa esta prop, e
+   * `pages/emails.tsx` já passa `colunaId={dados.colunaId}` para
+   * `Header.tsx` — cadeia de wiring completa, sem pendências.
+   */
+  colunaId?: string;
 }
 
 /** Adiciona (ao final, ou seja, com menor prioridade) ou remove uma coluna de uma lista de seleção — mesma lógica de `EtapaMapeamento.tsx`. */
@@ -88,13 +101,15 @@ function proximaSecao(resultado: ResultadoMerge, apartirIndice: number): Secao {
  * colunas é reinterpretar o mesmo arquivo já salvo, não uma reimportação
  * de dados novos (seção 3 do planner).
  *
- * Assunção de implementação: `ColunaSeletora` (`../import/ColunaSeletora`)
- * não fez parte dos "Arquivos Necessários" desta demanda e não veio em
- * nenhum ZIP até agora — a assinatura de props usada abaixo (`titulo`,
- * `headers`, `selecionadas`, `busca`, `onBuscaChange`, `onAlternarColuna`,
- * `onReordenar`, `idPrefix`) foi inferida do uso existente em
- * `EtapaMapeamento.tsx` (arquivo Fonte desta demanda). Recomendo enviar
- * `ColunaSeletora.tsx` no próximo ZIP para eu confirmar paridade exata.
+ * Assunção de implementação (resolvida na Etapa 8): `ColunaSeletora`
+ * (`../import/ColunaSeletora`) foi inicialmente usado aqui com uma
+ * assinatura de props inferida do uso em `EtapaMapeamento.tsx`, já que o
+ * arquivo real não fazia parte dos "Arquivos Necessários" desta demanda.
+ * O arquivo real chegou (entrega da Etapa 6) e a assinatura inferida
+ * bateu exatamente: `titulo`, `headers`, `selecionadas`, `busca`,
+ * `onBuscaChange`, `onAlternarColuna`, `onReordenar`, `idPrefix`, mais o
+ * prop opcional `colunasExcluidas` (Etapa 6) — agora também usado aqui,
+ * junto com o seletor de ID e a exclusividade de 3 vias.
  *
  * Seção "Projeto": mesma lógica de acompanhamento automático de slug de
  * `EtapaInformacoes.tsx` (o nome do arquivo acompanha o nome do projeto
@@ -108,7 +123,14 @@ function proximaSecao(resultado: ResultadoMerge, apartirIndice: number): Secao {
  * `AtualizarRegistrosModal` (cada "Avançar" aplica decisões/recalcula o
  * snapshot, desfazer exigiria pilha de snapshots).
  */
-export function AtualizarDadosModal({ slug, nomeAtual, registrosAtuais, emailAtual, onFechar }: Props) {
+export function AtualizarDadosModal({
+  slug,
+  nomeAtual,
+  registrosAtuais,
+  emailAtual,
+  onFechar,
+  colunaId,
+}: Props) {
   const navigate = useNavigate();
 
   const [secaoAtual, setSecaoAtual] = useState<Secao>('projeto');
@@ -126,6 +148,11 @@ export function AtualizarDadosModal({ slug, nomeAtual, registrosAtuais, emailAtu
   const [colunasEmail, setColunasEmail] = useState<string[]>([]);
   const [buscaColunasNome, setBuscaColunasNome] = useState('');
   const [buscaColunasEmail, setBuscaColunasEmail] = useState('');
+  // Demanda 7 (Mapeamento de ID Personalizado, Etapa 8): estado local
+  // editável, inicializado a partir do `colunaId` persistido do projeto
+  // (prop) — mesma relação entre prop/estado local que `colunasNome` teria
+  // se viesse pré-preenchida em vez de detectada automaticamente.
+  const [colunaIdSelecionado, setColunaIdSelecionado] = useState<string | null>(colunaId ?? null);
 
   // --- Cascata de conflitos + resultado ---
   const [snapshot, setSnapshot] = useState<EmailRecord[]>(registrosAtuais);
@@ -180,10 +207,54 @@ export function AtualizarDadosModal({ slug, nomeAtual, registrosAtuais, emailAtu
     [colunasNome, colunasEmail]
   );
 
+  /**
+   * Estado derivado de "colunas em uso" + exclusividade de 3 vias
+   * (Demanda 7 — Mapeamento de ID Personalizado, Etapa 8) — mesma forma e
+   * lógica de `EtapaMapeamento.tsx` (Etapas 4/6), reaproveitada aqui para
+   * a seção "Colunas" deste fluxo.
+   */
+  const colunasEmUso = useMemo<Record<'id' | 'nome' | 'email', string[]>>(
+    () => ({
+      id: colunaIdSelecionado ? [colunaIdSelecionado] : [],
+      nome: colunasNome,
+      email: colunasEmail,
+    }),
+    [colunaIdSelecionado, colunasNome, colunasEmail]
+  );
+
+  const colunasExcluidas = useMemo<Record<'id' | 'nome' | 'email', string[]>>(
+    () => ({
+      id: [...colunasEmUso.nome, ...colunasEmUso.email],
+      nome: [...colunasEmUso.id, ...colunasEmUso.email],
+      email: [...colunasEmUso.id, ...colunasEmUso.nome],
+    }),
+    [colunasEmUso]
+  );
+
+  const opcoesColunaId = useMemo(
+    () => (planilha ? planilha.headers.filter((coluna) => !colunasExcluidas.id.includes(coluna)) : []),
+    [planilha, colunasExcluidas.id]
+  );
+
+  const validacaoColunaId = useMemo(
+    () => (planilha ? validarColunaId(planilha.linhas, colunaIdSelecionado) : { valido: true }),
+    [planilha, colunaIdSelecionado]
+  );
+
+  function handleColunaIdChange(valor: string) {
+    setColunaIdSelecionado(valor === '' ? null : valor);
+  }
+
   const resultadoAtual = useMemo<ResultadoMerge | null>(() => {
     if (!planilha) return null;
-    return calcularMerge(snapshot, planilha.linhas, colunasSelecionadas, TIPOS_CONFLITO_ATUALIZAR_DADOS);
-  }, [planilha, snapshot, colunasSelecionadas]);
+    return calcularMerge(
+      snapshot,
+      planilha.linhas,
+      colunasSelecionadas,
+      TIPOS_CONFLITO_ATUALIZAR_DADOS,
+      colunaIdSelecionado
+    );
+  }, [planilha, snapshot, colunasSelecionadas, colunaIdSelecionado]);
 
   function handleNomeProjetoChange(valor: string) {
     if (nomeArquivoEditadoManualmente) {
@@ -287,7 +358,8 @@ export function AtualizarDadosModal({ slug, nomeAtual, registrosAtuais, emailAtu
       novoSnapshot,
       planilha.linhas,
       colunasSelecionadas,
-      TIPOS_CONFLITO_ATUALIZAR_DADOS
+      TIPOS_CONFLITO_ATUALIZAR_DADOS,
+      colunaIdSelecionado
     );
 
     setSnapshot(novoSnapshot);
@@ -311,7 +383,17 @@ export function AtualizarDadosModal({ slug, nomeAtual, registrosAtuais, emailAtu
         slugFinal = await renomearProjeto(slug, nomeArquivoSlug);
       }
 
-      await salvarEmails(slugFinal, { email: emailAtual, registros: snapshot, projeto: nomeProjeto });
+      await salvarEmails(slugFinal, {
+        email: emailAtual,
+        registros: snapshot,
+        projeto: nomeProjeto,
+        // Demanda 7 — Mapeamento de ID Personalizado, Etapa 8: regrava
+        // `EmailsData.colunaId` com a escolha feita nesta sessão
+        // (`colunaIdSelecionado`), fechando a lacuna registrada na entrega
+        // anterior — antes, só o merge em curso usava esse valor; a troca
+        // não sobrevivia ao fechar o modal.
+        colunaId: colunaIdSelecionado,
+      });
 
       if (slugFinal !== slug) {
         navigate(`/projetos/${slugFinal}`);
@@ -327,7 +409,13 @@ export function AtualizarDadosModal({ slug, nomeAtual, registrosAtuais, emailAtu
   const avancarHabilitado = (() => {
     if (secaoAtual === 'projeto') return nomeProjeto.trim() !== '' && nomeArquivoSlug.trim() !== '';
     if (secaoAtual === 'colunas') {
-      return !carregandoPlanilha && !erroCarregarPlanilha && colunasNome.length > 0 && colunasEmail.length > 0;
+      return (
+        !carregandoPlanilha &&
+        !erroCarregarPlanilha &&
+        colunasNome.length > 0 &&
+        colunasEmail.length > 0 &&
+        validacaoColunaId.valido
+      );
     }
     if (!resultadoAtual) return false;
     if (secaoAtual === 'enviado') {
@@ -444,27 +532,64 @@ export function AtualizarDadosModal({ slug, nomeAtual, registrosAtuais, emailAtu
 
             {planilha && !carregandoPlanilha && !erroCarregarPlanilha && (
               <div className="etapa-mapeamento-secoes">
-                <ColunaSeletora
-                  titulo="Colunas de Nome"
-                  headers={planilha.headers}
-                  selecionadas={colunasNome}
-                  busca={buscaColunasNome}
-                  onBuscaChange={setBuscaColunasNome}
-                  onAlternarColuna={(coluna) => setColunasNome((atual) => alternarColuna(atual, coluna))}
-                  onReordenar={setColunasNome}
-                  idPrefix="atualizar-dados-col-nome"
-                />
+                <div className="etapa-mapeamento-secao">
+                  <ColunaSeletora
+                    titulo="Colunas de Nome"
+                    headers={planilha.headers}
+                    selecionadas={colunasNome}
+                    busca={buscaColunasNome}
+                    onBuscaChange={setBuscaColunasNome}
+                    onAlternarColuna={(coluna) => setColunasNome((atual) => alternarColuna(atual, coluna))}
+                    onReordenar={setColunasNome}
+                    idPrefix="atualizar-dados-col-nome"
+                    colunasExcluidas={colunasExcluidas.nome}
+                  />
+                </div>
 
-                <ColunaSeletora
-                  titulo="Colunas de E-mail"
-                  headers={planilha.headers}
-                  selecionadas={colunasEmail}
-                  busca={buscaColunasEmail}
-                  onBuscaChange={setBuscaColunasEmail}
-                  onAlternarColuna={(coluna) => setColunasEmail((atual) => alternarColuna(atual, coluna))}
-                  onReordenar={setColunasEmail}
-                  idPrefix="atualizar-dados-col-email"
-                />
+                <div className="etapa-mapeamento-secao">
+                  <ColunaSeletora
+                    titulo="Colunas de E-mail"
+                    headers={planilha.headers}
+                    selecionadas={colunasEmail}
+                    busca={buscaColunasEmail}
+                    onBuscaChange={setBuscaColunasEmail}
+                    onAlternarColuna={(coluna) => setColunasEmail((atual) => alternarColuna(atual, coluna))}
+                    onReordenar={setColunasEmail}
+                    idPrefix="atualizar-dados-col-email"
+                    colunasExcluidas={colunasExcluidas.email}
+                  />
+                </div>
+
+                <div className="etapa-mapeamento-secao etapa-mapeamento-secao-id">
+                  <h3>Coluna de ID</h3>
+                  <p className="etapa-mapeamento-secao-id-descricao">
+                    Opcional. Define qual coluna identifica cada registro nesta e nas próximas
+                    importações/atualizações. Se não escolher nenhuma, o ID é a ordem da linha na
+                    planilha.
+                  </p>
+
+                  <select
+                    id="atualizar-dados-select-id"
+                    aria-label="Coluna de ID"
+                    value={colunaIdSelecionado ?? ''}
+                    onChange={(e) => handleColunaIdChange(e.target.value)}
+                    aria-invalid={!validacaoColunaId.valido}
+                    aria-describedby={!validacaoColunaId.valido ? 'atualizar-dados-erro-coluna-id' : undefined}
+                  >
+                    <option value="">Gerar Automaticamente</option>
+                    {opcoesColunaId.map((coluna) => (
+                      <option key={coluna} value={coluna}>
+                        {coluna}
+                      </option>
+                    ))}
+                  </select>
+
+                  {!validacaoColunaId.valido && (
+                    <p id="atualizar-dados-erro-coluna-id" className="etapa-mapeamento-erro-bloqueante" role="alert">
+                      {validacaoColunaId.erro}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>

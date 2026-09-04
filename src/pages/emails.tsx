@@ -579,7 +579,14 @@ export function Emails({ slug, dados }: EmailsProps) {
 
   return (
     <>
-      <Header slug={slug} nome={tituloPagina} registros={registros} email={email} onSalvarEmail={persistirEmailConteudo} />
+      <Header
+        slug={slug}
+        nome={tituloPagina}
+        registros={registros}
+        email={email}
+        onSalvarEmail={persistirEmailConteudo}
+        colunaId={dados.colunaId}
+      />
 
       <div className="emails-page">
         <div className="emails-page-header">
