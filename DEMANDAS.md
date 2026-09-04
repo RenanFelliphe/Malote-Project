@@ -64,7 +64,7 @@ Tabela viva: toda demanda já levantada tem uma linha aqui, mesmo depois de remo
 |---|---|---|---|---|---|
 | 5 | Edição Individual de Registro | ✅ Concluída | Dias | — | 3 (novo requisito: conflito de sync) |
 | 3 | Atualizar Planilha via UI | ✅ Concluída | Dias | 5 (modelo `backup_dados`) | — |
-| 7 | Mapeamento de ID Personalizado | Em execução | Dias | — | — |
+| 7 | Mapeamento de ID Personalizado | ✅ Concluída | Dias | — | — |
 | 4 | Histórico de Alterações | Registrado | Horas–dias (versão simples) | — | — |
 | 2 | Variáveis no Texto (merge tags) | Registrado | Dias | — | 1 (para "fechar o ciclo") |
 | 6 | Armazenamento Duplo (Banco + Local) | Registrado | Semanas | — | 1 (recomendado) |
@@ -371,7 +371,7 @@ Um único motor de merge, com dois pontos de entrada diferentes (planilha nova v
 
 ## Demanda 7 — Mapeamento de ID Personalizado
 
-**Status:** Concluída (pendente validação manual — ver `MapeamentoDeIDPersonalizado.md`, seção 8)
+**Status:** ✅ Concluída (validação manual final em ambiente real ainda por conta do usuário — ver `MapeamentoDeIDPersonalizado.md`, seção 8; toda a implementação, build (`tsc`/`eslint`/`vite build`) e a estilização (conferida por captura de tela real) foram verificadas)
 **Esforço estimado:** Dias
 **Depende de:** —
 **Bloqueia:** —

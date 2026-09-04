@@ -3887,6 +3887,13 @@ li.marcado .exportar-lista-status-item {
   gap: 1.5rem;
 }
 
+.etapa-mapeamento-secao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
 .coluna-seletora {
   display: flex;
   flex-direction: column;
@@ -3989,6 +3996,57 @@ li.marcado .exportar-lista-status-item {
   font-size: 0.72rem;
   color: var(--color-text-tertiary);
   white-space: nowrap;
+}
+
+/* --- Coluna de ID personalizada (Demanda 7 — Mapeamento de ID Personalizado) --- */
+
+.etapa-mapeamento-secao-id {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.etapa-mapeamento-secao-id h3 {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.etapa-mapeamento-secao-id-descricao {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.etapa-mapeamento-secao-id select {
+  max-width: 320px;
+  min-height: 2.2rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+.etapa-mapeamento-secao-id select:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.etapa-mapeamento-erro-bloqueante {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  width: fit-content;
+  max-width: 100%;
 }
 
 .texto-destacado {
@@ -4792,6 +4850,16 @@ li.marcado .exportar-lista-status-item {
   font-weight: 600;
   color: var(--color-accent);
   background: var(--color-surface-hover);
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--radius-md);
+}
+
+.atualizar-alerta-colunaid-ausente {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
   padding: 0.6rem 0.85rem;
   border-radius: var(--radius-md);
 }
