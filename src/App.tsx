@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { Home } from './pages/home';
 import { Emails } from './pages/emails';
 import { NotFound } from './pages/notFound';
+import { Logs } from './pages/logs';
 import { PROJETOS } from './data/projetos';
 
 /**
@@ -23,6 +24,12 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      {/*
+       * Rota da tela de logs (Demanda 9 — LogsDeAlteracoes.md, Etapa 6):
+       * fixa, fora do `PROJETOS.map` abaixo, já que não é uma página de
+       * projeto — mesmo raciocínio de `path="/"` (Home) acima.
+       */}
+      <Route path="/logs" element={<Logs />} />
       {PROJETOS.map((projeto) => (
         <Route
           key={projeto.slug}

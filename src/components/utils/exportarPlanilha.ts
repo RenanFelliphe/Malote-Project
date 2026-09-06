@@ -22,8 +22,14 @@
  * download direto (usado por `exportarRegistros`, planilha única) e outro
  * retorna um `Blob` (usado por `exportarRegistrosEmLote`, para empacotar
  * no `.zip`) — sem duplicar a lógica de geração em si.
+ *
+ * Etapa 3 (`LogsDeAlteracoes.md`, Demanda 9): toda exportação bem-sucedida
+ * (avulsa ou, uma linha por planilha, em lote) é confirmada via `POST
+ * /api/logs` (`registrarLogCliente`, `services/logsApi.ts`) — só depois do
+ * download já ter sido disparado, nunca antes.
  */
 import type { EmailRecord } from '../../types/email';
+import { registrarLogCliente } from '../../services/logsApi';
 
 export type TFormatoExportacao = 'csv' | 'csv-utf8' | 'xlsx' | 'pdf';
 
@@ -255,17 +261,26 @@ export async function exportarRegistros(
   switch (formato) {
     case 'csv':
       exportarCsv(registros, prefixo);
-      return;
+      break;
     case 'csv-utf8':
       exportarCsvUtf8(registros, prefixo);
-      return;
+      break;
     case 'xlsx':
       await exportarXlsx(registros, prefixo);
-      return;
+      break;
     case 'pdf':
       await exportarPdf(registros, prefixo);
-      return;
+      break;
   }
+
+  // Etapa 3 (LogsDeAlteracoes.md): confirmação da exportação via `POST
+  // /api/logs` — só depois que o download já foi disparado, nunca antes;
+  // `registrarLogCliente` nunca lança, então uma falha aqui não afeta o
+  // download que o usuário já recebeu.
+  await registrarLogCliente('exportar_planilha', {
+    projeto: slug ?? null,
+    quantidade: registros.length,
+  });
 }
 
 /**
@@ -299,9 +314,17 @@ export async function exportarRegistrosEmLote(
   const zip = new JSZip();
   const extensao = EXTENSAO_POR_FORMATO[formato];
 
+  // Etapa 3: uma linha `exportar_planilha` por planilha do lote, não uma
+  // única linha agregada — o template de mensagem da seção 4 do planner
+  // ("Planilha exportada do projeto X (N registros)") é por planilha, e
+  // cada uma tem seu próprio slug/contagem dentro do mesmo `.zip`.
   for (const planilha of planilhas) {
     const blob = await gerarBlob(planilha.registros, formato);
     zip.file(nomeArquivo(extensao, planilha.slug), blob);
+    await registrarLogCliente('exportar_planilha', {
+      projeto: planilha.slug,
+      quantidade: planilha.registros.length,
+    });
   }
 
   const conteudoZip = await zip.generateAsync({ type: 'blob' });

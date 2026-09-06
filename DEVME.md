@@ -1,6 +1,6 @@
 # Malote — Especificação (v3)
 
-> **Escopo desta versão:** esta fase do projeto roda **localmente**, sem hospedagem, sem geração de slug e sem página dinâmica de importação. O objetivo imediato é ler planilhas já existentes (hoje, 2) e organizar o envio dos e-mails. A visão de longo prazo (importação via interface, cards, rotas dinâmicas, hospedagem) está descrita na seção **9. Planos Futuros**.
+> **Nota de atualização:** este documento é a especificação **original** (v3) do projeto, escrita quando o sistema ainda rodava sobre uma única planilha, um único arquivo JSON e sincronização exclusivamente por terminal. Parte da visão de longo prazo descrita na seção **9** já foi implementada — múltiplos projetos, importação pela interface, rotas dinâmicas por slug — mas **não da forma prevista** (sem backend real nem hospedagem; tudo continua rodando localmente, com a "API" embutida no próprio servidor de desenvolvimento do Vite). As seções abaixo foram atualizadas onde o comportamento real diverge do texto original; onde a seção 8 descrevia etapas de implementação, isso já foi concluído há tempos e fica registrado aqui como histórico. Para o estado atual completo e o roteiro de evolução em andamento, ver [DEMANDAS.md](DEMANDAS.md) e [README.md](README.md).
 
 ---
 
@@ -19,11 +19,11 @@ O sistema organiza os destinatários e oferece suporte ao envio de e-mails.
 
 ### Stack técnica
 
-O projeto seguirá a mesma linguagem e estrutura do projeto de referência `multiverso.riopombavalley`:
+O projeto seguiu a mesma linguagem e estrutura do projeto de referência `multiverso.riopombavalley`:
 
 - **React 19** + **TypeScript** + **Vite** + **react-router-dom**;
 - Organização de pastas: `src/components`, `src/pages`, `src/data`, `src/types`, `src/components/utils`;
-- Um script Node independente (fora do bundle do Vite) cuidará da leitura da planilha e sincronização com o JSON — ele não faz parte da aplicação React, é executado manualmente via terminal.
+- Um script Node independente (fora do bundle do Vite) cuida da leitura da planilha e sincronização com o JSON, executado manualmente via terminal — hoje coexistindo com a importação/atualização pela própria interface (ver seção 2.3).
 
 ---
 
@@ -41,6 +41,7 @@ O sistema utiliza duas fontes de dados:
 - É a fonte oficial dos dados.
 - Toda alteração realizada pela interface deverá ser gravada nele.
 - **O arquivo JSON representa permanentemente o estado atual do sistema.** Ele é a única fonte de verdade consultada pela interface; a planilha só é lida no momento da importação/sincronização.
+- **Atualização:** deixou de existir um único JSON — hoje cada projeto (planilha importada) tem o seu próprio, em `data/active/<slug>/emails.json`. `<slug>` é definido uma única vez na importação (ver seção 2.4) e usado tanto no nome da pasta quanto na rota da interface. A estrutura interna de cada arquivo está na seção 4.
 
 ## 2.2 Persistência
 
@@ -50,15 +51,21 @@ Não deverá existir botão **Salvar**.
 
 O sistema não utilizará `localStorage` como mecanismo principal de armazenamento.
 
+**Atualização:** a persistência imediata é feita por uma API local embutida no próprio servidor de desenvolvimento do Vite (`vite.config.ts`, via `configureServer`), não por um backend separado. Isso significa que essa API só existe enquanto `npm run dev` está rodando — não há persistência funcional num build de produção (`npm run build`/`vite preview`). Ver README, seção "Arquitetura", para detalhes.
+
 ## 2.3 Sincronização
 
 **Nesta fase (local, sem hospedagem), a sincronização é disparada manualmente pelo terminal**, executando um script Node (ex.: `node src/scripts/sync.ts caminho/para/planilha.csv`). Esse script lê a planilha informada e sincroniza os dados com o JSON correspondente.
 
 > Esse é um dos três modelos possíveis de disparo de sincronização (comando manual / watcher automático / botão de importação na UI). Optamos pelo comando manual por ser o mais simples de implementar agora, e por ser adequado a um ambiente 100% local, sem múltiplos usuários e sem necessidade de backend. Quando o projeto migrar para hospedagem (seção 9), esse mecanismo será substituído por importação via interface, com backend próprio.
 
+**Atualização:** o "quando" do parágrafo acima já aconteceu, parcialmente — a importação via interface (assistente em `src/components/import/`) e a atualização de um projeto existente a partir de nova planilha (`src/components/atualizar/`) já existem e coexistem com o script de terminal, que continua disponível como alternativa (`npm run sync -- <planilha> --slug=<slug>`). O que **não** aconteceu foi a migração para backend hospedado: ambos os caminhos (interface e terminal) escrevem no mesmo tipo de arquivo JSON local, através da mesma API embutida no Vite.
+
 ### Identificação de registros
 
 **Os registros deverão ser identificados pelo campo `id`, que representa a ordem original do registro na planilha.** É esse campo — e não o e-mail ou o nome — que determina se uma linha da planilha corresponde a um registro já existente no JSON durante a sincronização.
+
+**Atualização (Demanda 7 — Mapeamento de ID Personalizado):** por padrão o `id` continua sendo a ordem original da linha na planilha, mas agora é possível escolher, por projeto, uma coluna da própria planilha como origem do `id` (campo `colunaId` em `EmailsData`, seção 4). Isso é definido na importação e pode ser remapeado depois em "Atualizar Dados". Projetos que nunca usaram essa opção simplesmente não têm `colunaId` definido, e continuam se comportando exatamente como descrito abaixo.
 
 Durante a sincronização:
 
@@ -68,14 +75,17 @@ Durante a sincronização:
 - registros com `status_alterado = false` deverão ser reavaliados automaticamente;
 - registros com `status_alterado = true` deverão manter seu status atual.
 
+> **Atualização:** o campo booleano `status_alterado` foi substituído por `backup_dados` (ver seção 4) — mesma função de trava contra sobrescrita, generalizada também para `nome` e `email`, não só `status`. A regra acima continua valendo na prática: "status_alterado = true" hoje equivale a "existe uma chave `status` dentro de `backup_dados`".
+
 ### Fluxo de sincronização
 
 ```text
-Rodar script (node .../sync.ts planilha.csv)
+Rodar script (npm run sync -- planilha.csv --slug=projeto)
+   — ou importar/atualizar pela interface —
         ↓
-Identificar colunas
+Identificar colunas (ou usar colunaId, se definido)
         ↓
-Sincronizar com JSON (por id)
+Sincronizar com JSON do projeto (por id)
         ↓
 Atualizar registros
         ↓
@@ -85,14 +95,16 @@ Identificar duplicados
         ↓
 Aplicar prioridades
         ↓
-Gravar JSON atualizado
+Gravar JSON atualizado (data/active/<slug>/emails.json)
         ↓
-Interface React lê o JSON e renderiza
+Interface React lê o JSON do projeto e renderiza
 ```
 
 ---
 
 ## 3. Importação
+
+> **Atualização:** o que segue descreve a identificação **automática** de colunas, usada tanto pelo script de terminal quanto como sugestão inicial no assistente de importação pela interface. O assistente (`ImportWizardModal`, `src/components/import/`) permite ao usuário revisar e ajustar manualmente esse mapeamento antes de confirmar — inclusive escolher uma coluna específica da planilha como origem do `id` dos registros (`colunaId`, Demanda 7 — Mapeamento de ID Personalizado), em vez de usar a ordem original da linha.
 
 ## 3.1 identifyColumns()
 
@@ -126,7 +138,9 @@ A função deverá:
 
 # 4. Modelo de Dados
 
-## Estrutura do JSON
+> **Atualização:** o modelo abaixo (um JSON com um array de registros direto na raiz) descreve a v3 original. A estrutura real, hoje, é um objeto por projeto — `data/active/<slug>/emails.json` — que envolve o array de registros com metadados do próprio projeto. Os campos de cada registro individual também evoluíram: veja o quadro "Estrutura atual" logo abaixo do exemplo original.
+
+## Estrutura do JSON (original, v3)
 
 ```json
 {
@@ -139,7 +153,7 @@ A função deverá:
 }
 ```
 
-### Campos
+### Campos (originais)
 
 - **id:** ordem original do registro na planilha;
 - **nome:** nome do usuário;
@@ -149,6 +163,55 @@ A função deverá:
 - **last_updated:** data e hora da última alteração persistida.
 
 Sempre que qualquer alteração persistente ocorrer, `last_updated` deverá ser atualizado.
+
+## Estrutura atual (por projeto)
+
+Cada arquivo `data/active/<slug>/emails.json` (tipo `EmailsData`, em `src/types/email.ts`) tem este formato:
+
+```json
+{
+  "projeto": "Nome de exibição do projeto",
+  "atualizado_em": "2026-09-05T19:19:31.000Z",
+  "criado_em": "2026-08-01T10:00:00.000Z",
+  "slug": "nome-do-projeto",
+  "colunaId": "Matrícula",
+  "email": {
+    "titulo": "Assunto do e-mail",
+    "conteudo": "<p>Corpo em HTML, editado no editor rico</p>",
+    "atualizado_em": "2026-09-01T12:00:00.000Z"
+  },
+  "registros": [
+    {
+      "id": 1,
+      "nome": "João",
+      "email": "joao@gmail.com",
+      "status": "válido",
+      "backup_dados": { "email": "joao@antigo.com" },
+      "last_updated": "2026-09-05T19:19:31.000Z"
+    }
+  ]
+}
+```
+
+### Campos do projeto (`EmailsData`)
+
+- **projeto:** nome de exibição, livre, definido no assistente de importação;
+- **slug:** identidade real do projeto, usada como nome de pasta e na rota; gravada explicitamente a partir do primeiro soft delete, ausente em projetos que nunca passaram pela lixeira (nesse caso o nome da pasta em `data/active/` é a própria identidade);
+- **colunaId:** nome da coluna da planilha usada como origem do `id` dos registros (Demanda 7); ausente = comportamento original ("gerar automaticamente", pela ordem da linha);
+- **deletado_em:** presente só enquanto o projeto está na lixeira (`data/trash/`);
+- **criado_em / atualizado_em:** datas de criação do projeto e da última escrita bem-sucedida no arquivo;
+- **email:** título e corpo (HTML) do e-mail a ser enviado, mais a data da última edição desse conteúdo;
+- **registros:** o array de `EmailRecord`, descrito abaixo.
+
+### Campos de cada registro (`EmailRecord`)
+
+- **id:** identificador do registro — ordem original da linha, ou o valor da coluna escolhida em `colunaId`;
+- **nome / email:** dados do destinatário;
+- **status:** situação atual do registro (seção 5.2);
+- **backup_dados:** substitui o antigo `status_alterado` booleano — objeto com os valores originais de `nome`/`email` capturados na primeira edição manual (para permitir desfazer), e uma marcação booleana para `status` (mesmo papel de trava contra sobrescrita em sincronizações futuras, nunca lido como valor de status em si);
+- **last_updated:** data/hora da última alteração persistida neste registro específico.
+
+Sempre que qualquer alteração persistente ocorrer, `last_updated` (do registro) e `atualizado_em` (do projeto) deverão ser atualizados.
 
 ---
 
@@ -199,6 +262,8 @@ Enquanto esse atributo for verdadeiro, o status não poderá ser recalculado aut
 Um registro será considerado duplicado quando existir mais de um registro com o mesmo endereço de e-mail, independentemente do nome.
 
 Ao filtrar por duplicados, todos os registros pertencentes ao grupo duplicado deverão ser exibidos.
+
+> ⚠️ **Inconsistência conhecida:** por `duplicado` ser um valor de `status` — o mesmo campo usado para `válido`/`inválido`/`deletado`/`enviado` — um registro não pode ser "duplicado" e "válido" ao mesmo tempo. Em sequências reais de deletar/restaurar/editar manualmente, isso pode deixar dois registros com o mesmo e-mail em estados divergentes e sem vínculo visual entre si. A correção (tornar duplicidade uma flag calculada em runtime, independente do status) está mapeada na Demanda 10 — ver `DEMANDAS.md` e `public/RefatoracaoSistemadeDuplicatas.md` — ainda não implementada.
 
 ## 5.5 Contadores
 
@@ -259,6 +324,8 @@ Cada linha deverá apresentar:
 ---
 
 # 7. Modal "Listar E-mails"
+
+> **Atualização:** este modal evoluiu para o `ExportarModal.tsx` atual, que além de copiar a lista para a área de transferência (como descrito abaixo) também exporta os registros selecionados em planilha (`utils/exportarPlanilha.ts`). O comportamento de seleção, filtro e cópia descrito nesta seção continua valendo.
 
 O modal deverá permitir:
 
@@ -374,7 +441,9 @@ Também deverá existir a opção **Selecionar Todos**.
 
 ---
 
-# 8. Etapas de Implementação (Fase Atual — Local)
+# 8. Etapas de Implementação (Fase Atual — Local) — histórico
+
+> **Atualização:** as 6 etapas abaixo descrevem a implementação **inicial** do projeto (versão de uma única planilha, um único JSON, sem interface de importação) e foram concluídas há tempos — o sistema evoluiu muito além delas desde então (múltiplos projetos, importação pela interface, lixeira, temas, logs, edição individual, mapeamento de ID, entre outros — ver `DEMANDAS.md`). Ficam registradas aqui como histórico de como o projeto começou, não como um roteiro pendente.
 
 A implementação será feita em etapas pequenas e sequenciais. Cada etapa deve ser validada antes de avançar para a próxima.
 
@@ -444,44 +513,44 @@ A implementação será feita em etapas pequenas e sequenciais. Cada etapa deve 
 
 ---
 
-# 9. Planos Futuros (Visão de Longo Prazo)
+# 9. Planos Futuros (Visão de Longo Prazo) — status atual
 
-A fase descrita na seção 8 resolve a necessidade imediata: ler as planilhas atuais e organizar o envio, rodando localmente. Uma vez que essa base estiver funcionando, o projeto evoluirá para um sistema real, multiusuário/multiplanilha, hospedado — inspirado na estrutura observada no projeto `multiverso.riopombavalley`, adaptada para as necessidades deste sistema. Essa visão inclui:
+> **Atualização:** parte relevante desta visão já foi implementada (9.1–9.4), mas **sem** a mudança de arquitetura que a seção original previa para viabilizá-la (backend real e hospedagem, 9.5–9.6) — tudo continua rodando localmente, com a "API" embutida no servidor de desenvolvimento do Vite. Cada subseção abaixo foi marcada com o status real.
 
-## 9.1 Página inicial com cards
+A fase descrita na seção 8 resolveu a necessidade imediata: ler as planilhas atuais e organizar o envio, rodando localmente. A partir daí o projeto evoluiu — parcialmente na direção prevista aqui, parcialmente por outros caminhos (ver `DEMANDAS.md` para o roteiro real de evolução, incluindo itens não previstos nesta especificação original, como temas visuais e log de alterações).
 
-Uma página `index` substituirá a leitura direta de um único JSON. Ela exibirá **um card para cada planilha** já importada no sistema, permitindo múltiplas planilhas gerenciadas simultaneamente (hoje seriam 2, no futuro qualquer quantidade).
+## 9.1 Página inicial com cards — ✅ implementado
 
-## 9.2 Componente único e reutilizável de renderização
+Existe uma página inicial (`src/pages/home.tsx`) que lista os projetos já importados, substituindo a leitura direta de um único JSON fixo.
 
-`emails.tsx` deixará de apontar para um JSON fixo e passará a ser um **modelo reutilizável**: um único componente capaz de renderizar qualquer planilha importada, recebendo como parâmetro qual conjunto de dados carregar — da mesma forma que o `CourseLesson.tsx` do projeto de referência é reaproveitado para todos os cursos.
+## 9.2 Componente único e reutilizável de renderização — ✅ implementado
 
-## 9.3 Importação via interface (sem terminal)
+`src/pages/emails.tsx` não aponta mais para um JSON fixo: recebe `slug` e `dados` como props (via as rotas geradas em `src/App.tsx`) e renderiza qualquer projeto importado com o mesmo componente.
 
-O botão "Importar" abrirá o seletor de arquivos do sistema operacional, permitirá escolher a planilha e definir um nome (que deverá ser único entre as planilhas já existentes). Isso substituirá o comando manual `node .../sync.ts` usado na fase atual — a sincronização passa a ser disparada pelo próprio usuário, pela interface.
+## 9.3 Importação via interface (sem terminal) — ✅ implementado, com o terminal ainda disponível
 
-## 9.4 Rotas dinâmicas e slug
+O assistente de importação (`ImportWizardModal`, `src/components/import/`) permite escolher a planilha pelo seletor de arquivos do sistema operacional e definir o nome do projeto (que gera o slug — seção 9.4), substituindo a necessidade do comando de terminal para o uso do dia a dia. Diferente do previsto, o comando manual (`npm run sync`) não foi removido: continua existindo como alternativa.
 
-Cada planilha importada gerará uma URL própria, derivada do nome escolhido (`toSlug`, como no projeto de referência). Diferente do projeto de referência, porém, essa geração **não poderá ocorrer em tempo de build** (via `import.meta.glob`), pois o sistema hospedado precisa aceitar novas planilhas em tempo real, sem exigir rebuild/redeploy a cada importação. Isso exige rotas verdadeiramente dinâmicas (ex.: `/emails/:slug`), resolvidas em tempo de execução.
+## 9.4 Rotas dinâmicas e slug — parcialmente implementado
 
-## 9.5 Backend e persistência
+Cada projeto importado gera uma URL própria (`/<slug>`), derivada do nome escolhido (`slugify.ts`). Porém, ao contrário do que esta seção previa, a descoberta dos projetos existentes **continua acontecendo via `import.meta.glob({ eager: true })`** (`src/data/projetos.ts`) — o mesmo mecanismo do projeto de referência que esta seção dizia que não serviria para um sistema hospedado. Isso funciona bem localmente, com o servidor de desenvolvimento do Vite reavaliando o glob a cada mudança nos arquivos, mas **não é** a resolução de rotas verdadeiramente dinâmica em tempo de execução que um sistema hospedado, sem rebuild a cada importação, exigiria — essa parte da visão original permanece válida e pendente.
 
-Diferente do projeto de referência (que é 100% estático, sem backend), este sistema precisará de:
-- um backend que receba o upload da planilha, execute a sincronização e persista os dados;
-- uma camada de persistência compatível com hospedagem (banco de dados como SQLite/Postgres, ou armazenamento de arquivos em um serviço com filesystem persistente — já que ambientes serverless têm filesystem efêmero);
-- endpoints para: listar planilhas (para gerar os cards do `index`), importar nova planilha, e servir/atualizar os dados de uma planilha específica.
+## 9.5 Backend e persistência — ❌ não implementado (como previsto aqui)
 
-## 9.6 Hospedagem
+Não existe um backend separado nem um banco de dados. O que existe é uma API local (rotas `/api/projetos`, `/api/emails`, `/api/lixeira`, `/api/logs`) implementada dentro do próprio `vite.config.ts`, via o hook `configureServer` — funcional apenas enquanto `npm run dev` está rodando, sem equivalente em build de produção. A persistência continua sendo por arquivo JSON local (um por projeto), não migrou para banco de dados nem para um serviço com filesystem remoto.
 
-O sistema será hospedado (ex.: VPS, Render, Railway, ou similar com filesystem/persistência adequada — evitando plataformas puramente serverless caso a persistência continue baseada em arquivos). A escolha final de hospedagem dependerá da decisão entre arquivo JSON persistente vs. banco de dados.
+## 9.6 Hospedagem — ❌ não implementado
 
-## 9.7 Resumo da transição
+O sistema continua 100% local, de uso single-user, sem hospedagem.
 
-| Aspecto | Fase atual (local) | Fase futura (hospedada) |
-|---|---|---|
-| Disparo da sincronização | comando manual no terminal | botão "Importar" na interface |
-| Quantidade de planilhas | 2, fixas | N, dinâmicas |
-| Rotas | única página fixa | rotas dinâmicas por slug |
-| Geração de página | nenhuma (página única) | criada em tempo real, sem rebuild |
-| Persistência | arquivo JSON local | banco de dados ou storage persistente |
-| Backend | não existe | necessário |
+## 9.7 Resumo da transição — atualizado
+
+| Aspecto | Fase original (v3) | Previsto (v9, hospedado) | Estado real hoje |
+|---|---|---|---|
+| Disparo da sincronização | comando manual no terminal | botão "Importar" na interface | ambos coexistem (interface e `npm run sync`) |
+| Quantidade de planilhas | 2, fixas | N, dinâmicas | N, dinâmicas — múltiplos projetos |
+| Rotas | única página fixa | rotas dinâmicas por slug | rotas por slug, mas descobertas via `import.meta.glob` (não runtime puro) |
+| Geração de página | nenhuma (página única) | criada em tempo real, sem rebuild | criada ao importar, mas ainda dependente do `vite dev` rodando |
+| Persistência | arquivo JSON local | banco de dados ou storage persistente | arquivo JSON local, um por projeto — sem banco de dados |
+| Backend | não existe | necessário | API embutida no `vite.config.ts` (só existe em modo dev, não é um backend separado) |
+| Hospedagem | não existe | prevista | ainda não existe — sistema 100% local |

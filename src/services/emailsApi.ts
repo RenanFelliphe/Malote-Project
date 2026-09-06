@@ -1,5 +1,8 @@
 import type { EmailConteudo, EmailRecord } from '../types/email';
 import { arquivoParaBase64 } from './projetosApi';
+// Etapa 4 (LogsDeAlteracoes.md): relata cada resposta 4xx/5xx como
+// `erro_cliente`, em paralelo ao `throw` que os chamadores já tratam.
+import { reportarErroApi } from './logsApi';
 
 type DadosEditaveis = {
   email: EmailConteudo;
@@ -46,6 +49,7 @@ export async function salvarEmails(slug: string, dados: DadosEditaveis): Promise
   });
 
   if (!resposta.ok) {
+    reportarErroApi('PUT', `/api/emails/${slug}`, resposta.status);
     throw new Error('Falha ao salvar alterações em emails.json');
   }
 }
@@ -64,6 +68,7 @@ export async function enviarSheet(slug: string, arquivo: File): Promise<void> {
   });
 
   if (!resposta.ok) {
+    reportarErroApi('POST', `/api/emails/${slug}/sheet`, resposta.status);
     throw new Error('Falha ao salvar a planilha bruta do projeto.');
   }
 }
@@ -79,6 +84,7 @@ export async function obterSheet(slug: string): Promise<File> {
   const resposta = await fetch(`/api/emails/${encodeURIComponent(slug)}/sheet`);
 
   if (!resposta.ok) {
+    reportarErroApi('GET', `/api/emails/${slug}/sheet`, resposta.status);
     throw new Error('Falha ao buscar a planilha bruta do projeto.');
   }
 

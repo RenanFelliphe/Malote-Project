@@ -1,4 +1,7 @@
 import type { EmailConteudo, EmailRecord } from '../types/email';
+// Etapa 4 (LogsDeAlteracoes.md): relata cada resposta 4xx/5xx como
+// `erro_cliente`, em paralelo ao `throw` que os chamadores já tratam.
+import { reportarErroApi } from './logsApi';
 
 /**
  * Lançado especificamente quando o servidor responde `409` — slug já
@@ -105,6 +108,7 @@ export async function criarProjeto(
 
   if (!resposta.ok) {
     const mensagem = await extrairMensagemDeErro(resposta);
+    reportarErroApi('POST', '/api/projetos', resposta.status, mensagem);
 
     if (resposta.status === 409) {
       throw new ProjetoSlugDuplicadoError(mensagem);
@@ -140,6 +144,7 @@ export async function renomearProjeto(slugAtual: string, novoSlug: string): Prom
 
   if (!resposta.ok) {
     const mensagem = await extrairMensagemDeErro(resposta);
+    reportarErroApi('PATCH', `/api/projetos/${slugAtual}`, resposta.status, mensagem);
 
     if (resposta.status === 409) {
       throw new ProjetoSlugDuplicadoError(mensagem);
@@ -185,6 +190,7 @@ export async function deletarProjetos(slugs: string[]): Promise<ResultadoDelecao
 
   if (resposta.status !== 200 && resposta.status !== 207) {
     const mensagem = await extrairMensagemDeErro(resposta);
+    reportarErroApi('DELETE', '/api/projetos', resposta.status, mensagem);
     throw new Error(mensagem ?? 'Falha ao deletar o(s) projeto(s).');
   }
 

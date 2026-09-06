@@ -1,8 +1,8 @@
 # DEMANDAS.md
 
-> Este documento reúne as demandas levantadas para evolução do sistema, além da especificação já formalizada em `Especificacao_Sistema_Emails_v3.md`. Diferente da especificação (que descreve o que **já foi decidido e está pronto para ser implementado**), este arquivo registra objetivos e ideias em diferentes estágios de maturidade — desde melhorias pontuais até a visão de longo prazo do projeto — para que não se percam entre uma conversa e outra.
+> Este documento reúne as demandas levantadas para evolução do sistema, além da especificação já formalizada em `DEVME.md`. Diferente da especificação (que descreve o que **já foi decidido e está pronto para ser implementado**), este arquivo registra objetivos e ideias em diferentes estágios de maturidade — desde melhorias pontuais até a visão de longo prazo do projeto — para que não se percam entre uma conversa e outra.
 >
-> As demandas estão organizadas na ordem recomendada de execução (não pela numeração de identificação, que é fixa e não muda): **5 → 3 → 7 → 9 → 2 → 6 → 1 → 8** (Demanda 4 pausada — ver seção correspondente).
+> As demandas estão organizadas na ordem recomendada de execução (não pela numeração de identificação, que é fixa e não muda): **5 → 3 → 7 → 9 → 10 → 2 → 6 → 1 → 8** (Demanda 4 pausada — ver seção correspondente).
 
 ## Como usar este documento
 
@@ -66,7 +66,8 @@ Tabela viva: toda demanda já levantada tem uma linha aqui, mesmo depois de remo
 | 3 | Atualizar Planilha via UI | ✅ Concluída | Dias | 5 (modelo `backup_dados`) | — |
 | 7 | Mapeamento de ID Personalizado | ✅ Concluída | Dias | — | — |
 | 4 | Histórico de Alterações | ⏸️ Pausada | Horas–dias (versão simples) | — | — |
-| 9 | Logs de Alterações | Mapeado | Dias | — | — |
+| 9 | Logs de Alterações | ✅ Concluída | Dias | — | — |
+| 10 | Refatoração do Sistema de Duplicatas | Mapeado | Dias | — | — |
 | 2 | Variáveis no Texto (merge tags) | Registrado | Dias | — | 1 (para "fechar o ciclo") |
 | 6 | Armazenamento Duplo (Banco + Local) | Registrado | Semanas | — | 1 (recomendado) |
 | 1 | Envio Automático dos E-mails | Registrado | Semanas | 6 (recomendado) | — |
@@ -610,8 +611,8 @@ Toda alteração (`salvarEmails`) sobrescreve o `emails.json` inteiro, sem versi
 
 ## Demanda 9 — Logs de Alterações
 
-**Status:** Mapeado
-**Esforço estimado:** Dias — instrumentação espalhada por ~10 pontos de mutação diferentes, mais a tela de visualização
+**Status:** ✅ Concluída — as 7 etapas de implementação estão marcadas como concluídas em `public/LogsDeAlteracoes.md`; falta a validação manual de ponta a ponta (seção 9 do planner, critérios de aceite 8.2) antes de virar **Validada**
+**Esforço estimado:** Dias — instrumentação espalhada por ~12 pontos de mutação/erro diferentes, mais a tela de visualização e a exportação de logs
 **Depende de:** —
 **Bloqueia:** —
 
@@ -628,13 +629,16 @@ Não existe hoje nenhum rastro de "o que aconteceu no sistema". Conforme a lógi
 - Ações "vazias" (modal aberto e confirmado sem nenhuma mudança real, em qualquer um dos tipos abaixo) **não** geram log — mesmo critério já usado por `restaurarCampos.ts`, que não grava `last_updated` quando nada muda de fato.
 - Tela dedicada em `/logs`, acessível por um botão "Visualizar Logs" no `Header`, com:
   - Busca por nome, data, tipo ou outro atributo;
-  - Filtro por tipo, data ou outro atributo;
+  - Filtro por tipo, data (dia único ou intervalo) ou outro atributo;
   - Paginação, mais recente primeiro;
-  - Somente leitura — **sem** edição ou exclusão de log via interface, em nenhuma hipótese.
+  - Somente leitura — **sem** edição ou exclusão de log via interface, em nenhuma hipótese;
+  - Exibe também `erro_servidor`/`erro_cliente`, em aba própria separada das ações (ver Interface da tela `/logs`).
 - Endpoint novo `POST /api/logs`, chamado pelo frontend, para registrar a exportação de planilha (`exportarPlanilha.ts`), já que hoje esse fluxo é 100% client-side e não passa por nenhum handler existente.
+- Botão "Exportar Logs", sempre visível na tela `/logs`, exportando **por mês ou intervalo de meses** (não por resultado de busca/filtro, e não é possível exportar um log específico). Seleção de 1 mês só baixa o arquivo direto; seleção de um intervalo de mais de 1 mês baixa um `.zip` contendo um arquivo por mês. Formato (CSV ou JSON) escolhido pelo usuário — ver Decisões para o esquema de achatamento do CSV.
 - Rotação mensal do arquivo de log (`data/logs/2026-09.jsonl`, `2026-10.jsonl`...), sem poda — nunca deleta arquivo antigo, só limita o tamanho de cada um.
 - Leitura sequencial por arquivo mensal (mês mais recente → mais antigo) com early-exit ao preencher a página pedida, em vez de ler todo o histórico a cada request.
-- Taxonomia fechada de `acao` (10 tipos, tabela abaixo), pensada para ser "adicionável" no futuro sem quebrar o que já existe.
+- Taxonomia fechada de `acao` (12 tipos, tabela abaixo), pensada para ser "adicionável" no futuro sem quebrar o que já existe.
+- Flag de ambiente (`.env`, ex.: `LOGS_ATIVOS=false`), checado no `vite.config.ts`, para desativar a escrita de logs durante desenvolvimento local — sem exposição na interface (ver Decisões). Quando desativado, a tela `/logs` mostra um indicador somente-leitura (ex.: banner) informando que o registro está desativado no ambiente atual.
 
 **Não cobre nesta fase:**
 - Detalhamento individual de itens dentro de uma ação em massa (ex.: ver os 4000 registros de uma reimportação, um a um). Se vier a necessidade, resolvemos depois com um arquivo de detalhe separado por ação — decisão consciente de não implementar agora.
@@ -642,6 +646,7 @@ Não existe hoje nenhum rastro de "o que aconteceu no sistema". Conforme a lógi
 - Autoria da alteração — sistema é single-user local, sem login, mesma ressalva já registrada na Demanda 4.
 - Poda/expiração de logs antigos — nunca deve existir, dado que log não pode ser editado/deletado via interface.
 - Qualquer forma de editar/deletar/restaurar um log pela interface.
+- Ativar/desativar o registro de logs pela interface — controle fica só em variável de ambiente, nunca em um botão clicável dentro do app rodando (ver Decisões).
 - Cache em memória ou índice de offsets para leitura — otimização prematura dado o volume esperado (uso local/pessoal); revisitar só se a leitura sequencial por mês realmente doer na prática.
 
 ### Taxonomia de `acao`
@@ -658,6 +663,10 @@ Não existe hoje nenhum rastro de "o que aconteceu no sistema". Conforme a lógi
 | `alterar_registro` | Qualquer alteração de campo em um registro — inclui marcar como deletado (`status → deletado`) e como enviado (`status → enviado`); a diferenciação vem de `original`/`atual`/`mensagem`, não de um tipo separado |
 | `restaurar_registro` | Reverter campos protegidos (`nome`/`email`/`status`) a partir de `backup_dados` |
 | `editar_email` | Qualquer alteração no conteúdo de e-mail do projeto (`EmailConteudo`): assunto, corpo, anexos (quando existir) e demais atributos que vierem a ser adicionados a esse conjunto no futuro — sem exigir novo tipo de log a cada novo atributo |
+| `erro_servidor` | Erro não tratado no servidor, incluindo falha ao gravar uma linha de log (tentativa única, sem loop) |
+| `erro_cliente` | Exception não tratada na UI (`window.onerror`/error boundary) ou resposta de API 4xx/5xx |
+
+A taxonomia é fixa no código (whitelist validada por `registrarLog`) — não existe interface para o usuário criar um tipo de log novo. "Adicionável" significa mudança de código, como a inclusão dos dois tipos de erro acima.
 
 ### Formato da linha (`data/logs/<AAAA-MM>.jsonl`)
 
@@ -677,6 +686,26 @@ Não existe hoje nenhum rastro de "o que aconteceu no sistema". Conforme a lógi
 
 Para ações em massa, `original`/`atual` ficam `null` e o resumo vai só em `mensagem`/`quantidade` (ex.: `"4000 registros inseridos"`). Para `editar_email`, `original`/`atual` sempre indicam qual campo foi tocado (ex.: `{"campo": "assunto", "de": "...", "para": "..."}`), preparando a estrutura para novos atributos (como anexos) sem mudança de schema. ID no formato `AAAAMMDD-HHMMSS-xxxx` — ordena naturalmente por data sem precisar ler o arquivo inteiro.
 
+`mensagem` sempre é montada por um template fixo por `acao` dentro do `registrarLog`, a partir de parâmetros estruturados passados pelo handler — nenhum handler escreve texto livre diretamente.
+
+Para `erro_servidor`/`erro_cliente`, o formato muda um pouco — não há ação de usuário por trás, então `registroId`/`quantidade`/`original`/`atual` ficam `null`, e dois campos novos aparecem: `origem` (`"servidor"` | `"cliente"`) e `detalhe` (stack trace completo quando existir, ou o corpo da resposta de erro quando for um 4xx/5xx sem exception):
+
+```json
+{
+  "id": "20260904-101512-e5f6",
+  "data": "2026-09-04T10:15:12.000Z",
+  "acao": "erro_servidor",
+  "origem": "servidor",
+  "projeto": null,
+  "registroId": null,
+  "quantidade": null,
+  "original": null,
+  "atual": null,
+  "mensagem": "Falha ao gravar log de alterar_registro: EACCES",
+  "detalhe": "Error: EACCES: permission denied\n    at Object.appendFileSync (node:fs:...)\n    at registrarLog (registrarLog.ts:42)\n    ..."
+}
+```
+
 ### Decisões
 
 - ~~Retenção/rotação?~~ → **Rotação mensal**, um arquivo `.jsonl` por mês, sem poda — nunca deleta arquivo antigo.
@@ -685,27 +714,70 @@ Para ações em massa, `original`/`atual` ficam `null` e o resumo vai só em `me
 - ~~`renomear_projeto` é um tipo próprio ou parte de `alterar_planilha`?~~ → **Parte de `alterar_planilha`.** O modal "Atualizar Planilha" pode alterar nome e dados no mesmo clique; quando isso acontece, emite uma linha por mutação real ocorrida (podendo ser 2), sempre com a mesma tag, diferenciadas por `mensagem`/`original`/`atual`.
 - ~~`deletar_registro` e `enviar_registro` são tipos próprios?~~ → **Não — fazem parte de `alterar_registro`.** São, no fundo, mudanças do campo `status`; a diferenciação para busca vem do conteúdo de `original`/`atual`/`mensagem`, sem multiplicar tipos.
 - ~~Log de troca de tema?~~ → **Fora de escopo**, por decisão explícita (além de ser puramente client-side, sem mutação no servidor).
+- ~~Exportar o log gera, ele mesmo, uma nova linha de log?~~ → **Não.** É uma ação de leitura sobre o próprio log (mesmo raciocínio de `GET /api/lixeira` não ser logado) — logar isso criaria recursão sem propósito real de auditoria.
+- ~~Formato(s) de exportação de log?~~ → **Os dois — CSV e JSON, usuário escolhe na hora**, seguindo o mesmo padrão do `ExportarModal` de planilhas. JSON exporta a estrutura tal como está no `.jsonl`. CSV usa colunas fixas (`id, data, acao, projeto, registroId, quantidade, mensagem`) mais duas colunas `alteracoes_de` e `alteracoes_para` com o `JSON.stringify` de `original`/`atual` — evita achatar em colunas por campo (que quebraria com número variável de campos alterados), sem perder informação.
+- ~~Falha ao gravar o log trava a ação real?~~ → **Não.** A mutação do usuário nunca falha por causa do log. Falha no `appendFile` dispara uma tentativa **única** de gravar `erro_servidor` registrando essa falha; se essa segunda gravação também falhar, só `console.error`, sem retry — evita loop.
+- ~~Usuário pode criar tipo de log via interface?~~ → **Não, nunca.** Taxonomia é whitelist fixa no código, validada por `registrarLog`. "Adicionável no futuro" significa mudança de código (como a inclusão de `erro_servidor`/`erro_cliente` agora), não uma opção de runtime.
+- ~~Timezone na exibição?~~ → Tela `/logs` sempre converte `data` (gravado em UTC) pro fuso horário local de quem está vendo.
+- ~~Filtro de data: dia único ou intervalo?~~ → **Os dois** — suporta busca por um dia específico e por intervalo (de/até).
+- ~~Auto-criação de `data/logs/`?~~ → Sim, criado automaticamente (`mkdir -p` equivalente) no primeiro `appendFile`.
+- ~~Erros do cliente vão pra onde?~~ → Reaproveita o `POST /api/logs` já existente (o mesmo usado por `exportar_planilha`). Cobre tanto exceptions não tratadas na UI (`window.onerror`/error boundary) quanto respostas de API 4xx/5xx.
+- ~~Nível de detalhe do erro?~~ → **Stack trace completo** em `detalhe` quando existir (erro JS); corpo da resposta de erro quando for um 4xx/5xx sem exception por trás. Custo em espaço é desprezível no volume esperado (erro não é ação de rotina); volume alto seria, ele mesmo, sinal de um bug a corrigir, não um problema de tamanho de log.
+- ~~Como evitar poluir `data/logs/` com ruído de desenvolvimento?~~ → **Flag de ambiente (`.env`), não toggle de interface.** `LOGS_ATIVOS=false` no `.env`, checado no `vite.config.ts`, desativa a escrita sem expor um botão clicável no app. Motivo de não ser um botão na UI: contraria diretamente o requisito original ("toda e qualquer alteração"), e cria um paradoxo de auto-referência (desativar o log é, ela mesma, uma alteração — logar isso deixa uma lacuna suspeita no rastro; não logar cria a única ação do sistema desenhada pra não deixar rastro). Como dev e uso "real" rodam na mesma instância local, um botão ficaria exposto o tempo todo, com risco de desativação por engano. A tela `/logs` mostra um indicador somente-leitura de que o registro está desativado, sem permitir alternar por ali.
+
+**Interface da tela `/logs`:**
+- **Layout:** tabela. Clicar numa linha abre um modal com o log em detalhes (todos os campos, incluindo `original`/`atual`/`detalhe`).
+- **Densidade da tabela:** só as colunas mais importantes (`data`, `acao`, `projeto`, `mensagem`); o resto (`id`, `registroId`, `quantidade`, `original`, `atual`, `detalhe`/`origem` nos erros) fica reservado pro modal de detalhe.
+- **Paginação:** fixa em 50 por página, sem opção de o usuário mudar o tamanho.
+- **Busca/filtros:** sempre acima da tabela (não painel lateral).
+- **Ações vs Erros:** abas separadas, alternadas por um switch — não misturadas na mesma listagem. Trocar de aba **mantém** os filtros/busca e a página atual aplicados (não reseta).
+- **Estado vazio:** "Nenhum log encontrado".
+- **Estado de erro** (falha real do `GET /api/logs`, ex.: servidor fora do ar): mensagem distinta do estado vazio (ex.: "Erro ao carregar logs") — nunca a mesma mensagem de "nenhum log encontrado", pra não confundir "não tem nada" com "não consegui buscar".
+- **Exportação:** botão sempre visível; exporta por mês/intervalo de meses (não pelo filtro atual, não por log individual — ver Escopo). 1 mês = arquivo direto; mais de 1 mês = `.zip`.
+- **Acesso à tela:** só pelo botão no dropdown de configurações/funções do `Header` por enquanto (mesmo padrão visual dos outros itens do dropdown) — sem atalhos pré-filtrados a partir de outras telas nesta fase.
+
+### Decisões em aberto
+
+*(nenhuma pendente no momento)*
 
 ### Etapas de Implementação `[Inicial]`
 
 > Quebra preliminar — revisar ao iniciar.
 
 **Etapa 1 — Utilitário central de log**
-- Função única (ex.: `registrarLog(acao, dados)`) que monta a linha no formato acima, resolve o arquivo mensal correto (`data/logs/<AAAA-MM>.jsonl`) e faz o `appendFile`. Todo handler chama essa função — nenhum handler escreve no arquivo de log diretamente. Não grava nada quando a ação não resultou em mudança real (ver Decisões).
+- Função única (ex.: `registrarLog(acao, dados)`) que monta a linha no formato acima usando o template fixo de `mensagem` por `acao`, resolve o arquivo mensal correto (`data/logs/<AAAA-MM>.jsonl`), cria `data/logs/` automaticamente se não existir, e faz o `appendFile`. Todo handler chama essa função — nenhum handler escreve no arquivo de log diretamente, nem escreve `mensagem` como texto livre. Não grava nada quando a ação não resultou em mudança real (ver Decisões). Valida `acao` contra a whitelist fixa dos tipos definidos — rejeita qualquer valor fora dela.
+- Envolvido em `try/catch`: se o `appendFile` falhar, tenta gravar uma única linha `erro_servidor` sobre essa falha; se essa segunda gravação também falhar, só `console.error`, sem nova tentativa (evita loop).
+- Checa o flag de ambiente `LOGS_ATIVOS` no início da função — se `false`, retorna sem escrever nada (nenhum handler precisa saber disso; a decisão fica centralizada aqui).
 
 **Etapa 2 — Instrumentar os handlers existentes**
 - `vite.config.ts`: `POST /api/projetos` (`importar_planilha`), `PATCH /api/projetos/:slug` + a parte de colunas/dados do fluxo "Atualizar Planilha" (`alterar_planilha`, possivelmente 2 chamadas do utilitário no mesmo request), `POST /api/emails/:slug/sheet` (`reimportar_planilha`), `DELETE /api/projetos` (`deletar_projeto`), `POST /api/lixeira/restaurar` (`restaurar_projeto`), `DELETE /api/lixeira` (`deletar_projeto_permanente`).
 - Handler de `PUT /api/emails/:slug`: `alterar_registro`, `restaurar_registro`, `editar_email`, conforme o que de fato mudou no payload.
 
-**Etapa 3 — Endpoint de exportação**
-- Novo `POST /api/logs` no `vite.config.ts`, chamado por `exportarPlanilha.ts` após o download disparar (`exportar_planilha`).
+**Etapa 3 — Endpoint de recepção client-side (`POST /api/logs`)**
+- Recebe eventos que não nascem de um handler de mutação existente: confirmação de `exportar_planilha` (disparada por `exportarPlanilha.ts`) e, a partir da Etapa 4, os relatos de `erro_cliente`. Um único endpoint pros dois casos.
 
-**Etapa 4 — Leitura com filtro/busca/paginação**
+**Etapa 4 — Instrumentar logs de erro**
+- Servidor: captura de exceptions não tratadas nos handlers do `vite.config.ts` (gera `erro_servidor` via `registrarLog`, respeitando o guard contra loop da Etapa 1).
+- Cliente: `window.onerror`/error boundary do React (`erro_cliente`, `origem: "cliente"`) e interceptação de respostas 4xx/5xx nas chamadas de API existentes (`src/services/*Api.ts`), ambos enviados via `POST /api/logs` (Etapa 3).
+
+**Etapa 5 — Leitura com filtro/busca/paginação**
 - Novo `GET /api/logs`, com query params de busca (nome/data/tipo/projeto/registroId/id da alteração), filtro e paginação.
 - Leitura sequencial por arquivo mensal (mês mais recente → mais antigo), com early-exit ao preencher a página pedida.
 
-**Etapa 5 — Tela `/logs`**
-- Nova rota (`App.tsx`), botão "Visualizar Logs" no `Header`, página com tabela paginada, campos de busca e filtro, consumindo `GET /api/logs`.
+**Etapa 6 — Tela `/logs`**
+- Nova rota (`App.tsx`); botão "Visualizar Logs" no dropdown de configurações/funções do `Header`, mesmo padrão visual dos demais itens.
+- Tabela paginada (50 por página, fixo) com colunas `data`, `acao`, `projeto`, `mensagem`; clicar na linha abre modal com o log completo (`id`, `registroId`, `quantidade`, `original`, `atual`, e `origem`/`detalhe` quando for erro).
+- Busca/filtro (nome, data — dia único ou intervalo —, tipo, projeto, registroId, id da alteração) sempre acima da tabela.
+- Abas "Ações" / "Erros" com switch; troca de aba preserva filtros/busca/página atuais.
+- Estado vazio: "Nenhum log encontrado". Estado de erro do fetch: mensagem distinta (ex.: "Erro ao carregar logs").
+- Banner somente-leitura exibido quando `LOGS_ATIVOS=false` no ambiente atual (o `GET /api/logs` pode retornar esse estado junto da listagem).
+
+**Etapa 7 — Exportar logs por mês**
+- Novo `GET /api/logs/export` no `vite.config.ts` (query params: meses/intervalo + formato), já que a exportação lê `data/logs/` diretamente no servidor — o cliente não tem acesso a esses arquivos.
+- Botão "Exportar Logs" sempre visível na tela `/logs`.
+- Seletor de mês único ou intervalo de meses (não depende da busca/filtro/aba ativa — exporta os arquivos mensais como são, com ações e erros juntos, já que é assim que ficam armazenados).
+- Seleção de formato (CSV ou JSON) por arquivo exportado, mesmo padrão do `ExportarModal` de planilhas; JSON exporta a estrutura como está, CSV usa o esquema de achatamento descrito em Decisões.
+- 1 mês selecionado → download do arquivo direto (convertido pro formato escolhido). Mais de 1 mês → `.zip` contendo um arquivo por mês.
 
 ### Arquivos Necessários
 
@@ -714,22 +786,73 @@ Para ações em massa, `original`/`atual` ficam `null` e o resumo vai só em `me
 - `src/pages/emails.tsx` — ações individuais e em massa sobre registros (Etapa 2).
 - `src/components/atualizar/AtualizarDadosModal.tsx` — fluxo que pode gerar renomeio + alteração de dados no mesmo clique (Etapa 2).
 - `src/components/utils/restaurarCampos.ts` — lógica de `restaurar_registro` (Etapa 2).
-- `src/components/utils/exportarPlanilha.ts` — ponto de disparo de `exportar_planilha` (Etapa 3).
-- `src/components/Header.tsx` — onde entra o botão "Visualizar Logs" (Etapa 5).
-- `src/App.tsx` — onde entra a rota `/logs` (Etapa 5).
+- `src/components/utils/exportarPlanilha.ts` — ponto de disparo de `exportar_planilha` (Etapa 3) e padrão de referência do fluxo de exportação (Etapa 7).
+- `src/components/Header.tsx` — onde entra o botão "Visualizar Logs", no dropdown de configurações/funções já existente (Etapa 6).
+- `src/App.tsx` — onde entra a rota `/logs` (Etapa 6).
 
 **Arquivos Alterados:**
-- `vite.config.ts` — handlers existentes passam a chamar `registrarLog`; novos endpoints `POST /api/logs` e `GET /api/logs` (Etapas 1–4).
-- `src/components/utils/exportarPlanilha.ts` — chamada ao novo endpoint de log (Etapa 3).
-- `src/components/Header.tsx` — novo botão "Visualizar Logs" (Etapa 5).
-- `src/App.tsx` — nova rota `/logs` (Etapa 5).
+- `vite.config.ts` — handlers existentes passam a chamar `registrarLog`; novos endpoints `POST /api/logs` (Etapa 3), `GET /api/logs` (Etapa 5) e `GET /api/logs/export` (Etapa 7).
+- `.env` / `.env.example` — nova variável `LOGS_ATIVOS` (Etapa 1).
+- `src/components/utils/exportarPlanilha.ts` — chamada ao endpoint de log (Etapa 3).
+- `src/components/Header.tsx` — novo botão "Visualizar Logs" (Etapa 6).
+- `src/App.tsx` — nova rota `/logs` (Etapa 6).
 
 **Arquivos Criados:**
 - `src/scripts/utils/registrarLog.ts` *(nome sugerido)* — utilitário central de escrita do log, com resolução do arquivo mensal (Etapa 1).
 - `data/logs/<AAAA-MM>.jsonl` *(arquivos novos, gerados em runtime — um por mês)* (Etapa 1).
-- `src/pages/logs.tsx` *(nome sugerido)* — tela de visualização (Etapa 5).
-- `src/services/logsApi.ts` *(nome sugerido)* — client para `GET/POST /api/logs`.
-- `src/components/logs/*` *(nomes a definir)* — tabela, filtros e busca da tela de logs (Etapa 5).
+- `src/pages/logs.tsx` *(nome sugerido)* — tela de visualização (Etapa 6).
+- `src/services/logsApi.ts` *(nome sugerido)* — client para `POST /api/logs` (Etapa 3) e `GET /api/logs` (Etapa 5).
+- `src/components/logs/*` *(nomes a definir)* — tabela, modal de detalhe, abas, filtros, busca e botão de exportação da tela de logs (Etapas 6 e 7).
+- `src/scripts/utils/exportarLogs.ts` *(nome sugerido)* — leitura dos arquivos mensais selecionados, conversão pro formato escolhido (CSV com o esquema de achatamento descrito em Decisões, ou JSON) e, quando for mais de 1 mês, empacotamento em `.zip`. Roda no servidor, atrás do `GET /api/logs/export` (Etapa 7).
+
+---
+
+## Demanda 10 — Refatoração do Sistema de Duplicatas
+
+**Status:** Mapeado — planner completo em `public/RefatoracaoSistemadeDuplicatas.md`, pronto para a Etapa 0 (mapeamento) quando a implementação começar. Esta demanda existia como arquivo solto, sem entrada neste documento — trazida para o registro nesta atualização, sem nenhuma etapa iniciada.
+**Esforço estimado:** Dias — 15 etapas, a maioria de baixo risco e independentes entre si a partir da Etapa 4; Etapas 0–3 são sequenciais
+**Depende de:** —
+**Bloqueia:** —
+
+### Contexto
+
+O status `duplicado` é hoje um dos 5 valores possíveis do campo `status` de `EmailRecord` (`válido`/`inválido`/`duplicado`/`deletado`/`enviado`), calculado automaticamente quando dois ou mais registros ativos compartilham o mesmo e-mail. Como a trava `status_alterado` impede que um status definido manualmente seja recalculado, uma sequência real de ações (deletar dois de três duplicados → o terceiro vira `válido`/`inválido` automaticamente → é editado manualmente → um dos deletados é restaurado) deixa dois registros com o mesmo e-mail em estados divergentes e sem vínculo visual entre si (um mostra `duplicado`, o outro mostra o status manual) — um bug de modelagem de dados confirmado como ainda presente no código atual (`TStatus` ainda inclui `'duplicado'`).
+
+### A solução proposta
+
+Desacoplar "duplicado" de `status`: `status` passa a ter só 4 valores (`válido`/`inválido`/`deletado`/`enviado`); duplicidade vira uma flag calculada em runtime (nunca persistida), exibida como badge ao lado do status real — um registro pode ser `válido` **e** duplicado, `inválido` **e** duplicado etc., simultaneamente. A trava `status_alterado` continua igual, mas deixa de decidir se um registro "pode ser visto como duplicado".
+
+### Etapas de Implementação `[Inicial]`
+
+1. Migração dos dados existentes (`status: 'duplicado'` → recalculado para `válido`/`inválido`).
+2. Modelo de dados (`types/email.ts`, `EmailStatus.ts`) — remover `'duplicado'` de `TStatus`, extrair `calcularEmailsDuplicados`.
+3. Script de sincronização (`sync.ts`) — parar de atribuir `'duplicado'`.
+4. Estado derivado central (`emails.tsx`) — calcular `emailsDuplicados` uma vez, via `useMemo`.
+5. Contadores (`EmailCounters.tsx`, `emailData.ts`).
+6. Filtros (`emailData.ts`, `EmailToolbar.tsx`) — **checkpoint de produto**: filtros de status passam a poder se sobrepor.
+7. Ordenação por status (`STATUS_ORDEM_EXIBICAO`).
+8. Tabela principal (`EmailTable.tsx`) — badge "⚠ duplicado" independente do status exibido.
+9. Handlers de edição manual (`emails.tsx`) — **checkpoint de produto**: libera edição de registros duplicados.
+10. Remoção de código morto (`StatusUpdateConflict.tsx`).
+11. Revisão de `DuplicadosModal.tsx`/`DuplicadosConflitoModal.tsx`.
+12. Exportação (`ExportarModal.tsx`, `exportarPlanilha.ts`) — deduplicação ao exportar com checkboxes sobrepostos.
+13. Conferência do assistente de importação (`statsPreliminares.ts`, `EtapaRevisao.tsx`, `EtapaInformacoes.tsx`).
+14. QA do cenário original e regressão.
+15. Atualização da especificação do sistema.
+
+Detalhamento completo de cada etapa, critérios de aceite e roteiro de teste manual em `public/RefatoracaoSistemadeDuplicatas.md`.
+
+### Arquivos Alterados (previstos)
+
+- `src/types/email.ts`, `src/components/EmailStatus.ts` — modelo de status e cálculo de duplicidade.
+- `src/scripts/sync.ts` — sincronização via terminal.
+- `src/pages/emails.tsx`, `src/components/EmailTable.tsx`, `src/components/EmailToolbar.tsx`, `src/components/utils/emailData.ts` — estado derivado, tabela, filtros, contadores.
+- `src/components/ExportarModal.tsx`, `src/components/utils/exportarPlanilha.ts` — exportação.
+- Assistente de importação (`statsPreliminares.ts`, `EtapaRevisao.tsx`, `EtapaInformacoes.tsx`) — só conferência, sem alteração esperada.
+
+### Arquivos Removidos (previstos)
+
+- `src/components/StatusUpdateConflict.tsx` — código morto após a Etapa 9.
 
 ---
 

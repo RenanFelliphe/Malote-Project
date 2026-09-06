@@ -4,6 +4,26 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { EmailsData } from './src/types/email'
+// Etapa 2 (LogsDeAlteracoes.md, Demanda 9): utilitário central de log —
+// todo handler de mutação abaixo passa a chamá-lo diretamente, nenhum
+// escreve em data/logs/ por conta própria (seção 5 do planner). Extensão
+// `.js` intencional (arquivo fonte é `.ts`), mesma convenção já usada por
+// `registrarLog.ts` ao importar `types/log.js`.
+import { registrarLog } from './src/scripts/utils/registrarLog.js'
+// Etapa 5: `ehTipoAcaoErro` é usado em runtime (filtro de aba "Ações"/"Erros"
+// de `GET /api/logs`, `handleListarLogs` abaixo) — import sem `type`, mesma
+// extensão `.js` do import de `registrarLog` acima.
+import { ehTipoAcaoErro } from './src/types/log.js'
+// Etapa 3: tipos usados só para validar o corpo de `POST /api/logs`
+// (`logsApiPlugin` abaixo) — import de tipo, sem extensão `.js`, mesma
+// convenção já usada acima para `EmailsData`. `LinhaLog`, Etapa 5: shape de
+// cada linha lida de `data/logs/<AAAA-MM>.jsonl` por `GET /api/logs`.
+import type { TipoAcao, DadosLog, LinhaLog } from './src/types/log'
+// Etapa 7: `JSZip` empacota a exportação de logs em intervalo (2+ meses)
+// num único `.zip` — mesma dependência já usada por `exportarPlanilha.ts`
+// (client-side, import dinâmico para code-splitting). Aqui, import
+// estático: o processo do dev server não precisa de code-splitting.
+import JSZip from 'jszip'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // A partir da migração descrita em implementacaoImportacao.md (Etapa 1),
@@ -25,6 +45,26 @@ class ApiError extends Error {
     super(message)
     this.status = status
   }
+}
+
+/**
+ * Registra `erro_servidor` para uma exceção genuinamente não tratada por
+ * um handler deste arquivo — nunca para `ApiError` (validação/conflito com
+ * status HTTP explícito, classe acima), que já é uma resposta esperada, não
+ * uma falha real do servidor. Chamado em todo catch deste arquivo que
+ * devolveria (ou, nos laços em lote, contabilizaria por item) um 500 —
+ * Etapa 4 de LogsDeAlteracoes.md ("captura de exceptions não tratadas nos
+ * handlers"). `contexto` identifica a rota/handler de origem, só para a
+ * mensagem — não é validado contra nenhuma whitelist adicional além da já
+ * feita por `registrarLog` (`acao` continua sendo sempre `erro_servidor`).
+ */
+function registrarErroServidor(err: unknown, contexto: string): void {
+  if (err instanceof ApiError) return
+  registrarLog('erro_servidor', {
+    origem: 'servidor',
+    mensagem: `Erro não tratado em ${contexto}: ${err instanceof Error ? err.message : String(err)}`,
+    detalhe: err instanceof Error ? err.stack : String(err),
+  })
 }
 
 /**
@@ -151,6 +191,7 @@ function handleObterSheet(res: import('node:http').ServerResponse, slug: string)
     res.setHeader('Content-Disposition', `attachment; filename="sheet.${ext}"`)
     res.end(fs.readFileSync(caminhoSheet))
   } catch (err) {
+    registrarErroServidor(err, 'GET /api/emails/:slug/sheet')
     const status = err instanceof ApiError ? err.status : 500
     res.statusCode = status
     res.setHeader('Content-Type', 'application/json')
@@ -184,10 +225,27 @@ function handleSalvarSheet(
         throw new ApiError(400, 'Corpo inválido: esperado objeto { nomeArquivo, conteudoBase64 }.')
       }
       persistirSheetBruto(diretorioProjeto, dados.nomeArquivo, dados.conteudoBase64)
+
+      // Etapa 2: `reimportar_planilha` — planner, "Etapa 2 — Instrumentar
+      // os handlers existentes". Ajuste de rota / limitação conhecida: este
+      // endpoint recebe só `{ nomeArquivo, conteudoBase64 }` (bytes brutos),
+      // sem a contagem de registros reimportados — `quantidade` fica
+      // omitido (o template de `montarMensagem` já lida com isso, seção 4
+      // de `LogsDeAlteracoes.md`). Como o tipo não está em
+      // `ACOES_SEMPRE_REAIS` (`registrarLog.ts`) nem `houveMudancaReal`
+      // recebe `original`/`atual` aqui, a linha é sempre gravada mesmo
+      // assim (nenhuma das duas checagens de no-op se aplica sem
+      // `quantidade`/`original`/`atual`). Fechar esse gap com uma contagem
+      // exata depende de `AtualizarRegistrosModal.tsx`/`calcularMerge.ts`
+      // passarem a enviar a contagem no corpo — fora do escopo mapeado na
+      // Etapa 0 desta demanda.
+      registrarLog('reimportar_planilha', { projeto: slug })
+
       res.statusCode = 200
       res.setHeader('Content-Type', 'application/json')
       res.end(JSON.stringify({ ok: true }))
     } catch (err) {
+      registrarErroServidor(err, 'POST /api/emails/:slug/sheet')
       const status = err instanceof ApiError ? err.status : 500
       res.statusCode = status
       res.setHeader('Content-Type', 'application/json')
@@ -218,6 +276,173 @@ function handleSalvarSheet(
  * /api/projetos/:slug`, que só entra em jogo quando o nome do
  * arquivo/rota muda).
  */
+/**
+ * Registro genérico o bastante para o diff de `registros` abaixo sem
+ * depender do shape completo de `EmailRecord` (fora do escopo desta
+ * demanda — ver "Ajuste de rota" no planner). `id` é o único campo cuja
+ * presença é garantida pelo restante do projeto (`exportarPlanilha.ts`
+ * usa `registro.id` diretamente).
+ */
+type RegistroLog = Record<string, unknown> & { id: unknown }
+
+/**
+ * Compara o `email` (EmailConteudo) atual com o recebido no corpo de `PUT
+ * /api/emails/:slug` e registra uma linha `editar_email` por campo que de
+ * fato mudou de valor — formato dedicado `{ campo, de }`/`{ campo, para }`
+ * da seção 4 do planner (`descreverDiferencas`, `registrarLog.ts`), uma
+ * linha por campo tocado, ao contrário do diff genérico de
+ * `alterar_registro` abaixo, que agrupa todos os campos de um mesmo
+ * registro numa única linha. Cobre `assunto`/`corpo`/`anexos` e qualquer
+ * atributo futuro sem exigir mudança de código (planner, seção 4: "sem
+ * exigir novo tipo a cada novo atributo").
+ */
+function registrarEdicoesDeEmail(
+  slug: string,
+  emailAtual: Record<string, unknown> | null | undefined,
+  emailNovo: Record<string, unknown> | null | undefined,
+): void {
+  const atual = emailAtual ?? {}
+  const novo = emailNovo ?? {}
+  const chaves = new Set([...Object.keys(atual), ...Object.keys(novo)])
+  for (const campo of chaves) {
+    const de = atual[campo]
+    const para = novo[campo]
+    if (JSON.stringify(de) === JSON.stringify(para)) continue
+    registrarLog('editar_email', {
+      projeto: slug,
+      original: { campo, de },
+      atual: { campo, para },
+    })
+  }
+}
+
+/**
+ * Compara `registros` atuais (lidos do disco) com os recebidos no corpo de
+ * `PUT /api/emails/:slug`, casados por `id`. Para cada registro que mudou:
+ *
+ * 1. Se alguma chave de `backup_dados` foi removida em relação ao registro
+ *    atual, emite `restaurar_registro` para essas chaves — mesmo critério
+ *    de `restaurarCampos.ts` (a restauração só remove chaves, nunca
+ *    adiciona; `status` não tem valor literal restaurado, só a remoção da
+ *    chave, por isso `original`/`atual` podem trazer o mesmo valor de
+ *    `status` — ver o ajuste em `houveMudancaReal`, `registrarLog.ts`).
+ * 2. Qualquer outra alteração de campo (excluindo `backup_dados` e
+ *    `last_updated`, metadados internos, e as chaves já cobertas pelo
+ *    item 1) emite `alterar_registro`, com diff genérico agrupando todos
+ *    os campos que mudaram nesse registro numa única linha.
+ *
+ * Limitação conhecida — ver "Ajuste de rota" no planner: sem
+ * `calcularMerge.ts`/`AtualizarRegistrosModal.tsx`/`AtualizarDadosModal.tsx`
+ * (fora do escopo mapeado na Etapa 0), esta função não distingue uma
+ * edição manual de um único registro de um remapeamento de colunas em
+ * massa — ambos chegam da mesma forma (array `registros` completo) e são
+ * tratados registro a registro, podendo gerar uma linha `alterar_registro`
+ * por registro afetado num remapeamento grande, em vez de uma única linha
+ * agregada. Criação de registro (id novo, sem correspondente em
+ * `registrosAtuais`) não é coberta por esta demanda — só acontece via
+ * `importar_planilha`/`reimportar_planilha`, instrumentados à parte.
+ */
+function registrarMutacoesDeRegistros(
+  slug: string,
+  registrosAtuais: RegistroLog[] | null | undefined,
+  registrosNovos: RegistroLog[] | null | undefined,
+): void {
+  const porId = new Map<string, RegistroLog>()
+  for (const registro of registrosAtuais ?? []) {
+    porId.set(String(registro.id), registro)
+  }
+
+  for (const registroNovo of registrosNovos ?? []) {
+    const registroId = String(registroNovo.id)
+    const registroAtual = porId.get(registroId)
+    if (!registroAtual) continue
+
+    const backupAtual = (registroAtual.backup_dados ?? null) as Record<string, unknown> | null
+    const backupNovo = (registroNovo.backup_dados ?? null) as Record<string, unknown> | null
+    const chavesRestauradas = Object.keys(backupAtual ?? {}).filter(
+      (chave) => !backupNovo || !(chave in backupNovo),
+    )
+
+    if (chavesRestauradas.length > 0) {
+      const original: Record<string, unknown> = {}
+      const atual: Record<string, unknown> = {}
+      for (const chave of chavesRestauradas) {
+        original[chave] = registroAtual[chave]
+        atual[chave] = registroNovo[chave]
+      }
+      registrarLog('restaurar_registro', { projeto: slug, registroId, original, atual })
+    }
+
+    const chavesIgnoradas = new Set(['backup_dados', 'last_updated', ...chavesRestauradas])
+    const chaves = new Set([...Object.keys(registroAtual), ...Object.keys(registroNovo)])
+    const original: Record<string, unknown> = {}
+    const atual: Record<string, unknown> = {}
+    for (const chave of chaves) {
+      if (chavesIgnoradas.has(chave)) continue
+      const de = registroAtual[chave]
+      const para = registroNovo[chave]
+      if (JSON.stringify(de) !== JSON.stringify(para)) {
+        original[chave] = de
+        atual[chave] = para
+      }
+    }
+    if (Object.keys(original).length > 0) {
+      registrarLog('alterar_registro', { projeto: slug, registroId, original, atual })
+    }
+  }
+}
+
+/**
+ * Ponto único de instrumentação do handler `PUT /api/emails/:slug`
+ * (Etapa 2) — chamado depois que `fs.writeFileSync` já persistiu
+ * `dadosMesclados`, comparando o estado lido do disco antes do merge
+ * (`dadosAtuais`) com o que foi recebido/persistido, seguindo a regra de
+ * "uma linha por mutação de fato ocorrida" (planner, seção 2):
+ * renomeio de exibição e remapeamento de coluna de ID viram `alterar_planilha`
+ * (mesma tag do `PATCH /api/projetos/:slug`, linha própria por não serem a
+ * mesma mutação de registros/e-mail); o conteúdo do e-mail e os registros
+ * são diffados à parte, cada um com sua própria função acima.
+ */
+function registrarMutacoesDoPutEmails(
+  slug: string,
+  dadosAtuais: Record<string, unknown>,
+  dadosRecebidos: Record<string, unknown>,
+  dadosMesclados: Record<string, unknown>,
+): void {
+  if (
+    typeof dadosRecebidos.projeto === 'string' &&
+    dadosRecebidos.projeto !== dadosAtuais.projeto
+  ) {
+    registrarLog('alterar_planilha', {
+      projeto: slug,
+      original: { projeto: dadosAtuais.projeto ?? null },
+      atual: { projeto: dadosRecebidos.projeto },
+    })
+  }
+
+  const colunaIdAntiga = (dadosAtuais as { colunaId?: string }).colunaId ?? null
+  const colunaIdNova = (dadosMesclados as { colunaId?: string }).colunaId ?? null
+  if (colunaIdAntiga !== colunaIdNova) {
+    registrarLog('alterar_planilha', {
+      projeto: slug,
+      original: { colunaId: colunaIdAntiga },
+      atual: { colunaId: colunaIdNova },
+    })
+  }
+
+  registrarEdicoesDeEmail(
+    slug,
+    dadosAtuais.email as Record<string, unknown> | undefined,
+    dadosRecebidos.email as Record<string, unknown> | undefined,
+  )
+
+  registrarMutacoesDeRegistros(
+    slug,
+    dadosAtuais.registros as RegistroLog[] | undefined,
+    dadosRecebidos.registros as RegistroLog[] | undefined,
+  )
+}
+
 function emailsApiPlugin() {
   return {
     name: 'emails-api',
@@ -316,10 +541,18 @@ function emailsApiPlugin() {
             }
 
             fs.writeFileSync(emailsJsonPath, JSON.stringify(dadosMesclados, null, 2) + '\n', 'utf-8')
+
+            // Etapa 2 (LogsDeAlteracoes.md): diff entre o que estava no
+            // disco (dadosAtuais) e o que foi recebido/persistido — nunca
+            // trava a resposta real, mesmo em caso de falha de escrita do
+            // log (guard anti-loop de `registrarLog`, seção 5, item 6).
+            registrarMutacoesDoPutEmails(slug, dadosAtuais, dados, dadosMesclados)
+
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify({ ok: true }))
           } catch (err) {
+            registrarErroServidor(err, 'PUT /api/emails/:slug')
             res.statusCode = 500
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify({ ok: false, error: String(err) }))
@@ -396,8 +629,11 @@ function handleDeletarProjetos(req: import('node:http').IncomingMessage, res: im
           fs.mkdirSync(trashDirectory, { recursive: true })
           fs.renameSync(diretorioProjeto, diretorioLixeira)
 
+          registrarLog('deletar_projeto', { projeto: slug })
+
           return { slug, ok: true as const }
         } catch (err) {
+          registrarErroServidor(err, 'DELETE /api/projetos (item)')
           return {
             slug,
             ok: false as const,
@@ -411,6 +647,7 @@ function handleDeletarProjetos(req: import('node:http').IncomingMessage, res: im
       res.setHeader('Content-Type', 'application/json')
       res.end(JSON.stringify({ ok: !algumaFalha, resultados }))
     } catch (err) {
+      registrarErroServidor(err, 'DELETE /api/projetos')
       const status = err instanceof ApiError ? err.status : 500
       res.statusCode = status
       res.setHeader('Content-Type', 'application/json')
@@ -553,10 +790,22 @@ function handleRenomearProjeto(
         fs.renameSync(diretorioAtual, path.resolve(trashDirectory, `${novoSlug}--${timestampPasta}`))
       }
 
+      // Etapa 2: renomeio de arquivo (ativo ou lixeira) é tag
+      // `alterar_planilha`, não um tipo próprio — planner, "Etapa 2 —
+      // Instrumentar os handlers existentes". Logado sob o slug
+      // resultante (`novoSlug`), já que é a identidade que sobrevive à
+      // mutação e sob a qual buscas futuras na tela `/logs` vão filtrar.
+      registrarLog('alterar_planilha', {
+        projeto: novoSlug,
+        original: { slug: slugAtual },
+        atual: { slug: novoSlug },
+      })
+
       res.statusCode = 200
       res.setHeader('Content-Type', 'application/json')
       res.end(JSON.stringify({ ok: true, slug: novoSlug }))
     } catch (err) {
+      registrarErroServidor(err, 'PATCH /api/projetos/:slug')
       const status = err instanceof ApiError ? err.status : 500
       res.statusCode = status
       res.setHeader('Content-Type', 'application/json')
@@ -683,10 +932,15 @@ function projetosApiPlugin() {
             // emails.json — sem alterar o restante do fluxo de criação.
             persistirSheetBruto(diretorioProjeto, arquivo.nomeArquivo, arquivo.conteudoBase64)
 
+            // Etapa 2: `importar_planilha` está em `ACOES_SEMPRE_REAIS`
+            // (`registrarLog.ts`) — sempre grava, mesmo com `quantidade: 0`.
+            registrarLog('importar_planilha', { projeto: slug, quantidade: registros.length })
+
             res.statusCode = 201
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify({ ok: true, slug }))
           } catch (err) {
+            registrarErroServidor(err, 'POST /api/projetos')
             const status = err instanceof ApiError ? err.status : 500
             res.statusCode = status
             res.setHeader('Content-Type', 'application/json')
@@ -779,6 +1033,7 @@ function handleListarLixeira(res: import('node:http').ServerResponse) {
     res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify(itens))
   } catch (err) {
+    registrarErroServidor(err, 'GET /api/lixeira')
     res.statusCode = 500
     res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify({
@@ -891,8 +1146,11 @@ function handleRestaurarProjetos(req: import('node:http').IncomingMessage, res: 
           fs.writeFileSync(emailsJsonLixeiraPath, JSON.stringify(dadosRestaurados, null, 2) + '\n', 'utf-8')
           fs.renameSync(diretorioLixeira, diretorioAtivo)
 
+          registrarLog('restaurar_projeto', { projeto: slug })
+
           return { slug, ok: true as const }
         } catch (err) {
+          registrarErroServidor(err, 'POST /api/lixeira/restaurar (item)')
           return {
             slug,
             ok: false as const,
@@ -906,6 +1164,7 @@ function handleRestaurarProjetos(req: import('node:http').IncomingMessage, res: 
       res.setHeader('Content-Type', 'application/json')
       res.end(JSON.stringify({ ok: !algumaFalha, resultados }))
     } catch (err) {
+      registrarErroServidor(err, 'POST /api/lixeira/restaurar')
       const status = err instanceof ApiError ? err.status : 500
       res.statusCode = status
       res.setHeader('Content-Type', 'application/json')
@@ -984,8 +1243,11 @@ function handleExcluirPermanentemente(req: import('node:http').IncomingMessage, 
 
           fs.rmSync(path.resolve(trashDirectory, nomePasta), { recursive: true, force: true })
 
+          registrarLog('deletar_projeto_permanente', { projeto: slug })
+
           return { slug, ok: true as const }
         } catch (err) {
+          registrarErroServidor(err, 'DELETE /api/lixeira (item)')
           return {
             slug,
             ok: false as const,
@@ -999,6 +1261,7 @@ function handleExcluirPermanentemente(req: import('node:http').IncomingMessage, 
       res.setHeader('Content-Type', 'application/json')
       res.end(JSON.stringify({ ok: !algumaFalha, resultados }))
     } catch (err) {
+      registrarErroServidor(err, 'DELETE /api/lixeira')
       const status = err instanceof ApiError ? err.status : 500
       res.statusCode = status
       res.setHeader('Content-Type', 'application/json')
@@ -1047,6 +1310,475 @@ function lixeiraApiPlugin() {
   }
 }
 
+/**
+ * Tipos de ação aceitos por `POST /api/logs` — subconjunto da taxonomia
+ * completa (`TIPOS_ACAO`, `types/log.ts`): só os dois eventos que nascem
+ * no cliente sem um handler de mutação de servidor ao qual se anexar
+ * (planner, seção 3, tabela de endpoints). Todo handler de mutação real
+ * (Etapa 2) chama `registrarLog` diretamente — não passa por este
+ * endpoint. Espelha `AcaoLogCliente` em `src/services/logsApi.ts`; mantenha
+ * os dois sincronizados se a whitelist mudar. `erro_cliente` só passa a
+ * ser emitido de fato a partir da Etapa 4.
+ */
+const ACOES_ACEITAS_POST_LOGS = new Set<TipoAcao>(['exportar_planilha', 'erro_cliente'])
+
+function corpoValidoParaPostLogs(valor: unknown): valor is { acao: TipoAcao; dados?: DadosLog } {
+  if (valor === null || typeof valor !== 'object' || Array.isArray(valor)) return false
+  const objeto = valor as { acao?: unknown; dados?: unknown }
+  if (typeof objeto.acao !== 'string' || !ACOES_ACEITAS_POST_LOGS.has(objeto.acao as TipoAcao)) {
+    return false
+  }
+  return (
+    objeto.dados === undefined ||
+    (typeof objeto.dados === 'object' && objeto.dados !== null && !Array.isArray(objeto.dados))
+  )
+}
+
+/**
+ * Handler de `POST /api/logs` (novo, Etapa 3) — recebe `{ acao, dados? }`
+ * de eventos originados no cliente (`registrarLogCliente`,
+ * `services/logsApi.ts`) e repassa direto para `registrarLog` (Etapa 1),
+ * mesma validação/whitelist/no-op/guard anti-loop de qualquer outro ponto
+ * de mutação — este handler não duplica nenhuma dessas regras, só valida
+ * o formato do corpo e a whitelist restrita (`ACOES_ACEITAS_POST_LOGS`)
+ * antes de repassar.
+ */
+function handleReceberLogCliente(req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse) {
+  let body = ''
+  req.on('data', (chunk) => { body += chunk })
+  req.on('end', () => {
+    try {
+      const corpo = JSON.parse(body || '{}')
+      if (!corpoValidoParaPostLogs(corpo)) {
+        throw new ApiError(
+          400,
+          'Corpo inválido: esperado objeto { acao, dados? }, com acao em "exportar_planilha" ou "erro_cliente".',
+        )
+      }
+      registrarLog(corpo.acao, corpo.dados ?? {})
+      res.statusCode = 200
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ ok: true }))
+    } catch (err) {
+      registrarErroServidor(err, 'POST /api/logs')
+      const status = err instanceof ApiError ? err.status : 500
+      res.statusCode = status
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+      }))
+    }
+  })
+}
+
+/**
+ * Quantidade fixa de itens por página de `GET /api/logs` (seção 6 do
+ * planner: "fixa em 50 por página, sem opção de o usuário mudar o
+ * tamanho") — nenhum query param sobrescreve este valor.
+ */
+const TAMANHO_PAGINA_LOGS = 50
+
+/** Formato de resposta de `GET /api/logs` (Etapa 5, ajustada na Etapa 6). Espelhado em `services/logsApi.ts` (`RespostaListagemLogs`) — mantenha os dois sincronizados. */
+interface RespostaListagemLogs {
+  itens: LinhaLog[]
+  pagina: number
+  /**
+   * `true` quando existe pelo menos mais um item além dos já devolvidos
+   * nesta página — descoberto durante a própria leitura sequencial (early-
+   * exit da seção 6), nunca por uma contagem total à parte, que exigiria
+   * ler todo o histórico a cada request.
+   */
+  temProximaPagina: boolean
+  /**
+   * Ajuste de rota (Etapa 6): campo novo, não previsto na Etapa 5. A tela
+   * `/logs` precisa saber se `LOGS_ATIVOS=false` no ambiente atual para
+   * exibir o banner somente-leitura da seção 6 ("o GET /api/logs pode
+   * retornar esse estado junto da listagem") — sem isso, o cliente não tem
+   * nenhuma forma de descobrir o valor de uma variável de ambiente do
+   * servidor. Reflete `process.env.LOGS_ATIVOS` no momento da consulta, com
+   * o mesmo critério de `registrarLog` (`registrarLog.ts`): qualquer valor
+   * diferente de `"false"` conta como ativo.
+   */
+  logsAtivos: boolean
+}
+
+/**
+ * Lista, em ordem decrescente de nome de arquivo (`<AAAA-MM>.jsonl`), os
+ * meses já gravados em `data/logs/` — mês mais recente primeiro, mesma
+ * ordem de leitura pedida pela seção 6 ("mês mais recente → mais antigo").
+ * Devolve array vazio se a pasta ainda não existir (nenhum log gravado
+ * ainda), sem lançar.
+ */
+function listarArquivosMensaisDeLogs(): string[] {
+  const diretorio = path.resolve(process.cwd(), 'data', 'logs')
+  if (!fs.statSync(diretorio, { throwIfNoEntry: false })?.isDirectory()) {
+    return []
+  }
+  return fs
+    .readdirSync(diretorio)
+    .filter((nome) => /^\d{4}-\d{2}\.jsonl$/.test(nome))
+    .sort()
+    .reverse()
+    .map((nome) => path.resolve(diretorio, nome))
+}
+
+/** `true` se `linha` pertence à aba pedida ("Ações" ou "Erros", seção 6). */
+function linhaCorrespondeAba(linha: LinhaLog, aba: 'acoes' | 'erros'): boolean {
+  return aba === 'erros' ? ehTipoAcaoErro(linha.acao) : !ehTipoAcaoErro(linha.acao)
+}
+
+/**
+ * `true` se `linha.data` (sempre UTC, seção 4) cai dentro de
+ * `[dataInicio, dataFim]` — limites inclusivos, cada um opcional (range
+ * aberto de um dos lados quando ausente). Dia único é só um caso particular
+ * do cliente mandar `dataInicio`/`dataFim` do mesmo dia (conversão de fuso
+ * horário local → UTC é responsabilidade de quem monta a query, seção 6 —
+ * este handler só compara timestamps já em UTC, sem conhecer o fuso do
+ * cliente).
+ */
+function linhaCorrespondeData(linha: LinhaLog, dataInicio: string | null, dataFim: string | null): boolean {
+  const timestamp = Date.parse(linha.data)
+  if (dataInicio !== null && timestamp < Date.parse(dataInicio)) return false
+  if (dataFim !== null && timestamp > Date.parse(dataFim)) return false
+  return true
+}
+
+/**
+ * `true` se `busca` (case-insensitive, substring) aparece em algum dos
+ * campos pesquisáveis da seção 6 ("nome, tipo, projeto, registroId ou id da
+ * alteração"). Ajuste de rota: nenhum desses cinco nomes é literalmente um
+ * campo de `LinhaLog` (seção 4) — "tipo" é `acao`, e não existe campo
+ * "nome" no formato gravado. Interpretação adotada: `acao` cobre "tipo";
+ * `mensagem` (texto montado por `montarMensagem`, Etapa 1, que já embute
+ * nomes de campo/projeto quando relevante) cobre a intenção de buscar por
+ * "nome" sem exigir um campo dedicado só para isso — junto de `projeto`,
+ * `registroId` e `id`, que têm correspondência direta.
+ */
+function linhaCorrespondeBusca(linha: LinhaLog, busca: string | null): boolean {
+  if (!busca) return true
+  const alvo = busca.toLowerCase()
+  const campos: unknown[] = [linha.acao, linha.projeto, linha.registroId, linha.id, linha.mensagem]
+  return campos.some((campo) => typeof campo === 'string' && campo.toLowerCase().includes(alvo))
+}
+
+/**
+ * Handler de `GET /api/logs` (novo, Etapa 5) — busca/filtro/paginação
+ * (seção 6). Query params (nomes definidos nesta etapa, não especificados
+ * literalmente pelo planner):
+ * - `aba`: `'acoes'` (padrão) ou `'erros'` — alterna as duas abas da seção 6.
+ * - `pagina`: inteiro ≥ 1 (padrão 1) — tamanho sempre `TAMANHO_PAGINA_LOGS`,
+ *   nunca configurável pelo cliente.
+ * - `busca`: texto livre, ver `linhaCorrespondeBusca`.
+ * - `dataInicio`/`dataFim`: ISO 8601 em UTC, ambos opcionais e
+ *   independentes — ver `linhaCorrespondeData`.
+ *
+ * Leitura sequencial mês a mês (mais recente → mais antigo,
+ * `listarArquivosMensaisDeLogs`), e dentro de cada arquivo da linha mais
+ * recente para a mais antiga (arquivo é append-only, então a ordem física
+ * já é cronológica crescente — `reverse()` inverte para a ordem de leitura
+ * pedida). Early-exit: para assim que a página pedida está cheia E mais um
+ * item correspondente é encontrado (confirma `temProximaPagina` sem
+ * precisar contar o restante do histórico) — nunca lê todo `data/logs/` à
+ * toa, mesmo padrão de "nenhum handler mantém cache em memória" já citado
+ * na seção 6.
+ */
+function handleListarLogs(req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse) {
+  try {
+    const url = new URL(req.url ?? '/', 'http://localhost')
+    const params = url.searchParams
+
+    const aba: 'acoes' | 'erros' = params.get('aba') === 'erros' ? 'erros' : 'acoes'
+    const paginaBruta = Number(params.get('pagina'))
+    const pagina = Number.isInteger(paginaBruta) && paginaBruta > 0 ? paginaBruta : 1
+    const busca = params.get('busca')?.trim() || null
+    const dataInicio = params.get('dataInicio') || null
+    const dataFim = params.get('dataFim') || null
+
+    const pular = (pagina - 1) * TAMANHO_PAGINA_LOGS
+    const itens: LinhaLog[] = []
+    let contador = 0
+    let temProximaPagina = false
+
+    busca_por_arquivos:
+    for (const caminho of listarArquivosMensaisDeLogs()) {
+      const conteudo = fs.readFileSync(caminho, 'utf-8')
+      const linhasBrutas = conteudo.split('\n').filter((l) => l.trim().length > 0).reverse()
+
+      for (const linhaBruta of linhasBrutas) {
+        let linha: LinhaLog
+        try {
+          linha = JSON.parse(linhaBruta)
+        } catch {
+          // Linha corrompida/incompleta (ex.: escrita interrompida no meio):
+          // ignorada da listagem, mesmo critério já usado para pastas
+          // corrompidas da lixeira em outros handlers deste arquivo.
+          continue
+        }
+
+        if (!linhaCorrespondeAba(linha, aba)) continue
+        if (!linhaCorrespondeData(linha, dataInicio, dataFim)) continue
+        if (!linhaCorrespondeBusca(linha, busca)) continue
+
+        if (contador < pular) {
+          contador++
+          continue
+        }
+
+        if (itens.length < TAMANHO_PAGINA_LOGS) {
+          itens.push(linha)
+          contador++
+          continue
+        }
+
+        temProximaPagina = true
+        break busca_por_arquivos
+      }
+    }
+
+    const logsAtivos = process.env.LOGS_ATIVOS !== 'false'
+    const resposta: RespostaListagemLogs = { itens, pagina, temProximaPagina, logsAtivos }
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify(resposta))
+  } catch (err) {
+    registrarErroServidor(err, 'GET /api/logs')
+    res.statusCode = 500
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify({
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    }))
+  }
+}
+
+/** Formatos aceitos por `GET /api/logs/export` (Etapa 7, seção 6: "CSV ou JSON"). */
+type FormatoExportacaoLogs = 'csv' | 'json'
+
+/** Formato de mês aceito por `mesInicio`/`mesFim` (Etapa 7): `AAAA-MM`. */
+const REGEX_MES_EXPORTACAO = /^\d{4}-\d{2}$/
+
+/**
+ * Sequência de meses (`AAAA-MM`) de `inicio` até `fim`, ambos inclusivos,
+ * em ordem crescente — usada por `handleExportarLogs` para saber quais
+ * arquivos mensais ler. Assume `fim >= inicio` (já validado pelo chamador).
+ */
+function sequenciaDeMeses(inicio: string, fim: string): string[] {
+  const [anoInicio, mesInicio] = inicio.split('-').map(Number)
+  const [anoFim, mesFim] = fim.split('-').map(Number)
+  const meses: string[] = []
+  let ano = anoInicio
+  let mes = mesInicio
+  while (ano < anoFim || (ano === anoFim && mes <= mesFim)) {
+    meses.push(`${ano}-${String(mes).padStart(2, '0')}`)
+    mes++
+    if (mes > 12) {
+      mes = 1
+      ano++
+    }
+  }
+  return meses
+}
+
+/**
+ * Lê e faz parse das linhas de `data/logs/<mes>.jsonl` — `[]` se o mês
+ * ainda não tiver arquivo (nenhum log gravado naquele mês, não é erro) ou
+ * se todas as linhas estiverem corrompidas. Mesmo critério de descarte de
+ * linha corrompida já usado por `handleListarLogs` (Etapa 5).
+ */
+function lerLinhasDoMes(mes: string): LinhaLog[] {
+  const caminho = path.resolve(process.cwd(), 'data', 'logs', `${mes}.jsonl`)
+  if (!fs.statSync(caminho, { throwIfNoEntry: false })?.isFile()) return []
+  const linhas: LinhaLog[] = []
+  for (const linhaBruta of fs.readFileSync(caminho, 'utf-8').split('\n')) {
+    if (!linhaBruta.trim()) continue
+    try {
+      linhas.push(JSON.parse(linhaBruta) as LinhaLog)
+    } catch {
+      continue
+    }
+  }
+  return linhas
+}
+
+/**
+ * Escapa um campo para o CSV de exportação de logs — mesmo critério de
+ * `escaparCampoCsv` (`exportarPlanilha.ts`, client-side): separador `;`
+ * (padrão Excel pt-BR), aspas quando o valor contém separador/aspas/quebra
+ * de linha, dobrando aspas internas (RFC 4180).
+ */
+function escaparCampoCsvLog(valor: string): string {
+  if (/[;"\n]/.test(valor)) return `"${valor.replace(/"/g, '""')}"`
+  return valor
+}
+
+/**
+ * Colunas fixas do CSV de exportação (seção 6): `alteracoes_de`/
+ * `alteracoes_para` são o `JSON.stringify` de `original`/`atual` — nunca
+ * achatados em uma coluna por campo. Limitação conhecida, não fechada
+ * nesta etapa: `origem`/`detalhe` (só existem em linhas de erro) não têm
+ * coluna própria aqui — o planner (seção 6) fixa as colunas do CSV sem
+ * mencionar esses dois campos; quem precisar deles na exportação usa JSON.
+ */
+const COLUNAS_CSV_LOGS = [
+  'id',
+  'data',
+  'acao',
+  'projeto',
+  'registroId',
+  'quantidade',
+  'mensagem',
+  'alteracoes_de',
+  'alteracoes_para',
+] as const
+
+/** Monta o CSV de um mês de logs (seção 6) a partir das linhas já lidas/parseadas (`lerLinhasDoMes`). */
+function gerarCsvDoMes(linhas: LinhaLog[]): string {
+  const corpo = linhas.map((linha) =>
+    [
+      linha.id,
+      linha.data,
+      linha.acao,
+      linha.projeto ?? '',
+      linha.registroId ?? '',
+      linha.quantidade ?? '',
+      linha.mensagem,
+      linha.original ? JSON.stringify(linha.original) : '',
+      linha.atual ? JSON.stringify(linha.atual) : '',
+    ]
+      .map((campo) => escaparCampoCsvLog(String(campo)))
+      .join(';')
+  )
+  return [COLUNAS_CSV_LOGS.join(';'), ...corpo].join('\r\n')
+}
+
+/** Conteúdo serializado de um mês, no formato pedido — mesmo gerador para o caso de arquivo único e para cada entrada do `.zip`. */
+function conteudoExportacaoDoMes(mes: string, formato: FormatoExportacaoLogs): string {
+  const linhas = lerLinhasDoMes(mes)
+  return formato === 'csv' ? gerarCsvDoMes(linhas) : JSON.stringify(linhas, null, 2)
+}
+
+/**
+ * Handler de `GET /api/logs/export` (novo, Etapa 7) — gera o arquivo (ou
+ * `.zip`) de exportação dos próprios logs, por mês ou intervalo de meses,
+ * em CSV ou JSON (seção 6). Não chama `registrarLog`: a exportação é
+ * leitura sobre o próprio log, mesmo raciocínio de `GET /api/lixeira` não
+ * ser logado (seção 6, última frase).
+ *
+ * Query params (nomes definidos nesta etapa, não especificados literalmente
+ * pelo planner — mesmo critério da Etapa 5):
+ * - `mesInicio` (obrigatório, `AAAA-MM`): primeiro mês do intervalo.
+ * - `mesFim` (opcional, `AAAA-MM`): último mês — ausente equivale a mês
+ *   único (mesmo critério de "Até" ausente = dia único, seção 6/Etapa 6).
+ * - `formato` (obrigatório): `csv` ou `json`.
+ *
+ * 1 mês → arquivo direto (`Content-Disposition: attachment`); 2+ meses →
+ * `.zip` com um arquivo por mês (seção 6) — nunca achatado num único
+ * arquivo agregado.
+ */
+async function handleExportarLogs(req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse) {
+  try {
+    const url = new URL(req.url ?? '/', 'http://localhost')
+    const params = url.searchParams
+
+    const mesInicio = params.get('mesInicio')
+    const mesFimBruto = params.get('mesFim')
+    const formato = params.get('formato')
+
+    if (!mesInicio || !REGEX_MES_EXPORTACAO.test(mesInicio)) {
+      throw new ApiError(400, 'Parâmetro "mesInicio" obrigatório, no formato AAAA-MM.')
+    }
+    if (mesFimBruto && !REGEX_MES_EXPORTACAO.test(mesFimBruto)) {
+      throw new ApiError(400, 'Parâmetro "mesFim" inválido, esperado formato AAAA-MM.')
+    }
+    const mesFim = mesFimBruto || mesInicio
+    if (mesFim < mesInicio) {
+      throw new ApiError(400, 'Parâmetro "mesFim" não pode ser anterior a "mesInicio".')
+    }
+    if (formato !== 'csv' && formato !== 'json') {
+      throw new ApiError(400, 'Parâmetro "formato" obrigatório: "csv" ou "json".')
+    }
+
+    const meses = sequenciaDeMeses(mesInicio, mesFim)
+    const extensao = formato
+
+    if (meses.length === 1) {
+      res.statusCode = 200
+      res.setHeader('Content-Type', formato === 'csv' ? 'text/csv; charset=utf-8' : 'application/json; charset=utf-8')
+      res.setHeader('Content-Disposition', `attachment; filename="logs-${meses[0]}.${extensao}"`)
+      res.end(conteudoExportacaoDoMes(meses[0], formato))
+      return
+    }
+
+    const zip = new JSZip()
+    for (const mes of meses) {
+      zip.file(`logs-${mes}.${extensao}`, conteudoExportacaoDoMes(mes, formato))
+    }
+    const bufferZip = await zip.generateAsync({ type: 'nodebuffer' })
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'application/zip')
+    res.setHeader('Content-Disposition', `attachment; filename="logs-${mesInicio}_a_${mesFim}.zip"`)
+    res.end(bufferZip)
+  } catch (err) {
+    registrarErroServidor(err, 'GET /api/logs/export')
+    const status = err instanceof ApiError ? err.status : 500
+    res.statusCode = status
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify({
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    }))
+  }
+}
+
+/**
+ * Middleware de dev server para `/api/logs` (Etapa 3, Etapa 5, Etapa 7).
+ * `POST /` (Etapa 3), `GET /` (listagem com filtro/paginação, Etapa 5) e
+ * `GET /export` (exportação por mês/intervalo, Etapa 7).
+ */
+function logsApiPlugin() {
+  return {
+    name: 'logs-api',
+    configureServer(server: import('vite').ViteDevServer) {
+      server.middlewares.use('/api/logs', (req, res) => {
+        const caminho = (req.url ?? '/').split('?')[0]
+
+        if (caminho === '/export') {
+          if (req.method !== 'GET') {
+            res.statusCode = 405
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ ok: false, error: 'Method Not Allowed' }))
+            return
+          }
+          void handleExportarLogs(req, res)
+          return
+        }
+
+        if (caminho !== '/' && caminho !== '') {
+          res.statusCode = 404
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ ok: false, error: 'Rota não encontrada.' }))
+          return
+        }
+
+        if (req.method === 'POST') {
+          handleReceberLogCliente(req, res)
+          return
+        }
+
+        if (req.method === 'GET') {
+          handleListarLogs(req, res)
+          return
+        }
+
+        res.statusCode = 405
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify({ ok: false, error: 'Method Not Allowed' }))
+      })
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), emailsApiPlugin(), projetosApiPlugin(), lixeiraApiPlugin()],
+  plugins: [react(), emailsApiPlugin(), projetosApiPlugin(), lixeiraApiPlugin(), logsApiPlugin()],
 })

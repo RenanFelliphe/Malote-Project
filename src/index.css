@@ -194,6 +194,11 @@ select {
   color: var(--color-text);
   font-size: 0.85rem;
   text-align: left;
+  /* Ajuste de rota (Demanda 9, Etapa 6): "Visualizar Logs" é o primeiro
+     item do dropdown a ser um <Link> (navegação de rota) em vez de um
+     <button> (ação/modal) — sem isso, herdaria o sublinhado padrão de
+     âncora. Não afeta os demais itens, que já são <button>. */
+  text-decoration: none;
 }
 
 .app-header-config-item-tema {
@@ -337,6 +342,29 @@ select {
   margin: 0.5rem 0 0;
   z-index: 20;
   box-shadow: var(--shadow-md);
+}
+
+/* Fallback do error boundary (Etapa 4 de LogsDeAlteracoes.md,
+   src/components/ErrorBoundary.tsx) — ocupa a viewport inteira, já que
+   substitui a árvore de componentes inteira (envolve tudo em main.tsx),
+   reaproveitando a mesma paleta de `.erro-salvamento` acima. */
+.error-boundary-fallback {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-danger);
+}
+
+.error-boundary-fallback p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
 }
 
 /* =========================================================================
@@ -5026,4 +5054,292 @@ li.marcado .exportar-lista-status-item {
   .conflito-acoes-massa-contador {
     margin-right: 0;
   }
+}
+/* =========================================================================
+   Tela /logs (Demanda 9 — LogsDeAlteracoes.md, Etapa 6)
+   ========================================================================= */
+
+.logs-page {
+  padding: 2.5rem 3rem;
+}
+
+.logs-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.logs-page-header-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.logs-page h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.logs-page-header-subtitulo {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+/* Banner somente-leitura quando LOGS_ATIVOS=false no ambiente atual
+   (seção 6 do planner) — nunca um controle clicável, só informativo.
+   Reaproveita a paleta de aviso já usada por `.status-duplicado`. */
+.logs-banner-desativado {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border: 1px solid color-mix(in srgb, var(--color-warning) 25%, transparent);
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 1.25rem;
+}
+
+.logs-banner-desativado code {
+  font-family: var(--font-mono);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+}
+
+/* --- Abas "Ações"/"Erros" (switch, seção 6) --- */
+
+.logs-abas {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  margin-bottom: 1.25rem;
+}
+
+.logs-aba-btn {
+  padding: 0.45rem 1.1rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.logs-aba-btn:hover {
+  color: var(--color-text);
+}
+
+.logs-aba-btn.ativo {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+/* --- Busca e filtro de data --- */
+
+.logs-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.logs-filtros .search-input-wrapper {
+  flex: 1 1 280px;
+  min-width: 220px;
+}
+
+.logs-filtro-datas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.logs-filtro-data-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.76rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.logs-filtro-data-campo input[type='date'],
+.logs-filtro-data-campo input[type='month'] {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  transition: border-color var(--transition-fast);
+}
+
+.logs-filtro-data-campo input[type='date']:hover,
+.logs-filtro-data-campo input[type='month']:hover {
+  border-color: var(--color-border-strong);
+}
+
+.logs-filtro-data-campo input[type='date']:focus-visible,
+.logs-filtro-data-campo input[type='month']:focus-visible {
+  border-color: var(--color-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+/* --- Botão "Exportar Logs" (cabeçalho da página, Etapa 7) --- */
+
+.logs-exportar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.05rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.logs-exportar-btn:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+}
+
+/* --- Modal "Exportar Logs" (Etapa 7) --- */
+
+.logs-exportar-meses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.logs-exportar-dica {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-tertiary);
+}
+
+/* --- Tabela --- */
+
+.logs-table-linha {
+  cursor: pointer;
+}
+
+.logs-table-data {
+  font-family: var(--font-mono);
+  color: var(--color-text-tertiary);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.logs-table-mensagem {
+  color: var(--color-text-secondary);
+}
+
+.logs-acao-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  white-space: nowrap;
+}
+
+.logs-acao-badge-erro {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.logs-tabela-erro {
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
+}
+
+/* --- Paginação (própria — ver comentário em pages/logs.tsx) --- */
+
+.logs-paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin-top: 1.25rem;
+}
+
+.logs-paginacao-atual {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+
+/* --- Modal de detalhe do log --- */
+
+.dialog-content.modal-detalhe-log {
+  max-width: 640px;
+}
+
+.logs-detalhe-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.logs-detalhe-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.logs-detalhe-item dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  color: var(--color-text-tertiary);
+}
+
+.logs-detalhe-item dd {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.logs-detalhe-item-bloco dd {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.75rem;
+}
+
+.logs-detalhe-pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 220px;
+  overflow-y: auto;
 }

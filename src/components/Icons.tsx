@@ -1,4 +1,5 @@
 import {
+  FiActivity,
   FiAlertTriangle,
   FiAlignCenter,
   FiAlignJustify,
@@ -82,6 +83,11 @@ export function IconeTemaClaro() {
 
 export function IconeTemaEscuro() {
   return <FiMoon size={16} aria-hidden="true" />;
+}
+
+/** Ícone do item "Visualizar Logs" no dropdown de configurações e do título da tela `/logs` (Demanda 9, Etapa 6). */
+export function IconeLogs() {
+  return <FiActivity size={15} aria-hidden="true" />;
 }
 
 export function IconeEscolherTema() {

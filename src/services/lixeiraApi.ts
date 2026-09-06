@@ -1,4 +1,7 @@
 import type { EmailsData } from '../types/email';
+// Etapa 4 (LogsDeAlteracoes.md): relata cada resposta 4xx/5xx como
+// `erro_cliente`, em paralelo ao `throw` que os chamadores já tratam.
+import { reportarErroApi } from './logsApi';
 
 /**
  * Item devolvido por `GET /api/lixeira` (Etapa 6 de implementacaoDelecao.md)
@@ -39,6 +42,7 @@ export async function listarLixeira(): Promise<ItemLixeira[]> {
 
   if (!resposta.ok) {
     const mensagem = await extrairMensagemDeErro(resposta);
+    reportarErroApi('GET', '/api/lixeira', resposta.status, mensagem);
     throw new Error(mensagem ?? 'Não foi possível carregar a lixeira.');
   }
 
@@ -85,6 +89,7 @@ export async function restaurarProjetos(slugs: string[]): Promise<ResultadoResta
 
   if (resposta.status !== 200 && resposta.status !== 207) {
     const mensagem = await extrairMensagemDeErro(resposta);
+    reportarErroApi('POST', '/api/lixeira/restaurar', resposta.status, mensagem);
     throw new Error(mensagem ?? 'Falha ao restaurar o(s) projeto(s).');
   }
 
@@ -117,6 +122,7 @@ export async function renomearProjeto(
 
   if (!resposta.ok) {
     const mensagem = await extrairMensagemDeErro(resposta);
+    reportarErroApi('PATCH', `/api/projetos/${slugAtual}`, resposta.status, mensagem);
     throw new Error(mensagem ?? 'Não foi possível renomear a planilha.');
   }
 
@@ -155,6 +161,7 @@ export async function excluirPermanentemente(slugs: string[]): Promise<Resultado
 
   if (resposta.status !== 200 && resposta.status !== 207) {
     const mensagem = await extrairMensagemDeErro(resposta);
+    reportarErroApi('DELETE', '/api/lixeira', resposta.status, mensagem);
     throw new Error(mensagem ?? 'Falha ao excluir permanentemente o(s) item(ns).');
   }
 

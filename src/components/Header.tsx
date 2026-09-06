@@ -20,6 +20,7 @@ import {
   IconeExportar,
   IconeImportar,
   IconeLixeira,
+  IconeLogs,
   IconePlanilha,
   IconeSetaBaixo,
   IconeSetaCima,
@@ -555,6 +556,26 @@ export function Header({
                 <IconeLixeira />
                 Deletar planilha
               </button>
+
+              {/*
+               * "Visualizar Logs" (Demanda 9 — LogsDeAlteracoes.md, Etapa 6):
+               * navegação simples para a rota `/logs`, sem depender de um
+               * projeto aberto (funciona tanto na Home quanto dentro de uma
+               * planilha) — por isso fica ao lado de "Escolher Tema", o
+               * outro item sempre habilitado do dropdown, em vez de perto
+               * das ações que dependem de `projetoAberto`. `Link` em vez de
+               * `button`: é navegação de rota, não uma ação/modal como o
+               * resto do menu.
+               */}
+              <Link
+                to="/logs"
+                role="menuitem"
+                className="app-header-config-item app-header-config-item-botao"
+                onClick={fecharMenu}
+              >
+                <IconeLogs />
+                Visualizar Logs
+              </Link>
 
               <button
                 type="button"
