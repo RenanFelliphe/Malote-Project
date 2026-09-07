@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react';
 
 import type { TStatus } from '../types/email';
 import { Dialog } from './Dialog';
+import { calcularEmailsDuplicados } from './EmailStatus';
 import { exportarRegistrosEmLote, type TFormatoExportacao } from './utils/exportarPlanilha';
 import {
   calcularContadoresPorPlanilha,
+  filtrarPorStatusMultiplo,
   somarContadores,
   type PlanilhaParaContagem,
 } from './utils/emailData';
@@ -31,13 +33,31 @@ interface Props {
   onFechar: () => void;
 }
 
-/** Status disponíveis para exportação, na ordem em que aparecem no modal. "Enviados" vem marcado por padrão. */
-const STATUS_EXPORTAVEIS: { value: TStatus; label: string }[] = [
-  { value: 'enviado', label: 'Enviados' },
-  { value: 'válido', label: 'Válidos' },
-  { value: 'inválido', label: 'Inválidos' },
-  { value: 'duplicado', label: 'Duplicados' },
-  { value: 'deletado', label: 'Deletados' },
+/**
+ * Os 4 status reais selecionáveis, na ordem em que devem ficar marcados
+ * quando "Selecionar todos"/"Limpar seleção" é acionado. Desde a Demanda 10
+ * (Etapa 1), `'duplicado'` não é mais um `TStatus` — ver `ITENS_EXPORTAVEIS`
+ * abaixo para a lista completa exibida no modal, que inclui "Duplicados"
+ * como item à parte.
+ */
+const STATUS_VALORES: TStatus[] = ['enviado', 'válido', 'inválido', 'deletado'];
+
+/**
+ * Itens exibidos na lista de seleção do modal, na ordem em que aparecem.
+ * `chave` indexa tanto `EmailCounters` (para o contador exibido) quanto,
+ * para os 4 itens de status, o `Set<TStatus>` de seleção — "Duplicados" é
+ * a exceção: desde a Demanda 10 (Etapa 1, `RefatoracaoSistemadeDuplicatas.md`),
+ * deixou de ser um valor de `status` e passou a ser uma flag calculada
+ * (`calcularEmailsDuplicados`), então seu estado de seleção vive à parte
+ * (`duplicadosSelecionado`), não dentro do `Set<TStatus>` dos demais.
+ * "Enviados" vem marcado por padrão.
+ */
+const ITENS_EXPORTAVEIS: { chave: TStatus | 'duplicado'; label: string }[] = [
+  { chave: 'enviado', label: 'Enviados' },
+  { chave: 'válido', label: 'Válidos' },
+  { chave: 'inválido', label: 'Inválidos' },
+  { chave: 'duplicado', label: 'Duplicados' },
+  { chave: 'deletado', label: 'Deletados' },
 ];
 
 /** Sigla + rótulo de cada formato. A sigla vira o monograma do card (ver `.formato-card-monograma`). */
@@ -56,6 +76,15 @@ const FORMATOS: { value: TFormatoExportacao; sigla: string; label: string }[] = 
  *
  * Seleção de registros: "Enviados" vem marcado por padrão (conforme
  * solicitado); os demais status ficam desmarcados até o usuário escolher.
+ * Desde a Demanda 10 (Etapa 11, `RefatoracaoSistemadeDuplicatas.md`), o
+ * checkbox "Duplicados" não filtra mais por `status === 'duplicado'` (valor
+ * que deixou de existir na Etapa 1) — é um switch independente
+ * (`duplicadosSelecionado`) que passa a incluir, por união com o status,
+ * todo registro ativo cujo e-mail apareça mais de uma vez na planilha,
+ * podendo coexistir com qualquer status real marcado ao mesmo tempo (ex.:
+ * "Válidos" + "Duplicados" exporta válidos, duplicados, e quem for as duas
+ * coisas — uma vez só cada).
+ *
  * A lista de status sempre trabalha com o total agregado de todas as
  * planilhas recebidas — com 1 planilha (caso de sempre dentro da página de
  * uma planilha), os números são idênticos aos de antes; com 2+ (Home), os
@@ -72,11 +101,18 @@ const FORMATOS: { value: TFormatoExportacao; sigla: string; label: string }[] = 
  */
 export function ExportarModal({ planilhas, onFechar }: Props) {
   const [statusSelecionados, setStatusSelecionados] = useState<Set<TStatus>>(() => new Set(['enviado']));
+  /**
+   * Estado do checkbox "Duplicados", separado de `statusSelecionados` desde
+   * a Demanda 10 (Etapa 11) — mesmo padrão de `duplicadosFiltroAtivo` em
+   * `emails.tsx` (Etapa 5). Começa desmarcado, igual ao comportamento
+   * anterior (só "Enviados" vinha marcado por padrão).
+   */
+  const [duplicadosSelecionado, setDuplicadosSelecionado] = useState(false);
   const [formato, setFormato] = useState<TFormatoExportacao>('csv');
   const [exportando, setExportando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
-  const todosMarcados = STATUS_EXPORTAVEIS.every(({ value }) => statusSelecionados.has(value));
+  const todosMarcados = STATUS_VALORES.every((status) => statusSelecionados.has(status)) && duplicadosSelecionado;
 
   // Contadores "brutos" de cada planilha (sem filtro de status aplicado) —
   // alimentam tanto o breakdown por planilha quanto, somados, a lista de
@@ -87,17 +123,34 @@ export function ExportarModal({ planilhas, onFechar }: Props) {
     [contadoresPorPlanilha]
   );
 
-  // Registros de cada planilha já filtrados pelo status selecionado no
-  // momento — mantém o vínculo com a planilha de origem (slug/nome),
-  // necessário tanto para o breakdown quanto para a exportação em si
-  // (cada planilha é exportada separadamente, ver `handleExportar`).
+  /**
+   * Registros de cada planilha já filtrados pela seleção atual (status +
+   * duplicados) — mantém o vínculo com a planilha de origem (slug/nome),
+   * necessário tanto para o breakdown quanto para a exportação em si
+   * (cada planilha é exportada separadamente, ver `handleExportar`).
+   *
+   * Demanda 10 (Etapa 11): reaproveita `filtrarPorStatusMultiplo`
+   * (`emailData.ts`), a mesma função usada pela tabela principal desde a
+   * Etapa 5 — um único passo de filtro por união (status selecionado OU
+   * duplicado com o switch ativo), em vez de filtrar por status e depois
+   * concatenar os duplicados à parte. É essa passagem única que evita
+   * registro repetido no resultado quando um mesmo registro satisfaz dois
+   * critérios ao mesmo tempo (ex.: "Válidos" + "Duplicados" marcados e o
+   * registro é válido e duplicado): ele é avaliado uma vez por `.filter`,
+   * então só pode aparecer uma vez no array de saída, nunca duas.
+   * `emailsDuplicados` é calculado por planilha (nunca entre planilhas
+   * diferentes), mesma decisão já registrada em `calcularContadoresPorPlanilha`.
+   */
   const planilhasFiltradas = useMemo(
     () =>
       planilhas.map((planilha) => ({
         ...planilha,
-        registrosFiltrados: planilha.registros.filter((registro) => statusSelecionados.has(registro.status)),
+        registrosFiltrados: filtrarPorStatusMultiplo(planilha.registros, statusSelecionados, {
+          ativo: duplicadosSelecionado,
+          emailsDuplicados: calcularEmailsDuplicados(planilha.registros),
+        }),
       })),
-    [planilhas, statusSelecionados]
+    [planilhas, statusSelecionados, duplicadosSelecionado]
   );
 
   const totalRegistros = contadores.total;
@@ -119,8 +172,14 @@ export function ExportarModal({ planilhas, onFechar }: Props) {
     });
   }
 
+  /** Alterna o checkbox "Duplicados" — switch independente do `Set` de status, mesmo papel de `duplicadosFiltroAtivo` em `emails.tsx`. */
+  function alternarDuplicados() {
+    setDuplicadosSelecionado((atual) => !atual);
+  }
+
   function alternarTodos() {
-    setStatusSelecionados(todosMarcados ? new Set() : new Set(STATUS_EXPORTAVEIS.map((s) => s.value)));
+    setDuplicadosSelecionado(!todosMarcados);
+    setStatusSelecionados(todosMarcados ? new Set() : new Set(STATUS_VALORES));
   }
 
   function fechar() {
@@ -205,20 +264,23 @@ export function ExportarModal({ planilhas, onFechar }: Props) {
         </label>
 
         <ul className="exportar-lista-status">
-          {STATUS_EXPORTAVEIS.map(({ value, label }) => (
-            <li key={value} className={statusSelecionados.has(value) ? 'marcado' : undefined}>
-              <label className={`exportar-lista-status-item exportar-lista-status-${value}`}>
-                <input
-                  type="checkbox"
-                  checked={statusSelecionados.has(value)}
-                  onChange={() => alternarStatus(value)}
-                />
-                <span className="exportar-lista-status-indicador" aria-hidden="true" />
-                <span className="exportar-lista-status-texto">{label}</span>
-                <span className="exportar-lista-status-contador">{contadores[value]}</span>
-              </label>
-            </li>
-          ))}
+          {ITENS_EXPORTAVEIS.map(({ chave, label }) => {
+            const marcado = chave === 'duplicado' ? duplicadosSelecionado : statusSelecionados.has(chave);
+            return (
+              <li key={chave} className={marcado ? 'marcado' : undefined}>
+                <label className={`exportar-lista-status-item exportar-lista-status-${chave}`}>
+                  <input
+                    type="checkbox"
+                    checked={marcado}
+                    onChange={() => (chave === 'duplicado' ? alternarDuplicados() : alternarStatus(chave))}
+                  />
+                  <span className="exportar-lista-status-indicador" aria-hidden="true" />
+                  <span className="exportar-lista-status-texto">{label}</span>
+                  <span className="exportar-lista-status-contador">{contadores[chave]}</span>
+                </label>
+              </li>
+            );
+          })}
         </ul>
         <div className="exportar-rodape-contagem">
           <span className="exportar-rodape-numero">{totalFiltrado}</span>

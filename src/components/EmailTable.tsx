@@ -4,8 +4,9 @@ import type { EmailRecord, TStatusManual } from '../types/email';
 import { STATUS_SELECIONAVEIS } from '../types/email';
 import { copiarTexto } from './utils/clipboard';
 import { restaurarCampos, type TCampoRestauravel } from './utils/restaurarCampos';
-import { isValidEmail } from './EmailStatus';
+import { isValidEmail, normalizeEmail } from './EmailStatus';
 import {
+  IconeAlerta,
   IconeArrastar,
   IconeConfirmarEnvio,
   IconeCopiar,
@@ -67,6 +68,14 @@ export function capturarEdicaoCampo(
 
 interface Props {
   registros: EmailRecord[];
+  /**
+   * Conjunto de e-mails (normalizados) que aparecem em mais de um registro
+   * ativo — calculado uma única vez em `emails.tsx` (Demanda 10, Etapa 3 de
+   * `RefatoracaoSistemadeDuplicatas.md`) e repassado aqui em vez de esta
+   * tabela recalculá-lo por conta própria. A partir da Etapa 7, decide a
+   * exibição do ícone de alerta ao lado do status (`renderIconeDuplicado`).
+   */
+  emailsDuplicados: Set<string>;
   selecionados: Set<number>;
   onAlternarSelecao: (id: number) => void;
   onAlternarSelecaoTodos: () => void;
@@ -78,9 +87,10 @@ interface Props {
    */
   selecionavel?: (registro: EmailRecord) => boolean;
   /**
-   * Chamada ao clicar no badge de status de um registro com status
-   * "duplicado", para abrir o modal com os demais registros do mesmo
-   * e-mail. Registros com outros status não são clicáveis.
+   * Chamada ao clicar no ícone de alerta de duplicidade ao lado do status
+   * de um registro (Demanda 10, Etapa 7 — antes, badge de status
+   * `'duplicado'`), para abrir o modal com os demais registros do mesmo
+   * e-mail. Ver `renderIconeDuplicado` abaixo.
    */
   onClicarDuplicado?: (registro: EmailRecord) => void;
   /**
@@ -205,6 +215,7 @@ interface Props {
 /** Tabela com ID, Nome, E-mail e Status de cada registro (seção 6). */
 export function EmailTable({
   registros,
+  emailsDuplicados,
   selecionados,
   onAlternarSelecao,
   onAlternarSelecaoTodos,
@@ -297,16 +308,11 @@ export function EmailTable({
     return () => window.cancelAnimationFrame(frame);
   }, [selectMassaAberto]);
 
-  // Fecha o dropdown de ações se a seleção for zerada enquanto ele está
-  // aberto — o botão que o abre fica invisível (não removido) nesse caso,
-  // então o menu não pode continuar exibido sem seleção correspondente.
-  useEffect(() => {
-    if (!temSelecao) setMenuAcoesAberto(false);
-  }, [temSelecao]);
+  const menuAcoesVisivel = menuAcoesAberto && temSelecao;
 
   // Fecha o dropdown compacto de ações ao clicar fora dele ou pressionar Escape.
   useEffect(() => {
-    if (!menuAcoesAberto) return;
+    if (!menuAcoesVisivel) return;
 
     const handlePointerDown = (event: MouseEvent) => {
       const alvo = event.target as Node | null;
@@ -332,7 +338,7 @@ export function EmailTable({
       document.removeEventListener('mousedown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [menuAcoesAberto]);
+  }, [menuAcoesVisivel]);
 
   /**
    * Copia a coluna indicada (nome ou e-mail) dos registros atualmente
@@ -534,10 +540,8 @@ export function EmailTable({
   /**
    * Renderiza a célula de status de um registro (seção 7, revisão pós-Etapa
    * 4 — antes vivia numa seção fixa acima da tabela, agora distribuída na
-   * própria célula). Três casos, conforme as respostas de esclarecimento:
+   * própria célula). Dois casos, conforme as respostas de esclarecimento:
    *
-   * - "duplicado": comportamento inalterado — badge não editável que abre
-   *   o modal de duplicados (nunca um select: é calculado automaticamente).
    * - "deletado": badge não editável e não clicável — só pode ser revertido
    *   pelo botão de restaurar (seleção em massa), nunca por este select.
    * - demais status (válido/inválido/enviado): badge vira um select inline.
@@ -549,23 +553,16 @@ export function EmailTable({
    *   continue correspondendo a uma opção existente — escolhê-la de novo
    *   não tem efeito, mas o usuário pode trocar para válido/inválido
    *   normalmente.
+   *
+   * Demanda 10, Etapa 7 (`RefatoracaoSistemadeDuplicatas.md`): o antigo
+   * terceiro caso ("duplicado") foi removido daqui — "duplicado" deixou de
+   * ser um valor de `status` (Etapa 1). O badge/select que este método
+   * renderiza volta a ser sempre o status real do registro; o alerta visual
+   * de duplicidade passou a ser um elemento separado, ao lado deste
+   * (`renderIconeDuplicado`, abaixo), que pode coexistir com qualquer um
+   * dos dois casos que sobraram aqui.
    */
   function renderStatus(registro: EmailRecord) {
-    if (registro.status === 'duplicado') {
-      return onClicarDuplicado ? (
-        <button
-          type="button"
-          className="status-badge status-duplicado status-badge-clicavel"
-          onClick={() => onClicarDuplicado(registro)}
-          title="Ver todos os registros com este e-mail"
-        >
-          {registro.status}
-        </button>
-      ) : (
-        <span className="status-badge status-duplicado">{registro.status}</span>
-      );
-    }
-
     if (registro.status === 'deletado' || !onAtualizarStatusIndividual) {
       return <span className={`status-badge status-${registro.status}`}>{registro.status}</span>;
     }
@@ -588,6 +585,60 @@ export function EmailTable({
           </option>
         ))}
       </select>
+    );
+  }
+
+  /**
+   * Ícone de alerta ao lado do badge/select de status (Demanda 10, Etapa 7),
+   * exibido sempre que o e-mail do registro estiver em `emailsDuplicados`
+   * (`Set` calculado uma única vez em `emails.tsx`, Etapa 3) — nunca para
+   * `registro.status === 'deletado'`: o próprio cálculo do `Set` (Etapa 1,
+   * `calcularEmailsDuplicados`) já ignora registros deletados ao formar os
+   * grupos, então um par onde um dos dois foi excluído deixa de ter
+   * duplicidade — o restante ativo passa a não ter mais "irmãos", com ou
+   * sem soft delete. Esse comportamento já existia antes desta demanda e
+   * não muda; a checagem aqui só evita mostrar o ícone no próprio registro
+   * deletado, caso ele compartilhe o e-mail de um grupo ainda ativo.
+   *
+   * Aplica a **todos** os demais status, inclusive `enviado`: um registro
+   * enviado duplicado também recebe o ícone normalmente — é o sinal visual
+   * de que existe um possível envio repetido para a mesma pessoa, o alerta
+   * que esta demanda existe para dar.
+   *
+   * É o único elemento clicável da célula que abre o modal de conflito
+   * (`onClicarDuplicado`) — o badge/select de `renderStatus` mantém sua
+   * função normal (editar, ou só exibir se `deletado`), sem sobreposição de
+   * clique na mesma célula.
+   *
+   * Reaproveita `IconeAlerta` (`Icons.tsx`) sem alterá-lo — hoje usado a
+   * 20px em `ErrorBoundary`/`ConfirmDialog`/`ConflictDialog`. Aqui ele
+   * precisa ser menor para caber inline na linha da tabela; como o
+   * componente não recebe um `size` próprio, a redução é só via CSS, na
+   * classe `icone-alerta-duplicado` abaixo (regra ainda não incluída neste
+   * pacote — falta o CSS real do projeto, mesma pendência já registrada em
+   * `EdicaoIndividualdeRegistro.md`).
+   */
+  function renderIconeDuplicado(registro: EmailRecord) {
+    if (registro.status === 'deletado') return null;
+    if (!emailsDuplicados.has(normalizeEmail(registro.email))) return null;
+
+    if (!onClicarDuplicado) {
+      return (
+        <span className="icone-alerta-duplicado" title="Este registro está duplicado">
+          <IconeAlerta />
+        </span>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        className="icone-alerta-duplicado"
+        onClick={() => onClicarDuplicado(registro)}
+        title="Este registro está duplicado"
+      >
+        <IconeAlerta />
+      </button>
     );
   }
 
@@ -701,18 +752,18 @@ export function EmailTable({
                 <button
                   ref={botaoAcoesRef}
                   type="button"
-                  className={`botao-icone-th botao-icone-th-menu ${menuAcoesAberto ? 'botao-icone-th-menu-aberto' : ''} ${temSelecao ? '' : 'botao-icone-th-invisivel'
+                  className={`botao-icone-th botao-icone-th-menu ${menuAcoesVisivel ? 'botao-icone-th-menu-aberto' : ''} ${temSelecao ? '' : 'botao-icone-th-invisivel'
                     }`}
                   onClick={() => setMenuAcoesAberto((aberto) => !aberto)}
                   title="Mais ações"
                   aria-label="Abrir mais ações para os registros selecionados"
                   aria-haspopup="menu"
-                  aria-expanded={menuAcoesAberto}
+                  aria-expanded={menuAcoesVisivel}
                 >
                   <IconeArrastar />
                 </button>
 
-                {menuAcoesAberto && (
+                {menuAcoesVisivel && (
                   <div className="acoes-dropdown" role="menu">
                     {onConfirmarEnvio && !todosSelecionadosDeletados && (
                       <button
@@ -793,7 +844,10 @@ export function EmailTable({
               <td>{registro.id}</td>
               <td>{renderCelulaEditavel(registro, 'nome')}</td>
               <td>{renderCelulaEditavel(registro, 'email')}</td>
-              <td>{renderStatus(registro)}</td>
+              <td className="td-status">
+                {renderStatus(registro)}
+                {renderIconeDuplicado(registro)}
+              </td>
               <td className="td-acoes">
                 {idsRestaurados?.has(registro.id) && (
                   <span className="feedback-restaurado" role="status">Restaurado</span>

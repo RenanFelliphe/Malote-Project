@@ -9,6 +9,7 @@
  * reaproveitar (inclusive futuramente no modal da Etapa 4).
  */
 import type { EmailCounters, EmailRecord, TStatus } from '../../types/email';
+import { calcularEmailsDuplicados, normalizeEmail } from '../EmailStatus';
 
 /** Cada critério de ordenação individual disponível na interface (seção 6). */
 export type TCriterioOrdenacao = 'id' | 'alfabetica' | 'status';
@@ -32,15 +33,29 @@ export const CRITERIO_ORDENACAO_LABELS: Record<TCriterioOrdenacao, string> = {
   status: 'Status',
 };
 
-/** Todos os status existentes (seção 5.2), na ordem em que aparecem nos filtros/contadores. */
-export const TODOS_OS_STATUS: TStatus[] = ['válido', 'inválido', 'duplicado', 'deletado', 'enviado'];
+/**
+ * Todos os status existentes hoje (seção 5.2, já sem `'duplicado'` desde a
+ * Demanda 10 — Etapa 1), na ordem em que aparecem nos filtros/contadores.
+ * O filtro "Duplicados" não faz mais parte deste conjunto a partir da
+ * Etapa 5 (`RefatoracaoSistemadeDuplicatas.md`): passou a ser controlado
+ * por um estado próprio (`duplicadosFiltroAtivo`, em `emails.tsx`), já que
+ * deixou de ser um valor de `TStatus`.
+ */
+export const TODOS_OS_STATUS: TStatus[] = ['válido', 'inválido', 'deletado', 'enviado'];
 
 /**
  * Ordem de exibição ao ordenar por "Status" — definida pelo usuário e
  * independente da prioridade de cálculo automático (seção 5.2, usada na
- * sincronização): Enviados, Válidos, Inválidos, Duplicados, Deletados.
+ * sincronização): Enviados, Válidos, Inválidos, Deletados.
+ *
+ * `'duplicado'` foi removido desta lista na Demanda 10 (Etapa 6,
+ * `RefatoracaoSistemadeDuplicatas.md`), consequência direta de deixar de
+ * ser um `TStatus` (Etapa 1) — passou a ser uma flag calculada, não um
+ * status ordenável. Registros duplicados agora aparecem intercalados
+ * dentro da posição do seu status real, em vez de agrupados numa faixa
+ * própria.
  */
-export const STATUS_ORDEM_EXIBICAO: TStatus[] = ['enviado', 'válido', 'inválido', 'duplicado', 'deletado'];
+export const STATUS_ORDEM_EXIBICAO: TStatus[] = ['enviado', 'válido', 'inválido', 'deletado'];
 
 /** Rótulos dos contadores, na ordem em que devem aparecer (seção 5.5). */
 export const CONTADOR_LABELS: { key: keyof EmailCounters; label: string }[] = [
@@ -55,8 +70,19 @@ export const CONTADOR_LABELS: { key: keyof EmailCounters; label: string }[] = [
 /**
  * Calcula os contadores exibidos na interface, respeitando o status
  * efetivo (atual) de cada registro — seção 5.5.
+ *
+ * A partir da Demanda 10 (`RefatoracaoSistemadeDuplicatas.md`, Etapa 4),
+ * "Duplicados" deixou de ser um dos valores possíveis de `registro.status`
+ * (ver Etapa 1) e passou a ser contado separadamente, a partir da flag
+ * calculada `emailsDuplicados` (`calcularEmailsDuplicados`, em
+ * `EmailStatus.ts`): o total de registros **ativos** (não `deletado`) cujo
+ * e-mail aparece mais de uma vez, independentemente do status real de cada
+ * um — um registro `válido` duplicado é contado tanto em `válido` quanto em
+ * `duplicado`. `emailsDuplicados` é recebido já calculado (pelo chamador),
+ * em vez de recalculado aqui, seguindo a decisão da Etapa 3 de centralizar
+ * esse cálculo uma única vez por conjunto de registros.
  */
-export function calcularContadores(registros: EmailRecord[]): EmailCounters {
+export function calcularContadores(registros: EmailRecord[], emailsDuplicados: Set<string>): EmailCounters {
   const contadores: EmailCounters = {
     total: registros.length,
     válido: 0,
@@ -68,6 +94,10 @@ export function calcularContadores(registros: EmailRecord[]): EmailCounters {
 
   for (const registro of registros) {
     contadores[registro.status] += 1;
+
+    if (registro.status !== 'deletado' && emailsDuplicados.has(normalizeEmail(registro.email))) {
+      contadores.duplicado += 1;
+    }
   }
 
   return contadores;
@@ -100,12 +130,20 @@ export interface ContadorPorPlanilha {
  * reaproveita a mesma `calcularContadores` já usada para uma única
  * planilha, então os números batem exatamente com os exibidos hoje dentro
  * da página de cada planilha.
+ *
+ * Diferente de `emails.tsx` (que recebe `emailsDuplicados` já calculado via
+ * `useMemo`, Etapa 3), aqui o `Set` é calculado por planilha, dentro do
+ * próprio loop: `ExportarModal` também é usado fora do contexto de uma
+ * única planilha (seleção múltipla em `pages/home.tsx`), então não há um
+ * `emailsDuplicados` único aplicável a todas de uma vez — duplicidade só
+ * faz sentido calculada dentro de cada planilha, nunca entre planilhas
+ * diferentes.
  */
 export function calcularContadoresPorPlanilha(planilhas: PlanilhaParaContagem[]): ContadorPorPlanilha[] {
   return planilhas.map(({ slug, nome, registros }) => ({
     slug,
     nome,
-    contadores: calcularContadores(registros),
+    contadores: calcularContadores(registros, calcularEmailsDuplicados(registros)),
   }));
 }
 
@@ -131,13 +169,42 @@ export function somarContadores(lista: EmailCounters[]): EmailCounters {
 }
 
 /**
+ * Opções do filtro de duplicados, separado do conjunto de status desde a
+ * Demanda 10 (Etapa 5): `ativo` é o estado do switch "Duplicados" e
+ * `emailsDuplicados` é a mesma flag calculada (`calcularEmailsDuplicados`)
+ * já usada pelos contadores (Etapa 4) e pela tabela (Etapa 7).
+ */
+export interface OpcoesFiltroDuplicados {
+  ativo: boolean;
+  emailsDuplicados: Set<string>;
+}
+
+/**
  * Filtra os registros por um conjunto de status simultaneamente selecionados
  * (usado pela barra de filtros da tabela principal, onde cada botão
- * marca/desmarca seu status independentemente dos demais). Conjunto vazio
- * significa "nenhum status selecionado" — nenhum registro é exibido.
+ * marca/desmarca seu status independentemente dos demais) **em união** com
+ * o filtro de duplicados: um registro passa se seu status estiver no
+ * conjunto selecionado OU se o filtro "Duplicados" estiver ativo e ele for,
+ * de fato, duplicado (Demanda 10, Etapa 5 — antes da Etapa 1, "duplicado"
+ * era só mais um valor de `status`, então participava do mesmo `Set`; a
+ * partir de agora é avaliado à parte, com a mesma semântica de união que os
+ * demais switches já tinham entre si). `statusSelecionados` vazio e filtro
+ * de duplicados inativo juntos significam "nenhum filtro selecionado" —
+ * nenhum registro é exibido.
  */
-export function filtrarPorStatusMultiplo(registros: EmailRecord[], statusSelecionados: Set<TStatus>): EmailRecord[] {
-  return registros.filter((registro) => statusSelecionados.has(registro.status));
+export function filtrarPorStatusMultiplo(
+  registros: EmailRecord[],
+  statusSelecionados: Set<TStatus>,
+  duplicados: OpcoesFiltroDuplicados
+): EmailRecord[] {
+  return registros.filter((registro) => {
+    if (statusSelecionados.has(registro.status)) return true;
+    return (
+      duplicados.ativo &&
+      registro.status !== 'deletado' &&
+      duplicados.emailsDuplicados.has(normalizeEmail(registro.email))
+    );
+  });
 }
 
 /**
@@ -192,15 +259,24 @@ export function ordenar(registros: EmailRecord[], hierarquia: TOrdenacao): Email
 }
 
 /**
- * Aplica, em sequência, filtro por status (multi-seleção), busca e
- * ordenação. Filtro e busca são comutativos entre si; a ordenação é sempre
- * aplicada por último.
+ * Aplica, em sequência, filtro por status + duplicados (multi-seleção em
+ * união), busca e ordenação. Filtro e busca são comutativos entre si; a
+ * ordenação é sempre aplicada por último.
  */
 export function processarRegistros(
   registros: EmailRecord[],
-  opcoes: { statusFiltrados: Set<TStatus>; termoBusca: string; ordenacao: TOrdenacao }
+  opcoes: {
+    statusFiltrados: Set<TStatus>;
+    duplicadosFiltroAtivo: boolean;
+    emailsDuplicados: Set<string>;
+    termoBusca: string;
+    ordenacao: TOrdenacao;
+  }
 ): EmailRecord[] {
-  const filtrados = filtrarPorStatusMultiplo(registros, opcoes.statusFiltrados);
+  const filtrados = filtrarPorStatusMultiplo(registros, opcoes.statusFiltrados, {
+    ativo: opcoes.duplicadosFiltroAtivo,
+    emailsDuplicados: opcoes.emailsDuplicados,
+  });
   const buscados = buscar(filtrados, opcoes.termoBusca);
   return ordenar(buscados, opcoes.ordenacao);
 }

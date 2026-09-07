@@ -48,7 +48,9 @@ export function QuantidadeInput({ valor, onChange, min = 1, max }: Props) {
   // Ref com o valor mais recente, usada pelo long-press das setas (evita
   // closures presas ao valor do momento em que o intervalo foi criado).
   const valorRef = useRef(valor);
-  valorRef.current = valor;
+  useEffect(() => {
+    valorRef.current = valor;
+  }, [valor]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const intervaloRef = useRef<ReturnType<typeof setInterval> | null>(null);

@@ -2,7 +2,7 @@
 
 > Este documento reúne as demandas levantadas para evolução do sistema, além da especificação já formalizada em `DEVME.md`. Diferente da especificação (que descreve o que **já foi decidido e está pronto para ser implementado**), este arquivo registra objetivos e ideias em diferentes estágios de maturidade — desde melhorias pontuais até a visão de longo prazo do projeto — para que não se percam entre uma conversa e outra.
 >
-> As demandas estão organizadas na ordem recomendada de execução (não pela numeração de identificação, que é fixa e não muda): **5 → 3 → 7 → 9 → 10 → 2 → 6 → 1 → 8** (Demanda 4 pausada — ver seção correspondente).
+> As demandas estão organizadas na ordem recomendada de execução (não pela numeração de identificação, que é fixa e não muda): **5 → 3 → 7 → 9 → 10 → 11 → 12 → 2 → 6 → 1 → 8** (Demanda 4 pausada — ver seção correspondente).
 
 ## Como usar este documento
 
@@ -67,7 +67,9 @@ Tabela viva: toda demanda já levantada tem uma linha aqui, mesmo depois de remo
 | 7 | Mapeamento de ID Personalizado | ✅ Concluída | Dias | — | — |
 | 4 | Histórico de Alterações | ⏸️ Pausada | Horas–dias (versão simples) | — | — |
 | 9 | Logs de Alterações | ✅ Concluída | Dias | — | — |
-| 10 | Refatoração do Sistema de Duplicatas | Mapeado | Dias | — | — |
+| 10 | Refatoração do Sistema de Duplicatas | ✅ Concluída | Dias | — | — |
+| 11 | Backup/Exportação Completa do Sistema | Registrado | Dias | — | — |
+| 12 | Testes Automatizados | Registrado | Dias | — | — |
 | 2 | Variáveis no Texto (merge tags) | Registrado | Dias | — | 1 (para "fechar o ciclo") |
 | 6 | Armazenamento Duplo (Banco + Local) | Registrado | Semanas | — | 1 (recomendado) |
 | 1 | Envio Automático dos E-mails | Registrado | Semanas | 6 (recomendado) | — |
@@ -809,7 +811,7 @@ Para `erro_servidor`/`erro_cliente`, o formato muda um pouco — não há ação
 
 ## Demanda 10 — Refatoração do Sistema de Duplicatas
 
-**Status:** Mapeado — planner completo em `public/RefatoracaoSistemadeDuplicatas.md`, pronto para a Etapa 0 (mapeamento) quando a implementação começar. Esta demanda existia como arquivo solto, sem entrada neste documento — trazida para o registro nesta atualização, sem nenhuma etapa iniciada.
+**Status:** ✅ Concluída
 **Esforço estimado:** Dias — 15 etapas, a maioria de baixo risco e independentes entre si a partir da Etapa 4; Etapas 0–3 são sequenciais
 **Depende de:** —
 **Bloqueia:** —
@@ -820,7 +822,7 @@ O status `duplicado` é hoje um dos 5 valores possíveis do campo `status` de `E
 
 ### A solução proposta
 
-Desacoplar "duplicado" de `status`: `status` passa a ter só 4 valores (`válido`/`inválido`/`deletado`/`enviado`); duplicidade vira uma flag calculada em runtime (nunca persistida), exibida como badge ao lado do status real — um registro pode ser `válido` **e** duplicado, `inválido` **e** duplicado etc., simultaneamente. A trava `status_alterado` continua igual, mas deixa de decidir se um registro "pode ser visto como duplicado".
+Desacoplar "duplicado" de `status`: `status` passa a ter só 4 valores (`válido`/`inválido`/`deletado`/`enviado`); duplicidade vira uma flag calculada em runtime (nunca persistida, considerando só registros **ativos** — deletados nunca contam). Deixa de existir um badge "duplicado" próprio: o registro sempre mostra seu status real, e ganha um **ícone de alerta** ao lado (`IconeAlerta`, já existente no projeto) sempre que o e-mail estiver duplicado — com tooltip "Este registro está duplicado" e clique exclusivo do ícone para abrir o modal (o badge/select do status real mantém sua função normal de edição, sem sobreposição de clique). Um registro pode ser `válido` **e** duplicado, `inválido` **e** duplicado, ou `enviado` **e** duplicado — este último é o caso mais importante na prática, pois sinaliza risco de envio repetido para a mesma pessoa. `deletado` nunca recebe o ícone. A trava `status_alterado`/`backup_dados` continua igual, mas deixa de decidir se um registro "pode ser visto como duplicado".
 
 ### Etapas de Implementação `[Inicial]`
 
@@ -831,7 +833,7 @@ Desacoplar "duplicado" de `status`: `status` passa a ter só 4 valores (`válido
 5. Contadores (`EmailCounters.tsx`, `emailData.ts`).
 6. Filtros (`emailData.ts`, `EmailToolbar.tsx`) — **checkpoint de produto**: filtros de status passam a poder se sobrepor.
 7. Ordenação por status (`STATUS_ORDEM_EXIBICAO`).
-8. Tabela principal (`EmailTable.tsx`) — badge "⚠ duplicado" independente do status exibido.
+8. Tabela principal (`EmailTable.tsx`) — remove o badge "duplicado"; ícone de alerta clicável (com tooltip) ao lado do status real, independente de qual seja.
 9. Handlers de edição manual (`emails.tsx`) — **checkpoint de produto**: libera edição de registros duplicados.
 10. Remoção de código morto (`StatusUpdateConflict.tsx`).
 11. Revisão de `DuplicadosModal.tsx`/`DuplicadosConflitoModal.tsx`.
@@ -853,6 +855,137 @@ Detalhamento completo de cada etapa, critérios de aceite e roteiro de teste man
 ### Arquivos Removidos (previstos)
 
 - `src/components/StatusUpdateConflict.tsx` — código morto após a Etapa 9.
+
+---
+
+## Demanda 11 — Backup/Exportação Completa do Sistema
+
+**Status:** Registrado
+**Esforço estimado:** Dias
+**Depende de:** —
+**Bloqueia:** —
+
+### Contexto
+
+Hoje existe exportação por projeto (planilha/CSV, via `ExportarModal.tsx`) e um script de migração pontual (`migrar-backup-dados`), mas nenhum jeito de exportar o sistema inteiro. Todos os dados vivem só em `data/active/`, `data/trash/` e `data/logs/`, em arquivos locais sem nenhuma cópia de segurança — se essa pasta for perdida (disco, exclusão acidental, reinstalação da máquina), não há como recuperar nada.
+
+### Escopo
+
+**Cobre:**
+- Exportar um pacote único (`.zip`) contendo `data/active/`, `data/trash/` e `data/logs/` inteiros, com timestamp no nome do arquivo, baixável pela interface.
+- Restaurar o sistema a partir de um pacote gerado pelo próprio Malote — com um passo de confirmação explícito no frontend, já que é uma operação destrutiva (substitui o `data/` atual).
+- Validação básica do pacote antes de aplicar a restauração (estrutura mínima esperada, mensagem de erro clara se o arquivo não for um backup válido do sistema).
+
+**Não cobre nesta fase:**
+- Backup automático/agendado — esta demanda é só sob demanda (botão "Exportar backup"), não um cron.
+- Armazenamento remoto/nuvem — só download local, o mesmo modelo do restante do sistema.
+- Merge entre um backup restaurado e os dados atuais — restaurar é substituição total do `data/`, não uma mesclagem seletiva.
+
+### Decisões em aberto
+
+- **Formato do pacote:** `.zip` simples (mais direto) vs. um pacote com `manifest.json` próprio (versão do schema de dados, hash de integridade) — o segundo facilita detectar backups de versões antigas/incompatíveis do sistema, se o modelo de dados mudar no futuro (ex.: depois da Demanda 10).
+- **Onde fica o botão na interface:** dentro de algum menu de "Configurações" (mesmo lugar cogitado para o histórico da Demanda 4, se ela for retomada) ou uma tela própria.
+- **Granularidade da restauração:** o pacote sempre substitui `data/` inteiro, ou o usuário pode escolher restaurar só alguns projetos específicos de dentro do pacote?
+
+### Etapas de Implementação `[Inicial]`
+
+> Quebra preliminar — revisar ao iniciar, principalmente a decisão de formato do pacote (zip simples vs. manifest com versão/hash), que muda a Etapa 4.
+
+**Etapa 1 — Endpoint de exportação**
+- Novo endpoint (`GET /api/backup`, seguindo o padrão dos demais em `vite.config.ts`) que lê `data/active/`, `data/trash/` e `data/logs/` e monta um `.zip`, devolvido como download.
+
+**Etapa 2 — Botão de exportar na interface**
+- UI que dispara o download do backup (local a decidir — ver "Decisões em aberto").
+
+**Etapa 3 — Endpoint de importação**
+- Novo endpoint (`POST /api/backup`) que recebe o `.zip`, valida a estrutura mínima esperada, e substitui `data/` — reaproveitando o padrão de escrita segura já usado em outros pontos do projeto (gravar em local temporário e só então `fs.renameSync` para o destino final, para não deixar o sistema num estado parcialmente restaurado se a operação falhar no meio).
+
+**Etapa 4 — Confirmação e validação na interface**
+- Fluxo de confirmação explícito antes de restaurar (é destrutivo).
+- Mensagens de erro claras quando o arquivo enviado não é um backup válido do Malote.
+
+**Etapa 5 — Teste manual**
+- Gerar um backup, mover/apagar `data/`, restaurar, e confirmar que projetos, lixeira e logs voltam idênticos ao estado original.
+
+### Arquivos Necessários
+
+**Arquivos Alterados:**
+- `vite.config.ts` — dois novos endpoints (exportar/importar backup).
+
+**Arquivos Criados:**
+- Utilitário de empacotamento/leitura do `.zip` *(local a decidir — dentro de `vite.config.ts` ou em `src/scripts/utils/backup.ts`)*.
+- Componente de UI para exportar/restaurar *(nome sugerido: `BackupModal.tsx`)*.
+
+**Dependência nova:** nenhuma lib de `.zip` está no projeto hoje — precisa escolher uma (ex.: `archiver` para escrever, `adm-zip`/`unzipper` para ler).
+
+---
+
+## Demanda 12 — Testes Automatizados
+
+**Status:** Registrado
+**Esforço estimado:** Dias (setup do runner + primeira leva de testes)
+**Depende de:** —
+**Bloqueia:** —
+
+### Contexto
+
+O projeto não tem nenhum teste automatizado — não há Jest, Vitest, nem qualquer arquivo `*.test.*`/`*.spec.*`. Toda validação até hoje é manual, ou limitada a `tsc --noEmit`/`eslint`. As áreas com histórico de bug sutil e maior risco de regressão silenciosa — cálculo de status/duplicados, merge de conflito na reimportação, filtros e contadores — não têm nenhuma rede de segurança automatizada.
+
+> ⚠️ **Nota técnica sobre o runner:** este documento registra a demanda com **Jest**, como pedido. Vale registrar também que o projeto é 100% ESM (`"type": "module"` no `package.json`, `moduleResolution: "bundler"` e `verbatimModuleSyntax` no `tsconfig`) — o ambiente nativo do próprio Vite, que já roda o projeto. O Jest funciona nesse cenário, mas historicamente exige configuração adicional não trivial para ESM + TypeScript (via `ts-jest` ou `babel-jest`, ajustes de resolução de módulo, mocks de `import.meta.env`). O Vitest, por rodar sobre o mecanismo do próprio Vite, tende a funcionar sem essa configuração extra, usando o mesmo `tsconfig` e o mesmo resolvedor de módulos que o `npm run dev`/`npm run build` já usam. Fica como decisão em aberto abaixo — não mudei a escolha, só deixei o trade-off registrado para quando a Etapa 1 começar.
+
+### Escopo
+
+**Cobre:**
+- Setup do runner de testes e configuração de TypeScript/ESM correspondente.
+- Testes unitários para a lógica pura do sistema, priorizados por risco:
+  - `src/scripts/utils/calcularMerge.ts` (cenários de conflito da Demanda 3);
+  - `src/components/EmailStatus.ts` (regras de status, incluindo o comportamento hoje inconsistente do "duplicado" — ver Demanda 10);
+  - `src/components/utils/emailData.ts` (filtros, ordenação, contadores);
+  - `src/scripts/utils/validateEmail.ts`, `src/components/utils/slugify.ts`, `src/components/utils/restaurarCampos.ts`, `src/components/utils/paginacao.ts`.
+- Um script `npm test` para rodar a suíte.
+
+**Não cobre nesta fase:**
+- Testes de componentes React (React Testing Library) — a prioridade inicial é a lógica de dados, não a interface.
+- Testes end-to-end (Playwright/Cypress) contra a API embutida no `vite.config.ts`.
+- Integração em pipeline de CI — não existe CI configurado no repositório hoje; esta demanda cobre só a suíte local.
+
+### Decisões em aberto
+
+- **Jest (como pedido) vs. Vitest** — ver nota técnica acima.
+- **Meta de cobertura:** exigir um número mínimo (ex.: cobertura alta em `calcularMerge.ts` e `EmailStatus.ts`, por serem os módulos historicamente mais frágeis) ou não ter meta numérica, só garantir os cenários certos?
+- **Convenção de localização dos arquivos de teste:** `*.test.ts` ao lado de cada módulo, ou centralizados em pastas `__tests__/`?
+
+### Etapas de Implementação `[Inicial]`
+
+> Quebra preliminar — revisar ao iniciar, principalmente a escolha do runner (Etapa 1), que muda toda a configuração subsequente.
+
+**Etapa 1 — Setup do runner**
+- Instalar e configurar o runner escolhido, com suporte a TypeScript e ESM compatível com o `tsconfig` atual.
+
+**Etapa 2 — `EmailStatus.ts`**
+- Prioridade 1: é onde mora o cálculo de status/duplicados, incluindo o bug já mapeado na Demanda 10.
+
+**Etapa 3 — `calcularMerge.ts`**
+- Cenários de conflito da reimportação de planilha (Demanda 3): atributo alterado, registro corrigido, registro enviado, registro deletado revivido, registro sumido.
+
+**Etapa 4 — `emailData.ts` e `paginacao.ts`**
+- Filtros, ordenação, contadores e paginação.
+
+**Etapa 5 — Módulos restantes**
+- `validateEmail.ts`, `slugify.ts`, `restaurarCampos.ts`.
+
+**Etapa 6 — Integração ao fluxo de verificação**
+- Adicionar `npm test` ao README, ao lado de `lint`/`build`, como parte do checklist manual antes de commitar.
+
+### Arquivos Necessários
+
+**Arquivos Alterados:**
+- `package.json` — novo(s) devDependency e script `test`.
+- `README.md` — menção ao `npm test` no checklist de verificação.
+
+**Arquivos Criados:**
+- Arquivo de configuração do runner escolhido, na raiz do projeto.
+- Um `*.test.ts` por módulo listado no Escopo (local exato a confirmar na Etapa 1, conforme a "Convenção de localização" acima).
 
 ---
 

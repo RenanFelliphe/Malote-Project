@@ -139,6 +139,10 @@ export function Logs() {
 
   useEffect(() => {
     const idRequisicao = ++requisicaoAtualRef.current;
+    // Intencional: o spinner precisa aparecer imediatamente ao trocar de
+    // filtro, antes da resposta de `listarLogs` (assíncrona, tratada no
+    // .then/.finally abaixo).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCarregando(true);
     setErro(null);
 

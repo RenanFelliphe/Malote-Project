@@ -12,9 +12,9 @@
       "id": 1,
       "nome": "Ana Beatriz Souza",
       "email": "ana.souza@gmail.com",
-      "status": "duplicado",
+      "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-08-06T00:08:49.651Z"
+      "last_updated": "2026-09-06T15:05:12.959720Z"
     },
     {
       "id": 2,
@@ -68,9 +68,9 @@
       "id": 8,
       "nome": "Ana Paula Fernandes",
       "email": "ana.souza@gmail.com",
-      "status": "duplicado",
+      "status": "válido",
       "status_alterado": false,
-      "last_updated": "2026-08-06T00:08:49.651Z"
+      "last_updated": "2026-09-06T15:05:12.959720Z"
     },
     {
       "id": 9,

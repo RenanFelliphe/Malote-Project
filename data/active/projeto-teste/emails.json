@@ -432,176 +432,176 @@
       "id": 61,
       "nome": "Marcos Vinicius (1)",
       "email": "marcos.vinicius@dominio.com",
-      "status": "duplicado",
-      "last_updated": "2026-08-27T11:35:27.718Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 62,
       "nome": "Marcos Vinicius (2)",
       "email": "MARCOS.VINICIUS@DOMINIO.COM",
-      "status": "duplicado",
-      "last_updated": "2026-08-27T11:35:27.718Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 63,
       "nome": "Marcos Vinicius (3)",
       "email": "marcos.vinicius@dominio.com",
-      "status": "duplicado",
-      "last_updated": "2026-08-27T11:35:27.718Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 64,
       "nome": "Patrícia Gonçalves (1)",
       "email": "patricia.goncalves@dominio.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 65,
       "nome": "Patrícia Gonçalves (2)",
       "email": "PATRICIA.GONCALVES@DOMINIO.COM",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 66,
       "nome": "Patrícia Gonçalves (3)",
       "email": "patricia.goncalves@dominio.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 67,
       "nome": "Rodrigo Sampaio (1)",
       "email": "rodrigo.sampaio@dominio.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 68,
       "nome": "Rodrigo Sampaio (2)",
       "email": "RODRIGO.SAMPAIO@DOMINIO.COM",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 69,
       "nome": "Rodrigo Sampaio (3)",
       "email": "rodrigo.sampaio@dominio.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 70,
       "nome": "Cíntia Ferraz (1)",
       "email": "cintia.ferraz@dominio.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 71,
       "nome": "Cíntia Ferraz (2)",
       "email": "CINTIA.FERRAZ@DOMINIO.COM",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 72,
       "nome": "Cíntia Ferraz (3)",
       "email": "cintia.ferraz@dominio.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 73,
       "nome": "Anderson Prado (1)",
       "email": "anderson.prado@dominio.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 74,
       "nome": "Anderson Prado (2)",
       "email": "ANDERSON.PRADO@DOMINIO.COM",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 75,
       "nome": "Anderson Prado (3)",
       "email": "anderson.prado@dominio.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 76,
       "nome": "Beatriz Nascimento (1)",
       "email": "beatriz.nascimento@corp.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 77,
       "nome": "Beatriz Nascimento (2)",
       "email": "BEATRIZ.NASCIMENTO@CORP.COM",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 78,
       "nome": "Fabrício Andrade (1)",
       "email": "fabricio.andrade@corp.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 79,
       "nome": "Fabrício Andrade (2)",
       "email": "FABRICIO.ANDRADE@CORP.COM",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 80,
       "nome": "Juliana Prado (1)",
       "email": "juliana.prado@corp.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 81,
       "nome": "Juliana Prado (2)",
       "email": "JULIANA.PRADO@CORP.COM",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 82,
       "nome": "Sérgio Nakamura (1)",
       "email": "sergio.nakamura@corp.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 83,
       "nome": "Sérgio Nakamura (2)",
       "email": "SERGIO.NAKAMURA@CORP.COM",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 84,
       "nome": "Vanessa Righi (1)",
       "email": "vanessa.righi@corp.com",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 85,
       "nome": "Vanessa Righi (2)",
       "email": "VANESSA.RIGHI@CORP.COM",
-      "status": "duplicado",
-      "last_updated": "2026-07-15T12:52:47.755Z"
+      "status": "válido",
+      "last_updated": "2026-09-06T15:05:12.958783Z"
     },
     {
       "id": 86,

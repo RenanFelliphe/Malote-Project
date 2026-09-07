@@ -25,17 +25,58 @@ export function normalizeEmail(email: string): string {
 }
 
 /**
- * Recalcula o status "automático" (válido / inválido / duplicado) de todos
- * os registros cuja `backup_dados?.status` seja ausente/`false`, respeitando
- * a prioridade da seção 5.2 (não há "enviado"/"deletado" automáticos — esses
- * só existem via ação manual, portanto aqui a disputa é apenas entre
- * duplicado e válido/inválido). Registros com `backup_dados?.status === true`
- * são preservados sem alteração — enquanto essa chave estiver presente, o
- * status não pode ser recalculado automaticamente (seção 5.3).
+ * Conjunto de e-mails (normalizados) que aparecem em mais de um registro
+ * **ativo** (não `deletado`) — a flag de duplicidade da Demanda 10
+ * (`RefatoracaoSistemadeDuplicatas.md`, Etapa 1). Nunca persistida; sempre
+ * calculada em runtime, tanto pela interface quanto pelo `sync.ts`.
+ *
+ * Extraída do agrupamento que antes vivia dentro de
+ * `recalcularStatusAutomatico`, para ser reutilizável por qualquer parte do
+ * sistema — a partir da Etapa 3, `emails.tsx` calcula este `Set` uma única
+ * vez e repassa como propriedade a quem precisar, em vez de cada consumidor
+ * chamar esta função por conta própria.
+ *
+ * Contraparte, do lado Node, de `calcularEmailsDuplicados` em
+ * `src/scripts/utils/validateEmail.ts` (mesma lógica, reimplementada lá em
+ * vez de importada — `sync.ts` mantém esse desacoplamento deliberado entre
+ * `src/scripts/` (Node) e `src/components/` (browser)).
+ */
+export function calcularEmailsDuplicados(records: EmailRecord[]): Set<string> {
+  const contagemPorEmail = new Map<string, number>();
+
+  for (const registro of records) {
+    if (registro.status === 'deletado') continue;
+    if (!registro.email || !isValidEmail(registro.email)) continue;
+
+    const chave = normalizeEmail(registro.email);
+    contagemPorEmail.set(chave, (contagemPorEmail.get(chave) ?? 0) + 1);
+  }
+
+  const duplicados = new Set<string>();
+  for (const [email, contagem] of contagemPorEmail) {
+    if (contagem > 1) duplicados.add(email);
+  }
+  return duplicados;
+}
+
+/**
+ * Recalcula o status "automático" (válido / inválido) de todos os registros
+ * cuja `backup_dados?.status` seja ausente/`false`, respeitando a trava da
+ * seção 5.3 (não há "enviado"/"deletado" automáticos — esses só existem via
+ * ação manual). Registros com `backup_dados?.status === true` são
+ * preservados sem alteração — enquanto essa chave estiver presente, o
+ * status não pode ser recalculado automaticamente.
+ *
+ * A partir da Demanda 10 (Etapa 1), duplicidade deixou de ser uma
+ * possibilidade de status decidida aqui — quem precisar saber se um
+ * registro está duplicado chama `calcularEmailsDuplicados` separadamente
+ * (o cálculo é totalmente independente da trava de `backup_dados.status`,
+ * já que é um fato sobre os dados, não uma decisão de status).
  *
  * Usada:
  * - pelo script de sincronização (Etapa 2), sobre todos os registros;
- * - pela ação "Restaurar" da interface (Etapa 5), depois de remover
+ * - pela ação "Restaurar" da interface (Etapa 5 de
+ *   `EdicaoIndividualdeRegistro.md`), depois de remover
  *   `backup_dados.status` do(s) registro(s) restaurado(s) — o registro
  *   "volta a ser processado normalmente pelo sistema", conforme a
  *   especificação.
@@ -45,46 +86,10 @@ export function normalizeEmail(email: string): string {
 export function recalcularStatusAutomatico(records: EmailRecord[]): EmailRecord[] {
   const now = new Date().toISOString();
 
-  // Agrupa por e-mail normalizado, considerando os registros com e-mail
-  // sintaticamente válido — independentemente de backup_dados?.status, pois
-  // pertencer a um grupo duplicado é um fato sobre os dados, e não depende
-  // de o registro em si poder ou não ser recalculado. Registros
-  // "deletado" ficam de fora da contagem: um registro deletado não deve
-  // continuar "segurando" o(s) irmão(s) restante(s) como duplicado — ao
-  // sobrar apenas 1 registro ativo no grupo, ele deixa de ser duplicado.
-  //
-  // IMPORTANTE: só é considerado "deletado" para fins de contagem o
-  // registro que *permanecerá* deletado após este recálculo, isto é,
-  // aquele com `status === 'deletado' && backup_dados?.status === true`.
-  // "deletado" é um status manual (só existe via ação explícita, sempre
-  // acompanhado de `backup_dados.status = true`). Quando a ação "Restaurar"
-  // remove `backup_dados.status` de um registro, ela não altera o campo
-  // `status` (que continua "deletado" até este recálculo decidir o novo
-  // valor); se a contagem do grupo usasse apenas `r.status === 'deletado'`,
-  // o próprio registro restaurado seria excluído da contagem de duplicados
-  // — mesmo estando prestes a voltar a ficar ativo — subestimando o tamanho
-  // real do grupo e permitindo que vários registros com o mesmo e-mail
-  // voltassem todos como "válido" simultaneamente.
-  const groupSizeByEmail = new Map<string, number>();
-  for (const r of records) {
-    if (!r.email || !isValidEmail(r.email)) continue;
-    if (r.status === 'deletado' && r.backup_dados?.status) continue;
-    const key = normalizeEmail(r.email);
-    groupSizeByEmail.set(key, (groupSizeByEmail.get(key) ?? 0) + 1);
-  }
-
   return records.map((record) => {
     if (record.backup_dados?.status) return record;
 
-    const emailValid = !!record.email && isValidEmail(record.email);
-    const isDuplicate = emailValid && (groupSizeByEmail.get(normalizeEmail(record.email)) ?? 0) > 1;
-
-    let novoStatus: TStatus;
-    if (isDuplicate) {
-      novoStatus = 'duplicado';
-    } else {
-      novoStatus = emailValid ? 'válido' : 'inválido';
-    }
+    const novoStatus: TStatus = isValidEmail(record.email) ? 'válido' : 'inválido';
 
     if (novoStatus === record.status) return record;
 

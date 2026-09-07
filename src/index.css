@@ -1391,8 +1391,22 @@ select {
 
 /* --- Badges e selects de status --- */
 
+.td-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 10rem;
+}
+
+.status-badge,
+.status-select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .status-badge {
-  display: inline-block;
+  display: inline-flex;
   padding: 0.2rem 0.65rem;
   border-radius: var(--radius-full);
   font-size: 0.75rem;
@@ -1434,7 +1448,7 @@ select {
  * na cor do texto de cada status.
  */
 .status-select {
-  display: flex;
+  display: inline-flex;
   padding: 0.3rem .65rem 0.3rem .65rem;
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
@@ -1449,6 +1463,35 @@ select {
   -moz-appearance: none;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06) inset;
   transition: box-shadow var(--transition-fast), filter var(--transition-fast);
+}
+
+.icone-alerta-duplicado {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-warning);
+  background-color: transparent;
+  outline: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transform: translateY(1px);
+}
+
+.icone-alerta-duplicado:hover {
+  color: var(--color-focus);
+}
+
+.icone-alerta-duplicado:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.icone-alerta-duplicado svg {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .status-select:hover {

@@ -116,27 +116,48 @@ export function LixeiraSidebar({ aberto, onFechar, onContagemAtualizada }: Props
   // Carrega uma vez ao montar: o botão flutuante em `home.tsx` precisa da
   // contagem para o badge mesmo antes do primeiro clique em "abrir".
   useEffect(() => {
-    void carregarLixeira();
+    let cancelado = false;
+    queueMicrotask(() => {
+      if (!cancelado) void carregarLixeira();
+    });
+    return () => {
+      cancelado = true;
+    };
   }, [carregarLixeira]);
 
   // Recarrega a cada abertura — `diasRestantes` muda com o tempo, e o
   // expurgo de itens vencidos (Etapa 6) só acontece a cada chamada da rota,
   // então reabrir é a chance natural de refletir isso na lista.
   useEffect(() => {
-    if (aberto) void carregarLixeira();
+    if (!aberto) return;
+
+    let cancelado = false;
+    queueMicrotask(() => {
+      if (!cancelado) void carregarLixeira();
+    });
+    return () => {
+      cancelado = true;
+    };
   }, [aberto, carregarLixeira]);
 
   // Fechar a sidebar limpa a seleção e qualquer erro de restauração
   // pendente — reabrir começa do zero, não com o estado de uma sessão
   // anterior de seleção.
   useEffect(() => {
-    if (!aberto) {
+    if (aberto) return;
+
+    let cancelado = false;
+    queueMicrotask(() => {
+      if (cancelado) return;
       setSlugsSelecionados(new Set());
       setErroRestauracao(null);
       setErroExclusao(null);
       setConfirmacaoExclusao(null);
       setConfirmacaoRestauracao(null);
-    }
+    });
+    return () => {
+      cancelado = true;
+    };
   }, [aberto]);
 
   function alternarSelecaoItem(slug: string) {

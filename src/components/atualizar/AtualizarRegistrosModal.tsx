@@ -16,6 +16,7 @@ import {
 } from '../../scripts/utils/calcularMerge';
 import { RegistrosSumidosSection, type DecisaoSumido } from './RegistrosSumidosSection';
 import { MergeCampoConflito } from './MergeCampoConflito';
+import { calcularEmailsDuplicados } from '../EmailStatus';
 import type { EmailConteudo, EmailRecord } from '../../types/email';
 import { enviarSheet, salvarEmails } from '../../services/emailsApi';
 
@@ -725,10 +726,18 @@ interface ResumoFinalProps {
 }
 
 function ResumoFinal({ registros, notas, registrosAtuaisPorId }: ResumoFinalProps) {
+  // Duplicidade não é mais um status (Etapa 1 de `RefatoracaoSistemadeDuplicatas.md`)
+  // — conta-se aqui, entre os registros ativos, quantos têm um e-mail que
+  // aparece em mais de um registro (Etapa 2). Não confundir com
+  // `estatisticasPlanilha.duplicados` acima, que conta duplicidade dentro
+  // da planilha reimportada em si, antes do merge.
+  const emailsDuplicados = calcularEmailsDuplicados(registros);
   const contagens = {
     válido: registros.filter((r) => r.status === 'válido').length,
     inválido: registros.filter((r) => r.status === 'inválido').length,
-    duplicado: registros.filter((r) => r.status === 'duplicado').length,
+    duplicado: registros.filter(
+      (r) => r.status !== 'deletado' && !!r.email && emailsDuplicados.has(normalizeEmail(r.email))
+    ).length,
     deletado: registros.filter((r) => r.status === 'deletado').length,
     enviado: registros.filter((r) => r.status === 'enviado').length,
   };

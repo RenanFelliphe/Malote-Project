@@ -20,7 +20,11 @@ export function Paginacao({ paginacao, onPaginaChange }: Props) {
   const confirmandoRef = useRef(false);
 
   useEffect(() => {
-    setValor(String(paginacao.paginaAtual));
+    const sincronizar = window.setTimeout(() => {
+      setValor(String(paginacao.paginaAtual));
+    }, 0);
+
+    return () => window.clearTimeout(sincronizar);
   }, [paginacao.paginaAtual]);
 
   function confirmarPagina() {

@@ -8,13 +8,17 @@
  * Prioridade (da maior para a menor), usada na sincronização (seção 5.2):
  *   1. enviado
  *   2. deletado
- *   3. duplicado
- *   4. válido / inválido
+ *   3. válido / inválido
+ *
+ * "duplicado" deixou de ser um valor de status a partir da Demanda 10
+ * (`RefatoracaoSistemadeDuplicatas.md`, Etapa 1) — passou a ser uma flag
+ * calculada em runtime (`calcularEmailsDuplicados`, em `EmailStatus.ts`),
+ * que pode coexistir com qualquer um dos 4 status abaixo.
  */
-export type TStatus = 'válido' | 'inválido' | 'duplicado' | 'deletado' | 'enviado';
+export type TStatus = 'válido' | 'inválido' | 'deletado' | 'enviado';
 
 /** Lista dos status em ordem de prioridade (maior prioridade primeiro). */
-export const STATUS_PRIORIDADE: TStatus[] = ['enviado', 'deletado', 'duplicado', 'válido', 'inválido'];
+export const STATUS_PRIORIDADE: TStatus[] = ['enviado', 'deletado', 'válido', 'inválido'];
 
 /** Filtros disponíveis na interface (seção 6). "todos" não é um status, é uma opção de filtro. */
 export type TFiltro = 'todos' | 'válido' | 'inválido' | 'duplicado' | 'deletado' | 'enviado';

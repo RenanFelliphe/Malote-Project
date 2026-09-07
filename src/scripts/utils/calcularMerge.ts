@@ -226,24 +226,26 @@ function resolverIdDaLinha(linha: LinhaPlanilha, colunaId: string | null, indice
 }
 
 /**
- * Recalcula válido/inválido/duplicado sobre um conjunto de registros já
- * resolvidos (sem conflito pendente), e reporta as transições
- * válido↔inválido como notas (item 2 da taxonomia, seção 4). Registros
- * "enviado"/"deletado" ou com `backup_dados.status` nunca são recalculados
- * automaticamente — mesma regra de `applyStatusRules` em `sync.ts`.
+ * Recalcula válido/inválido sobre um conjunto de registros já resolvidos
+ * (sem conflito pendente), e reporta as transições válido↔inválido como
+ * notas (item 2 da taxonomia, seção 4). Registros "enviado"/"deletado" ou
+ * com `backup_dados.status` nunca são recalculados automaticamente — mesma
+ * regra de `applyStatusRules` em `sync.ts`.
+ *
+ * A partir da Demanda 10 (Etapa 2), esta função não decide mais
+ * duplicidade — `'duplicado'` deixou de ser um valor de `TStatus` na
+ * Etapa 1, então o agrupamento por e-mail que existia aqui só para decidir
+ * entre "duplicado" e "válido"/"inválido" deixou de ser necessário
+ * (mesma simplificação já feita em `recalcularStatusAutomatico`,
+ * `src/components/EmailStatus.ts`). Quem precisar saber se um registro
+ * está duplicado chama `calcularEmailsDuplicados` separadamente sobre
+ * `registrosSemConflito` (ver `ResumoFinal` nos dois modais de
+ * "Atualizar").
  */
 function recalcularStatusENotas(
   registros: EmailRecord[]
 ): { registros: EmailRecord[]; notas: NotaStatusAlterado[] } {
   const agora = new Date().toISOString();
-
-  const grupoPorEmail = new Map<string, number>();
-  for (const registro of registros) {
-    if (!registro.email || !isValidEmail(registro.email)) continue;
-    const chave = normalizeEmail(registro.email);
-    grupoPorEmail.set(chave, (grupoPorEmail.get(chave) ?? 0) + 1);
-  }
-
   const notas: NotaStatusAlterado[] = [];
 
   const atualizados = registros.map((registro) => {
@@ -251,15 +253,9 @@ function recalcularStatusENotas(
     if (registro.status === 'enviado' || registro.status === 'deletado') return registro;
 
     const statusAnterior = registro.status;
-    const emailValido = !!registro.email && isValidEmail(registro.email);
-    const duplicado = emailValido && (grupoPorEmail.get(normalizeEmail(registro.email)) ?? 0) > 1;
-    const novoStatus: TStatus = duplicado ? 'duplicado' : emailValido ? 'válido' : 'inválido';
+    const novoStatus: TStatus = isValidEmail(registro.email) ? 'válido' : 'inválido';
 
-    if (
-      (statusAnterior === 'válido' || statusAnterior === 'inválido') &&
-      (novoStatus === 'válido' || novoStatus === 'inválido') &&
-      novoStatus !== statusAnterior
-    ) {
+    if (novoStatus !== statusAnterior) {
       notas.push({ id: registro.id, statusAnterior, statusNovo: novoStatus });
     }
 

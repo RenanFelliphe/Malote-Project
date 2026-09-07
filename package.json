@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "sync": "cross-env TS_NODE_PROJECT=tsconfig.scripts.json node --loader ts-node/esm src/scripts/sync.ts",
-    "migrar-backup-dados": "cross-env TS_NODE_PROJECT=tsconfig.scripts.json node --loader ts-node/esm src/scripts/migrarBackupDados.ts"
+    "migrar-backup-dados": "cross-env TS_NODE_PROJECT=tsconfig.scripts.json node --loader ts-node/esm src/scripts/migrarBackupDados.ts",
+    "migrar-status-duplicado": "cross-env TS_NODE_PROJECT=tsconfig.scripts.json node --loader ts-node/esm src/scripts/migrarStatusDuplicado.ts"
   },
   "dependencies": {
     "@tiptap/core": "^3.29.2",

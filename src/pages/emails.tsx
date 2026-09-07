@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EmailConteudo, EmailRecord, EmailsData, TFiltro, TStatus, TStatusManual } from '../types/email';
 import { calcularPaginacao } from '../components/utils/paginacao';
 import { calcularContadores, processarRegistros, buscar, CONTADOR_LABELS, ORDENACAO_PADRAO, TODOS_OS_STATUS, type TOrdenacao } from '../components/utils/emailData';
-import { recalcularStatusAutomatico, normalizeEmail } from '../components/EmailStatus';
+import { recalcularStatusAutomatico, normalizeEmail, calcularEmailsDuplicados } from '../components/EmailStatus';
 import { EmailCounters } from '../components/EmailCounters';
 import { EmailToolbar } from '../components/EmailToolbar';
 import { EmailTable, type TCampoEditavel } from '../components/EmailTable';
@@ -39,6 +39,13 @@ export function Emails({ slug, dados }: EmailsProps) {
   const [registros, setRegistros] = useState<EmailRecord[]>(dados.registros);
   const [termoBusca, setTermoBusca] = useState('');
   const [statusFiltrados, setStatusFiltrados] = useState<Set<TStatus>>(new Set(TODOS_OS_STATUS));
+  /**
+   * Estado do filtro "Duplicados", separado de `statusFiltrados` desde a
+   * Demanda 10 (Etapa 5) — inicia ativo, junto com os 4 status em
+   * `TODOS_OS_STATUS`, para reproduzir o mesmo comportamento inicial de
+   * antes ("todos os filtros marcados ao carregar a página").
+   */
+  const [duplicadosFiltroAtivo, setDuplicadosFiltroAtivo] = useState(true);
   const [ordenacao, setOrdenacao] = useState<TOrdenacao>(ORDENACAO_PADRAO);
   const [selecionados, setSelecionados] = useState<Set<number>>(new Set());
   // Quantidade de registros renderizados por página, usada como tamanho da
@@ -86,7 +93,27 @@ export function Emails({ slug, dados }: EmailsProps) {
     };
   }, []);
 
-  const contadores = useMemo(() => calcularContadores(registros), [registros]);
+  /**
+   * Conjunto de e-mails (normalizados) que aparecem em mais de um registro
+   * ativo — Demanda 10, Etapa 3 (`RefatoracaoSistemadeDuplicatas.md`):
+   * calculado uma única vez aqui, em vez de cada consumidor (tabela,
+   * contadores, filtros, exportação) chamar `calcularEmailsDuplicados` por
+   * conta própria. Já repassado como propriedade para `EmailTable`, que só
+   * passa a lê-lo a partir da Etapa 7 (ícone de alerta ao lado do status).
+   * Contadores (Etapa 4) consomem este valor diretamente, passado a
+   * `calcularContadores` abaixo — por isso este cálculo precisa vir antes
+   * dele. Filtros (Etapa 5) consomem indiretamente, via
+   * `filtrarPorStatusMultiplo` (`emailData.ts`), sem precisar de uma
+   * propriedade própria em `EmailToolbar`. Exportação (Etapa 11) tem seu
+   * próprio cálculo por planilha, já que `ExportarModal` também é usado
+   * fora do contexto de um único projeto (`pages/home.tsx`).
+   */
+  const emailsDuplicados = useMemo(() => calcularEmailsDuplicados(registros), [registros]);
+
+  const contadores = useMemo(
+    () => calcularContadores(registros, emailsDuplicados),
+    [registros, emailsDuplicados]
+  );
   const tituloPagina = dados.projeto?.trim() || slug;
 
   // Pipeline completo (seção 7): filtro por status -> busca -> ordenação ->
@@ -95,8 +122,15 @@ export function Emails({ slug, dados }: EmailsProps) {
   // filtrado/buscado/ordenado — é o que a tabela renderiza e também a base
   // usada pelos botões de copiar (seção 7, itens 3-5).
   const registrosProcessados = useMemo(
-    () => processarRegistros(registros, { statusFiltrados, termoBusca, ordenacao }),
-    [registros, statusFiltrados, termoBusca, ordenacao]
+    () =>
+      processarRegistros(registros, {
+        statusFiltrados,
+        duplicadosFiltroAtivo,
+        emailsDuplicados,
+        termoBusca,
+        ordenacao,
+      }),
+    [registros, statusFiltrados, duplicadosFiltroAtivo, emailsDuplicados, termoBusca, ordenacao]
   );
 
   /**
@@ -113,13 +147,19 @@ export function Emails({ slug, dados }: EmailsProps) {
     [registros, termoBusca]
   );
 
-  /** Rótulos dos status atualmente selecionados no filtro (para a mensagem de "sem resultados"). */
+  /**
+   * Rótulos dos status/filtros atualmente selecionados (para a mensagem de
+   * "sem resultados"). "Duplicados" (Etapa 5) é conferido via
+   * `duplicadosFiltroAtivo`, não mais via `statusFiltrados`.
+   */
   const rotulosStatusFiltrados = useMemo(
     () =>
-      CONTADOR_LABELS.filter((item) => item.key !== 'total' && statusFiltrados.has(item.key as TStatus)).map(
-        (item) => item.label
-      ),
-    [statusFiltrados]
+      CONTADOR_LABELS.filter((item) => {
+        if (item.key === 'total') return false;
+        if (item.key === 'duplicado') return duplicadosFiltroAtivo;
+        return statusFiltrados.has(item.key as TStatus);
+      }).map((item) => item.label),
+    [statusFiltrados, duplicadosFiltroAtivo]
   );
 
   const paginacao = useMemo(
@@ -209,14 +249,30 @@ export function Emails({ slug, dados }: EmailsProps) {
    * solicitada): cada botão marca/desmarca seu próprio status, permitindo
    * combinações como "Válidos + Inválidos" simultaneamente. "Todos" marca
    * ou desmarca todos de uma vez, conforme o estado atual.
+   *
+   * Demanda 10, Etapa 5 (`RefatoracaoSistemadeDuplicatas.md`): "Duplicados"
+   * deixou de ser um dos status dentro de `statusFiltrados` (não é mais um
+   * `TStatus` válido — Etapa 1) e passou a ter seu próprio estado
+   * (`duplicadosFiltroAtivo`), tratado como um switch independente igual
+   * aos demais, em união com eles (marcar "Válidos" + "Duplicados" mostra
+   * todo registro que seja válido OU duplicado). "Todos" agora também
+   * inclui esse switch: só é considerado "tudo marcado" quando os 4 status
+   * e o filtro de duplicados estão ativos ao mesmo tempo.
    */
   function alternarFiltro(filtro: TFiltro) {
-    setStatusFiltrados((atual) => {
-      if (filtro === 'todos') {
-        const todosJaMarcados = TODOS_OS_STATUS.every((status) => atual.has(status));
-        return todosJaMarcados ? new Set() : new Set(TODOS_OS_STATUS);
-      }
+    if (filtro === 'todos') {
+      const todosJaMarcados = TODOS_OS_STATUS.every((status) => statusFiltrados.has(status)) && duplicadosFiltroAtivo;
+      setStatusFiltrados(todosJaMarcados ? new Set() : new Set(TODOS_OS_STATUS));
+      setDuplicadosFiltroAtivo(!todosJaMarcados);
+      return;
+    }
 
+    if (filtro === 'duplicado') {
+      setDuplicadosFiltroAtivo((atual) => !atual);
+      return;
+    }
+
+    setStatusFiltrados((atual) => {
       const novo = new Set(atual);
       if (novo.has(filtro)) {
         novo.delete(filtro);
@@ -289,17 +345,20 @@ export function Emails({ slug, dados }: EmailsProps) {
   /**
    * Atualização em massa de status (seção 5.2 — select "Atualizar para" da
    * `SelecaoAcoesBar` e, a partir da Etapa 2, também o select aberto pelo
-   * ícone de edição no cabeçalho da coluna Status). Regra importante:
-   * registros selecionados com status "duplicado" nunca são modificados por
-   * aqui — é calculado automaticamente pelo sistema, não um destino manual.
-   * Como a seleção pode conter uma mistura de duplicados e não duplicados
-   * (ambos pertencem ao mesmo grupo "ativo"), o filtro é aplicado na hora de
-   * decidir quais registros de fato mudam de status.
+   * ícone de edição no cabeçalho da coluna Status).
+   *
+   * A partir da Demanda 10 (Etapa 8), "duplicado" deixou de ser um valor de
+   * `status` — é uma flag calculada (`emailsDuplicados`), independente do
+   * status real do registro. Por isso não há mais nenhuma exclusão por
+   * "duplicado" aqui: todo registro selecionado (exceto "deletado", que
+   * nunca entra na seleção junto de não-deletados — ver regra de seleção da
+   * seção 7) é atualizado normalmente, esteja ou não com o ícone de alerta
+   * de duplicidade aceso.
    */
   async function handleAtualizarStatus(novoStatus: 'válido' | 'inválido' | 'enviado') {
     const agora = new Date().toISOString();
     const registrosAtualizados = registros.map((registro) =>
-      selecionados.has(registro.id) && registro.status !== 'duplicado'
+      selecionados.has(registro.id)
         ? {
             ...registro,
             status: novoStatus,
@@ -314,15 +373,21 @@ export function Emails({ slug, dados }: EmailsProps) {
   /**
    * Atualização individual de status (seção 7, revisão pós-Etapa 4):
    * disparada pelo select inline na própria célula da tabela, atualiza
-   * apenas o registro clicado. "duplicado" e "deletado" nunca chegam aqui
-   * — a tabela não renderiza o select para esses dois status (ver
-   * `EmailTable.renderStatus`) — mas a checagem abaixo é mantida como
+   * apenas o registro clicado.
+   *
+   * A partir da Demanda 10 (Etapa 8), "duplicado" não é mais um status —
+   * um registro duplicado tem um status real (válido/inválido/enviado) e
+   * pode ser editado normalmente por aqui, com o ícone de alerta de
+   * duplicidade recalculado de forma independente da escolha manual. Só
+   * "deletado" continua bloqueado: não é alcançável por este select (a
+   * tabela não o renderiza para registros deletados — ver
+   * `EmailTable.renderStatus`), mas a checagem abaixo é mantida como
    * salvaguarda, caso este handler venha a ser chamado de outro lugar no
    * futuro.
    */
   async function handleAtualizarStatusIndividual(id: number, novoStatus: TStatusManual) {
     const registroAlvo = registros.find((r) => r.id === id);
-    if (!registroAlvo || registroAlvo.status === 'duplicado' || registroAlvo.status === 'deletado') {
+    if (!registroAlvo || registroAlvo.status === 'deletado') {
       return;
     }
 
@@ -513,11 +578,12 @@ export function Emails({ slug, dados }: EmailsProps) {
    * Clique em "Confirmar envio" (Etapa 4): aplica o status "enviado" a
    * todos os registros selecionados. Reaproveita a mesma
    * `handleAtualizarStatus` já usada pelo select em massa do cabeçalho da
-   * coluna Status — que já ignora registros "duplicado" dentre os
-   * selecionados e já sabia lidar com "enviado" com segurança, mesmo antes
-   * de "enviado" deixar de ser uma opção dos selects (Etapa 3). Não há
-   * nenhuma restrição adicional aqui: ao contrário da exclusão, marcar como
-   * "enviado" não exige modal de conflito.
+   * coluna Status — que já sabia lidar com "enviado" com segurança, mesmo
+   * antes de "enviado" deixar de ser uma opção dos selects (Etapa 3). Não
+   * há nenhuma restrição adicional aqui: ao contrário da exclusão, marcar
+   * como "enviado" não exige modal de conflito. Desde a Demanda 10 (Etapa
+   * 8), registros duplicados também são elegíveis normalmente — "duplicado"
+   * não é mais status, é uma flag independente.
    */
   function handleConfirmarEnvioClick() {
     void handleAtualizarStatus('enviado');
@@ -606,6 +672,7 @@ export function Emails({ slug, dados }: EmailsProps) {
         <EmailCounters
           contadores={contadores}
           statusFiltrados={statusFiltrados}
+          duplicadosFiltroAtivo={duplicadosFiltroAtivo}
           onAlternarFiltro={alternarFiltro}
         />
 
@@ -660,6 +727,7 @@ export function Emails({ slug, dados }: EmailsProps) {
 
             <EmailTable
               registros={registrosExibidos}
+              emailsDuplicados={emailsDuplicados}
               selecionados={selecionados}
               onAlternarSelecao={alternarSelecao}
               onAlternarSelecaoTodos={alternarSelecaoTodos}

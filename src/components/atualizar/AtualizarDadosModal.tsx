@@ -16,6 +16,7 @@ import {
   type ResultadoMerge,
 } from '../../scripts/utils/calcularMerge';
 import { validarColunaId } from '../import/utils/validarColunaId';
+import { calcularEmailsDuplicados, normalizeEmail } from '../EmailStatus';
 import { MergeCampoConflito } from './MergeCampoConflito';
 import type { EmailConteudo, EmailRecord } from '../../types/email';
 import { salvarEmails, obterSheet } from '../../services/emailsApi';
@@ -703,10 +704,16 @@ function ResumoFinal({
   notas,
   registrosAtuaisPorId,
 }: ResumoFinalProps) {
+  // Duplicidade não é mais um status (Etapa 1 de `RefatoracaoSistemadeDuplicatas.md`)
+  // — conta-se aqui, entre os registros ativos, quantos têm um e-mail que
+  // aparece em mais de um registro (Etapa 2).
+  const emailsDuplicados = calcularEmailsDuplicados(registros);
   const contagens = {
     válido: registros.filter((r) => r.status === 'válido').length,
     inválido: registros.filter((r) => r.status === 'inválido').length,
-    duplicado: registros.filter((r) => r.status === 'duplicado').length,
+    duplicado: registros.filter(
+      (r) => r.status !== 'deletado' && !!r.email && emailsDuplicados.has(normalizeEmail(r.email))
+    ).length,
     deletado: registros.filter((r) => r.status === 'deletado').length,
     enviado: registros.filter((r) => r.status === 'enviado').length,
   };

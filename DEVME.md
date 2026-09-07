@@ -100,6 +100,8 @@ Gravar JSON atualizado (data/active/<slug>/emails.json)
 Interface React lê o JSON do projeto e renderiza
 ```
 
+> **Atualização (Demanda 10):** "Identificar duplicados" e "Aplicar prioridades" deixaram de ser o mesmo passo. Duplicidade é calculada à parte (flag em runtime, seção 5.4), e "Aplicar prioridades" (seção 5.2) decide apenas entre `enviado`/`deletado`/`válido`/`inválido` — nenhuma das duas etapas depende da outra para decidir o status final de um registro.
+
 ---
 
 ## 3. Importação
@@ -230,6 +232,8 @@ Não deverá verificar:
 
 **Status inicial:** após a importação, todo registro deverá ser classificado automaticamente como **válido**, **inválido** ou **duplicado**, respeitando a prioridade dos status definida em 5.2.
 
+> **Atualização (Demanda 10 — Refatoração do Sistema de Duplicatas):** duplicidade deixou de ser um dos resultados possíveis dessa classificação inicial. Após a importação, todo registro é classificado automaticamente apenas como **válido** ou **inválido**; "duplicado" passou a ser calculado à parte, como uma flag independente (ver seção 5.4 atualizada), que pode coexistir com qualquer um dos 4 status reais.
+
 ## 5.2 Status
 
 Os únicos status existentes são:
@@ -249,6 +253,8 @@ Os únicos status existentes são:
 
 Sempre prevalecerá o status de maior prioridade.
 
+> **Atualização (Demanda 10):** `duplicado` deixou de ser um valor de `status` — os únicos status existentes hoje são **válido**, **inválido**, **deletado** e **enviado**, com prioridade `enviado > deletado > válido/inválido` (sem posição própria para duplicidade, que não compete mais por prioridade nenhuma). O motivo da mudança e o modelo atual estão detalhados na seção 5.4 abaixo.
+
 ## 5.3 status_alterado
 
 Sempre que o usuário alterar manualmente um status, o sistema deverá definir:
@@ -263,7 +269,16 @@ Um registro será considerado duplicado quando existir mais de um registro com o
 
 Ao filtrar por duplicados, todos os registros pertencentes ao grupo duplicado deverão ser exibidos.
 
-> ⚠️ **Inconsistência conhecida:** por `duplicado` ser um valor de `status` — o mesmo campo usado para `válido`/`inválido`/`deletado`/`enviado` — um registro não pode ser "duplicado" e "válido" ao mesmo tempo. Em sequências reais de deletar/restaurar/editar manualmente, isso pode deixar dois registros com o mesmo e-mail em estados divergentes e sem vínculo visual entre si. A correção (tornar duplicidade uma flag calculada em runtime, independente do status) está mapeada na Demanda 10 — ver `DEMANDAS.md` e `public/RefatoracaoSistemadeDuplicatas.md` — ainda não implementada.
+> ⚠️ **Inconsistência conhecida (histórico — corrigida na Demanda 10):** por `duplicado` ser um valor de `status` — o mesmo campo usado para `válido`/`inválido`/`deletado`/`enviado` — um registro não podia ser "duplicado" e "válido" ao mesmo tempo. Em sequências reais de deletar/restaurar/editar manualmente, isso podia deixar dois registros com o mesmo e-mail em estados divergentes e sem vínculo visual entre si.
+
+> **Atualização (Demanda 10 — Refatoração do Sistema de Duplicatas, concluída — ver `public/RefatoracaoSistemadeDuplicatas.md`):** a inconsistência acima foi corrigida migrando `duplicado` de valor de `status` para **flag calculada em runtime**, desacoplada do status real do registro:
+>
+> - `status` (`TStatus`, `src/types/email.ts`) passou a ter só 4 valores: `válido`, `inválido`, `deletado`, `enviado` — a definição de status em 5.2 e a prioridade nunca mais incluem `duplicado`.
+> - Duplicidade é um `Set` de e-mails normalizados que aparecem mais de uma vez entre registros **ativos** (não `deletado`), calculado em runtime (`calcularEmailsDuplicados`, em `src/components/EmailStatus.ts`, com contraparte em `src/scripts/utils/validateEmail.ts` para o script de terminal) — nunca persistido como campo novo no JSON.
+> - Na interface, o registro exibe seu status real (badge/select normal) e, ao lado, um ícone de alerta sempre que seu e-mail estiver no `Set` de duplicados — com tooltip e clique para abrir o modal de duplicados (`DuplicadosConflitoModal.tsx`). O status em si nunca mais mostra a palavra "duplicado".
+> - Um registro pode ser `válido` **e** duplicado, `inválido` **e** duplicado, ou `enviado` **e** duplicado, simultaneamente — o cenário que causava a inconsistência (registro manual "congelado" num status enquanto seu par no mesmo grupo de e-mail ficava preso em "duplicado") deixa de ser possível, porque os dois fatos (status real e "está duplicado") não competem mais pelo mesmo campo.
+> - `deletado` fica fora dessa combinação: um registro deletado já é ignorado no cálculo do grupo de duplicados e não recebe o ícone de alerta.
+> - A trava de edição manual (seção 5.3/7) não muda — o que muda é que ela deixa de decidir também se um registro "pode ser visto como duplicado": um registro duplicado pode ser editado manualmente para qualquer status normal, com o ícone de alerta recalculado de forma independente da escolha manual (ver seção 7, "Atualizar Status", atualizada abaixo).
 
 ## 5.5 Contadores
 
@@ -277,6 +292,8 @@ O sistema deverá exibir:
 - enviados.
 
 Todos os contadores deverão respeitar o status efetivo do registro.
+
+> **Atualização (Demanda 10):** o contador "Duplicados" é a exceção prevista pela regra acima — desde que duplicidade deixou de ser um valor de `status` (seção 5.4), esse contador não respeita mais um status efetivo, e sim conta todo registro **ativo** (não `deletado`) cujo e-mail está na flag calculada, independentemente do seu status real. Um mesmo registro pode contar simultaneamente em "Duplicados" e em seu contador de status real (ex.: "Válidos"). Os demais 5 contadores continuam respeitando exatamente o status efetivo de cada registro, sem sobreposição entre si.
 
 ---
 
@@ -362,6 +379,8 @@ Toda alteração manual deverá definir:
 `status_alterado = true`
 
 **Não deverá ser possível alterar manualmente um registro para o status `duplicado`**, pois esse status é calculado automaticamente pelo sistema e não constitui uma opção de atualização manual.
+
+> **Atualização (Demanda 10 — Etapa 8, `public/RefatoracaoSistemadeDuplicatas.md`):** a restrição acima deixou de fazer sentido do jeito que estava escrita — `duplicado` não é mais um valor de `status` (seção 5.2), então nunca foi, e continua não sendo, uma opção de destino manual nos SELECTs de status. O que mudou de fato é outra restrição, que existia antes desta demanda e foi removida: registros cujo e-mail está duplicado (a flag da seção 5.4) podiam ser bloqueados para atualização manual em massa/individual só por causa disso. Isso não existe mais — um registro duplicado pode ser normalmente atualizado para válido/inválido/enviado, com o ícone de alerta de duplicidade recalculado à parte, independente da escolha manual.
 
 ---
 

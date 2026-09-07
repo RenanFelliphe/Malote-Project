@@ -24,7 +24,7 @@ import { basename, dirname, extname, resolve } from 'node:path';
 
 import { readSheet } from './utils/readSheet.js';
 import { identifyColumns, pickFirstFilled, EMAIL_COLUMNS } from './utils/identifyColumns.js';
-import { isValidEmail, normalizeEmail } from './utils/validateEmail.js';
+import { isValidEmail, normalizeEmail, calcularEmailsDuplicados } from './utils/validateEmail.js';
 import type { EmailConteudo, EmailRecord, EmailsData, TStatus } from '../types/email.js';
 import { EMAIL_CONTEUDO_VAZIO } from '../types/email.js';
 
@@ -220,40 +220,28 @@ function syncRecords(
 }
 
 // ---------------------------------------------------------------------------
-// 4/5/6. Validar e-mails, identificar duplicados e aplicar prioridades
-//         (seção 5.2 — "enviado > deletado > duplicado > válido/inválido")
+// 4/5/6. Validar e-mails e aplicar prioridades
+//         (seção 5.2 — "enviado > deletado > válido/inválido")
 // ---------------------------------------------------------------------------
 
+/**
+ * A partir da Demanda 10 (Refatoração do Sistema de Duplicatas, Etapa 2),
+ * esta função não decide mais duplicidade — `'duplicado'` deixou de ser um
+ * valor de `TStatus` na Etapa 1. A decisão fica só entre `válido`/`inválido`,
+ * espelhando a simplificação equivalente já feita em
+ * `recalcularStatusAutomatico` (`src/components/EmailStatus.ts`, Etapa 1).
+ * Quem precisar saber se um e-mail está duplicado chama
+ * `calcularEmailsDuplicados` separadamente (ver resumo final, em `main()`).
+ */
 function applyStatusRules(records: EmailRecord[]): EmailRecord[] {
   const now = new Date().toISOString();
-
-  // Agrupa por e-mail normalizado (todos os registros com e-mail
-  // sintaticamente válido) para detectar duplicados — seção 5.4:
-  // "mesmo endereço de e-mail, independentemente do nome".
-  const groupSizeByEmail = new Map<string, number>();
-  for (const r of records) {
-    if (!r.email || !isValidEmail(r.email)) continue;
-    const key = normalizeEmail(r.email);
-    groupSizeByEmail.set(key, (groupSizeByEmail.get(key) ?? 0) + 1);
-  }
 
   for (const record of records) {
     // backup_dados?.status === true → status definido manualmente, nunca
     // recalculado automaticamente durante a sincronização (seção 2.3 / 5.3).
     if (record.backup_dados?.status) continue;
 
-    const emailValid = !!record.email && isValidEmail(record.email);
-    const isDuplicate = emailValid && (groupSizeByEmail.get(normalizeEmail(record.email)) ?? 0) > 1;
-
-    // Prioridade automática (não há "enviado"/"deletado" automáticos —
-    // esses só existem via ação manual, portanto aqui a disputa é apenas
-    // entre duplicado e válido/inválido, respeitando a ordem de prioridade).
-    let novoStatus: TStatus;
-    if (isDuplicate) {
-      novoStatus = 'duplicado';
-    } else {
-      novoStatus = emailValid ? 'válido' : 'inválido';
-    }
+    const novoStatus: TStatus = isValidEmail(record.email) ? 'válido' : 'inválido';
 
     if (novoStatus !== record.status) {
       record.status = novoStatus;
@@ -321,11 +309,19 @@ function main() {
 
   writeJson(outPath, emailExistente, finalRecords, dadosExistentes);
 
+  // Duplicidade não é mais um status (Etapa 1) — o resumo abaixo conta,
+  // entre os registros ativos (não deletados), quantos têm um e-mail que
+  // aparece em mais de um registro, via a flag calculada por
+  // `calcularEmailsDuplicados` (Etapa 2), em vez de filtrar por
+  // `status === 'duplicado'`.
+  const emailsDuplicados = calcularEmailsDuplicados(finalRecords);
   const counters = {
     total: finalRecords.length,
     válido: finalRecords.filter((r) => r.status === 'válido').length,
     inválido: finalRecords.filter((r) => r.status === 'inválido').length,
-    duplicado: finalRecords.filter((r) => r.status === 'duplicado').length,
+    duplicado: finalRecords.filter(
+      (r) => r.status !== 'deletado' && !!r.email && emailsDuplicados.has(normalizeEmail(r.email))
+    ).length,
     deletado: finalRecords.filter((r) => r.status === 'deletado').length,
     enviado: finalRecords.filter((r) => r.status === 'enviado').length,
   };
