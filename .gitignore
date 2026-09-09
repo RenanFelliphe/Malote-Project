@@ -1,8 +1,10 @@
-node_modules
-dist
-dist-ssr
+\node_modules
+\dist
+\dist-ssr
 *.local
 .vite
+\tmp
+trash
 
 # Logs de Alterações (Demanda 9): LOGS_ATIVOS é config local, não segredo,
 # mas segue a mesma convenção de .env não versionado — .env.example fica.

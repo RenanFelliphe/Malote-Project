@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Header } from '../components/Header';
@@ -6,10 +6,19 @@ import { OrdenacaoPrioridade } from '../components/OrdenacaoPrioridade';
 import { CheckboxCustomizado } from '../components/CheckboxCustomizado';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { ExportarModal, type PlanilhaParaExportar } from '../components/ExportarModal';
+import { ImportarProjetosModal } from '../components/ImportarProjetosModal';
 import { LixeiraSidebar } from '../components/LixeiraSidebar';
-import { IconeBuscarPagina, IconeImportar, IconeLixeira, IconePlanilha } from '../components/Icons';
+import {
+  IconeBuscarPagina,
+  IconeImportar,
+  IconeLixeira,
+  IconePlanilha,
+  IconeSetaBaixo,
+  IconeSetaCima,
+} from '../components/Icons';
 import { ImportWizardModal } from '../components/import/ImportWizardModal';
 import { deletarProjetos } from '../services/projetosApi';
+import { exportarProjetos } from '../services/pacoteProjetosApi';
 import { PROJETOS } from '../data/projetos';
 import {
   CRITERIO_ORDENACAO_HOME_LABELS,
@@ -19,11 +28,74 @@ import {
 } from './utils/HomeOrdenacao';
 import { useSelecaoMultipla } from './utils/useSelecaoMultipla';
 
+/**
+ * Ícone "i" de informação usado pelo dropdown "Importar" (Etapa 5 de
+ * `ExportacaoImportacaoDeProjetos.md`, Demanda 11, seção 2) — definido
+ * localmente em vez de em `components/Icons.tsx` porque esse arquivo não
+ * veio no ZIP desta sessão (não está listado como Fonte da Etapa 5);
+ * seguindo a convenção já usada no resto do projeto (um ícone por
+ * componente em `Icons.tsx`), o ideal é mover este SVG para lá quando o
+ * arquivo completo estiver disponível — pendência anotada nas notas de
+ * execução.
+ */
+function IconeInformacao() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <line x1="8" y1="7" x2="8" y2="11.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <circle cx="8" cy="4.5" r="0.9" fill="currentColor" />
+    </svg>
+  );
+}
+
+/**
+ * Botão "[i]" com resumo em `title` (tooltip nativo no hover) + texto
+ * revelado no clique (para quem usa teclado/toque, sem depender só de
+ * `title`) — usado por cada opção do dropdown "Importar" (seção 2 do
+ * plano: "no hover ou clique resume o que cada importação faz").
+ */
+function InfoTooltip({ texto, rotulo }: { texto: string; rotulo: string }) {
+  const [aberto, setAberto] = useState(false);
+
+  return (
+    <span className="importar-dropdown-item-info">
+      <button
+        type="button"
+        className="importar-dropdown-info-botao"
+        title={texto}
+        aria-label={rotulo}
+        aria-expanded={aberto}
+        onClick={(evento) => {
+          evento.stopPropagation();
+          setAberto((atual) => !atual);
+        }}
+      >
+        <IconeInformacao />
+      </button>
+      {aberto && <span className="importar-dropdown-info-texto">{texto}</span>}
+    </span>
+  );
+}
+
 export function Home() {
   const inputArquivoRef = useRef<HTMLInputElement | null>(null);
   // Arquivo selecionado no explorador do SO — sua presença é o que
   // controla a exibição do assistente de importação (ImportWizardModal).
   const [arquivoSelecionado, setArquivoSelecionado] = useState<File | null>(null);
+  // "Importar Projetos" (Etapa 5 de ExportacaoImportacaoDeProjetos.md,
+  // Demanda 11) — mesmo papel de `inputArquivoRef`/`arquivoSelecionado`
+  // acima, mas para o seletor de pacote `.zip`; sua presença controla a
+  // exibição do `ImportarProjetosModal` (preview do pacote).
+  const inputArquivoProjetosRef = useRef<HTMLInputElement | null>(null);
+  const [arquivoProjetosSelecionado, setArquivoProjetosSelecionado] = useState<File | null>(null);
+  // Dropdown "Importar" da Home (Etapa 5 de ExportacaoImportacaoDeProjetos.md)
+  // — botão "Importar planilha" virou um dropdown com as 2 opções
+  // ("Importar Planilha" e o novo "Importar Projetos"), mesmo padrão de
+  // abrir/fechar por clique fora e Esc já usado pelo dropdown de
+  // configurações do Header.tsx, replicado aqui de forma independente (sem
+  // reaproveitar nada do Header — dropdowns de páginas diferentes).
+  const [dropdownImportarAberto, setDropdownImportarAberto] = useState(false);
+  const dropdownImportarRef = useRef<HTMLDivElement | null>(null);
   // Hierarquia de ordenação dos cards de projeto (Etapa 7, seção 3.5) —
   // padrão: alfabética primeiro, conforme ORDENACAO_HOME_PADRAO.
   const [ordenacao, setOrdenacao] = useState<TOrdenacaoHome>(ORDENACAO_HOME_PADRAO);
@@ -42,7 +114,7 @@ export function Home() {
   // / `ativarSelecaoExportacao`, chamadas pelo Header) e usada só para
   // decidir o que `handleConcluirSelecao` dispara; a barra em si não muda
   // de rótulo conforme a ação.
-  const [acaoPendente, setAcaoPendente] = useState<'deletar' | 'exportar' | null>(null);
+  const [acaoPendente, setAcaoPendente] = useState<'deletar' | 'exportar' | 'exportar-projetos' | null>(null);
   // Confirmação da exclusão em lote (Etapa 5 de implementacaoDelecao.md).
   const [confirmarLoteAberto, setConfirmarLoteAberto] = useState(false);
   const [erroDelecaoLote, setErroDelecaoLote] = useState<string | null>(null);
@@ -53,6 +125,12 @@ export function Home() {
   // vez (prop `planilhas`).
   const [planilhasParaExportar, setPlanilhasParaExportar] = useState<PlanilhaParaExportar[]>([]);
   const [modalExportarAberto, setModalExportarAberto] = useState(false);
+  // Exportação de pacote de projetos em lote (Etapa 4 de
+  // ExportacaoImportacaoDeProjetos.md, Demanda 11) — ao contrário da
+  // exportação de planilha (que abre `ExportarModal`), o pacote `.zip` é
+  // baixado direto pelo serviço (`exportarProjetos`), sem modal
+  // intermediário; erro de rede fica aqui, mesmo padrão de `erroDelecaoLote`.
+  const [erroExportacaoProjetosLote, setErroExportacaoProjetosLote] = useState<string | null>(null);
   // Sidebar da Lixeira (Etapa 7 de implementacaoDelecao.md) — só a
   // abertura/fechamento e a contagem para o badge vivem aqui; a lista em si
   // é buscada e mantida dentro do próprio `LixeiraSidebar`.
@@ -86,6 +164,56 @@ export function Home() {
     setArquivoSelecionado(null);
   }
 
+  /** Abre o seletor de arquivo do pacote `.zip` — item "Importar Projetos" do dropdown. */
+  function abrirSeletorDeArquivoProjetos() {
+    inputArquivoProjetosRef.current?.click();
+  }
+
+  function handleArquivoProjetosEscolhido(evento: React.ChangeEvent<HTMLInputElement>) {
+    const arquivo = evento.target.files?.[0] ?? null;
+    setArquivoProjetosSelecionado(arquivo);
+    // Mesmo motivo de `handleArquivoEscolhido` acima: permite escolher o
+    // mesmo arquivo de novo em seguida.
+    evento.target.value = '';
+  }
+
+  function fecharImportarProjetos() {
+    setArquivoProjetosSelecionado(null);
+  }
+
+  /**
+   * Fecha o dropdown "Importar" — usado em todo ponto de saída (clique
+   * fora, Esc, escolha de uma das 2 opções), mesmo critério de `fecharMenu`
+   * em `Header.tsx`.
+   */
+  function fecharDropdownImportar() {
+    setDropdownImportarAberto(false);
+  }
+
+  useEffect(() => {
+    if (!dropdownImportarAberto) return;
+
+    function aoClicarFora(evento: MouseEvent) {
+      if (dropdownImportarRef.current && !dropdownImportarRef.current.contains(evento.target as Node)) {
+        fecharDropdownImportar();
+      }
+    }
+
+    document.addEventListener('mousedown', aoClicarFora);
+    return () => document.removeEventListener('mousedown', aoClicarFora);
+  }, [dropdownImportarAberto]);
+
+  useEffect(() => {
+    if (!dropdownImportarAberto) return;
+
+    function aoPressionarTecla(evento: KeyboardEvent) {
+      if (evento.key === 'Escape') fecharDropdownImportar();
+    }
+
+    document.addEventListener('keydown', aoPressionarTecla);
+    return () => document.removeEventListener('keydown', aoPressionarTecla);
+  }, [dropdownImportarAberto]);
+
   /**
    * "Cancelar" da barra de ação — sai do modo de seleção sem concluir a
    * ação pendente (deletar ou exportar), qualquer que ela seja.
@@ -97,6 +225,7 @@ export function Home() {
     setErroDelecaoLote(null);
     setModalExportarAberto(false);
     setPlanilhasParaExportar([]);
+    setErroExportacaoProjetosLote(null);
   }
 
   /**
@@ -115,6 +244,17 @@ export function Home() {
    */
   function ativarSelecaoExportacao() {
     setAcaoPendente('exportar');
+    selecao.ativar();
+  }
+
+  /**
+   * Entra no modo de seleção para exportar um pacote de projetos em lote
+   * (Etapa 4 de ExportacaoImportacaoDeProjetos.md, Demanda 11), passada ao
+   * Header via `onAtivarSelecaoExportacaoProjetos` — mesmo padrão de
+   * `ativarSelecaoExportacao`, só com a nova variante de `acaoPendente`.
+   */
+  function ativarSelecaoExportacaoProjetos() {
+    setAcaoPendente('exportar-projetos');
     selecao.ativar();
   }
 
@@ -142,6 +282,31 @@ export function Home() {
   }
 
   /**
+   * Dispara `exportarProjetos` (`pacoteProjetosApi.ts`, Etapa 2) com todos
+   * os slugs selecionados, disparada por "Concluir" quando `acaoPendente
+   * === 'exportar-projetos'` (Etapa 4 de ExportacaoImportacaoDeProjetos.md,
+   * Demanda 11). Ao contrário de `abrirExportacaoLote` (que abre
+   * `ExportarModal`), o download do pacote `.zip` é direto — sem modal
+   * intermediário — então em sucesso sai do modo de seleção na hora
+   * (`cancelarModoSelecao`), mesmo padrão de `fecharModalExportarLote`. Em
+   * falha, mantém a seleção aberta e mostra o erro na barra
+   * (`erroExportacaoProjetosLote`), mesmo critério de
+   * `handleConfirmarDelecaoLote`.
+   */
+  async function concluirExportacaoProjetosLote() {
+    setErroExportacaoProjetosLote(null);
+
+    try {
+      await exportarProjetos([...selecao.selecionados]);
+      cancelarModoSelecao();
+    } catch (erro) {
+      setErroExportacaoProjetosLote(
+        erro instanceof Error ? erro.message : 'Não foi possível exportar os projetos selecionados.'
+      );
+    }
+  }
+
+  /**
    * "Concluir" da barra de ação genérica — dispara a ação que ativou o
    * modo de seleção, decidida por `acaoPendente`. O rótulo do botão nunca
    * muda entre ações (seção 2 do plano).
@@ -151,6 +316,8 @@ export function Home() {
       abrirConfirmarLote();
     } else if (acaoPendente === 'exportar') {
       abrirExportacaoLote();
+    } else if (acaoPendente === 'exportar-projetos') {
+      void concluirExportacaoProjetosLote();
     }
   }
 
@@ -192,7 +359,11 @@ export function Home() {
 
   return (
     <>
-      <Header onAtivarSelecaoDelecao={ativarSelecaoDelecao} onAtivarSelecaoExportacao={ativarSelecaoExportacao} />
+      <Header
+        onAtivarSelecaoDelecao={ativarSelecaoDelecao}
+        onAtivarSelecaoExportacao={ativarSelecaoExportacao}
+        onAtivarSelecaoExportacaoProjetos={ativarSelecaoExportacaoProjetos}
+      />
 
       <div className="home-page">
         <div className="home-page-header">
@@ -205,12 +376,70 @@ export function Home() {
         </div>
 
         <div className="home-page-acoes">
-          <div className="importar-planilha">
+          <div className="importar-planilha importar-dropdown" ref={dropdownImportarRef}>
             <input ref={inputArquivoRef} type="file" accept=".csv,.xlsx" className="input-arquivo-escondido" onChange={handleArquivoEscolhido} />
-            <button type="button" className="botao-importar-planilha" onClick={abrirSeletorDeArquivo}>
+            <input
+              ref={inputArquivoProjetosRef}
+              type="file"
+              accept=".zip"
+              className="input-arquivo-escondido"
+              onChange={handleArquivoProjetosEscolhido}
+            />
+            <button
+              type="button"
+              className="botao-importar-planilha"
+              aria-haspopup="menu"
+              aria-expanded={dropdownImportarAberto}
+              onClick={() => setDropdownImportarAberto((atual) => !atual)}
+            >
               <IconeImportar />
-              Importar planilha
+              Importar
+              <span className="app-header-config-item-chevron">
+                {dropdownImportarAberto ? <IconeSetaCima /> : <IconeSetaBaixo />}
+              </span>
             </button>
+
+            {dropdownImportarAberto && (
+              <div className="importar-dropdown-menu" role="menu">
+                <div className="importar-dropdown-item">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="importar-dropdown-botao"
+                    onClick={() => {
+                      fecharDropdownImportar();
+                      abrirSeletorDeArquivo();
+                    }}
+                  >
+                    <IconeImportar />
+                    Importar Planilha
+                  <InfoTooltip
+                    rotulo="O que é Importar Planilha"
+                    texto="Importa uma única planilha (CSV/XLSX) e cria um projeto novo."
+                  />
+                  </button>
+                </div>
+
+                <div className="importar-dropdown-item">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="importar-dropdown-botao"
+                    onClick={() => {
+                      fecharDropdownImportar();
+                      abrirSeletorDeArquivoProjetos();
+                    }}
+                  >
+                    <IconeImportar />
+                    Importar Projetos
+                  <InfoTooltip
+                    rotulo="O que é Importar Projetos"
+                    texto="Importa um pacote com um ou mais projetos completos, exportados anteriormente. Não afeta os projetos que já existem."
+                  />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="search-input-wrapper">
@@ -303,6 +532,10 @@ export function Home() {
         {arquivoSelecionado && (
           <ImportWizardModal arquivo={arquivoSelecionado} onFechar={fecharAssistenteImportacao} />
         )}
+
+        {arquivoProjetosSelecionado && (
+          <ImportarProjetosModal arquivo={arquivoProjetosSelecionado} onFechar={fecharImportarProjetos} />
+        )}
       </div>
 
       {selecao.ativo && (
@@ -325,6 +558,9 @@ export function Home() {
       )}
 
       {erroDelecaoLote && <p className="erro-salvamento erro-selecao-lote">{erroDelecaoLote}</p>}
+      {erroExportacaoProjetosLote && (
+        <p className="erro-salvamento erro-selecao-lote">{erroExportacaoProjetosLote}</p>
+      )}
 
       {confirmarLoteAberto && (
         <ConfirmDialog

@@ -172,6 +172,13 @@ export function LixeiraSidebar({ aberto, onFechar, onContagemAtualizada }: Props
     });
   }
 
+  function alternarSelecaoTodos() {
+    setSlugsSelecionados((atual) => {
+      const todosSelecionados = itens.length > 0 && itens.every((item) => atual.has(item.slug));
+      return todosSelecionados ? new Set() : new Set(itens.map((item) => item.slug));
+    });
+  }
+
   /**
    * Restaura o(s) item(ns) selecionado(s) (Etapa 8) — mesmo botão para o
    * caso individual (um único item selecionado) e em lote, já que
@@ -383,6 +390,17 @@ export function LixeiraSidebar({ aberto, onFechar, onContagemAtualizada }: Props
                 aria-label="Buscar planilha na lixeira"
               />
             </label>
+
+            {itens.length > 0 && (
+              <CheckboxCustomizado
+                className="lixeira-sidebar-selecionar-todos"
+                checked={itens.every((item) => slugsSelecionados.has(item.slug))}
+                onChange={alternarSelecaoTodos}
+                disabled={restaurando || excluindo}
+              >
+                Selecionar todos
+              </CheckboxCustomizado>
+            )}
   
             <div className="lixeira-sidebar-lista">
               {carregando && itens.length === 0 && !erro && (

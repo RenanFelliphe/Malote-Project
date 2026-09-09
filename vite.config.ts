@@ -3,6 +3,12 @@ import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+// Demanda 11, Etapa 3: `randomUUID` identifica cada pacote em estágio em
+// `data/tmp/` entre as fases de preview e confirmação da importação — só
+// precisa ser único o suficiente pra não colidir com outro pacote em
+// trânsito, não persiste além da janela normal de uso (ver `tmpDirectory`
+// abaixo).
+import crypto from 'node:crypto'
 import type { EmailsData } from './src/types/email'
 // Etapa 2 (LogsDeAlteracoes.md, Demanda 9): utilitário central de log —
 // todo handler de mutação abaixo passa a chamá-lo diretamente, nenhum
@@ -24,6 +30,31 @@ import type { TipoAcao, DadosLog, LinhaLog } from './src/types/log'
 // (client-side, import dinâmico para code-splitting). Aqui, import
 // estático: o processo do dev server não precisa de code-splitting.
 import JSZip from 'jszip'
+// Demanda 11, Etapa 2 (ExportacaoImportacaoDeProjetos.md): utilitário de
+// empacotamento usado por `GET /api/projetos/pacote` (`projetosApiPlugin`
+// abaixo) — mesma convenção de extensão `.js` do import de `registrarLog`
+// acima (`pacoteProjetos.ts` é o arquivo fonte). `PacoteInvalidoError` é
+// usado tanto para mapear o status HTTP do endpoint (400) quanto por
+// `registrarErroServidor`, que passa a ignorá-lo do mesmo jeito que já
+// ignora `ApiError` (ver a função abaixo).
+// Etapa 3: `desempacotarProjetos`/`detectarConflitos` usados por
+// `handlePreviewImportacaoPacote`; `PacoteDesempacotado` é tipo, mas
+// exportado de um arquivo `.ts` de script (não de `types/`), mesmo caso de
+// `LinhaLog` sendo importado junto de funções em outro ponto deste
+// arquivo — por isso `type` inline no meio do import nomeado, em vez de um
+// `import type` separado.
+import {
+  empacotarProjetos,
+  desempacotarProjetos,
+  detectarConflitos,
+  nomeArquivoPacote,
+  PacoteInvalidoError,
+  type PacoteDesempacotado,
+} from './src/scripts/utils/pacoteProjetos.js'
+// Etapa 3: `ManifestoPacoteProjetos` é lido de volta de `manifest.json`
+// estagiado em `data/tmp/<pacoteId>/` por `handleConfirmarImportacaoPacote`
+// — import de tipo, mesma convenção de `EmailsData`/`TipoAcao` acima.
+import type { ManifestoPacoteProjetos } from './src/types/pacoteProjetos'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // A partir da migração descrita em implementacaoImportacao.md (Etapa 1),
@@ -32,6 +63,20 @@ const activeDirectory = path.resolve(__dirname, 'data', 'active')
 // Ver implementacaoDelecao.md, seção 2 e Etapa 1: pastas deletadas (soft
 // delete) são movidas para cá, nomeadas <slug>--<timestamp>.
 const trashDirectory = path.resolve(__dirname, 'data', 'trash')
+// Demanda 11, Etapa 3 (ExportacaoImportacaoDeProjetos.md): diretório de
+// estágio de pacotes de importação entre as fases de preview e
+// confirmação — `handlePreviewImportacaoPacote` grava aqui,
+// `handleConfirmarImportacaoPacote` lê e sempre limpa ao final (sucesso ou
+// erro). Efêmero por natureza, ao contrário de `activeDirectory`/
+// `trashDirectory` acima.
+const tmpDirectory = path.resolve(__dirname, 'data', 'tmp')
+// Tempo máximo que um pacote em preview fica esperando confirmação antes
+// de ser considerado abandonado (aba fechada, sessão perdida etc.). Sem
+// processo de longa duração nesta fase local — mesma decisão consciente já
+// tomada pra expiração de 30 dias da lixeira (`handleListarLixeira`) — o
+// expurgo é oportunista: acontece no início do próximo preview
+// (`limparPacotesTemporariosExpirados`), não por um cron.
+const TTL_PACOTE_TMP_MS = 2 * 60 * 60 * 1000
 
 /**
  * Erro de API com status HTTP explícito — usado pelos handlers abaixo para
@@ -59,7 +104,10 @@ class ApiError extends Error {
  * feita por `registrarLog` (`acao` continua sendo sempre `erro_servidor`).
  */
 function registrarErroServidor(err: unknown, contexto: string): void {
-  if (err instanceof ApiError) return
+  // Demanda 11, Etapa 2: `PacoteInvalidoError` (pacote malformado, slug
+  // inválido, projeto inexistente) é, pelo mesmo critério de `ApiError`
+  // acima, uma resposta esperada (400) — não uma falha real do servidor.
+  if (err instanceof ApiError || err instanceof PacoteInvalidoError) return
   registrarLog('erro_servidor', {
     origem: 'servidor',
     mensagem: `Erro não tratado em ${contexto}: ${err instanceof Error ? err.message : String(err)}`,
@@ -818,6 +866,359 @@ function handleRenomearProjeto(
 }
 
 /**
+ * Handler de `GET /api/projetos/pacote` (novo, Etapa 2 de
+ * `ExportacaoImportacaoDeProjetos.md`, Demanda 11) — monta o pacote de
+ * portabilidade (`.zip`) a partir dos slugs pedidos, via `empacotarProjetos`
+ * (`scripts/utils/pacoteProjetos.ts`, Etapa 1), e devolve como download.
+ *
+ * Mesmo endpoint atende tanto a exportação de 1 projeto (disparada a partir
+ * da página do próprio projeto) quanto de N (seleção múltipla na Home,
+ * Etapa 4) — a única diferença é quantos slugs vêm na query; não há
+ * distinção de rota entre os dois casos.
+ *
+ * Query params:
+ * - `slugs` (obrigatório): lista de slugs separados por vírgula.
+ *
+ * Etapa 7: chama `registrarLog('exportar_projetos', ...)` uma única vez por
+ * empacotamento bem-sucedido (não uma linha por slug) — o gatilho é o
+ * "empacotar", não cada projeto individualmente, ao contrário de
+ * `importar_projetos` (seção 7 do planner, tabela). `dados.projetos` carrega
+ * a lista completa de slugs pedidos.
+ */
+async function handleExportarPacoteProjetos(
+  req: import('node:http').IncomingMessage,
+  res: import('node:http').ServerResponse
+) {
+  try {
+    const url = new URL(req.url ?? '/', 'http://localhost')
+    const slugs = (url.searchParams.get('slugs') ?? '')
+      .split(',')
+      .map((slug) => slug.trim())
+      .filter((slug) => slug.length > 0)
+
+    if (slugs.length === 0) {
+      throw new ApiError(400, 'Parâmetro "slugs" obrigatório: lista de slugs separados por vírgula.')
+    }
+
+    const zipBuffer = await empacotarProjetos(activeDirectory, slugs)
+
+    registrarLog('exportar_projetos', { projetos: slugs })
+
+    res.statusCode = 200
+    res.setHeader('Content-Type', 'application/zip')
+    res.setHeader('Content-Disposition', `attachment; filename="${nomeArquivoPacote()}"`)
+    res.end(zipBuffer)
+  } catch (err) {
+    registrarErroServidor(err, 'GET /api/projetos/pacote')
+    const status = err instanceof PacoteInvalidoError ? 400 : err instanceof ApiError ? err.status : 500
+    res.statusCode = status
+    res.setHeader('Content-Type', 'application/json')
+    res.end(JSON.stringify({
+      ok: false,
+      error: err instanceof Error ? err.message : String(err),
+    }))
+  }
+}
+
+/**
+ * Remove diretórios de pacotes em `data/tmp/` mais antigos que
+ * `TTL_PACOTE_TMP_MS` — chamado no início de `handlePreviewImportacaoPacote`,
+ * mesmo critério oportunista de `handleListarLixeira` (limpeza como efeito
+ * colateral de uma rota, não um processo à parte).
+ */
+function limparPacotesTemporariosExpirados(): void {
+  if (!fs.statSync(tmpDirectory, { throwIfNoEntry: false })?.isDirectory()) return
+  const agora = Date.now()
+  for (const entrada of fs.readdirSync(tmpDirectory, { withFileTypes: true })) {
+    if (!entrada.isDirectory()) continue
+    const caminho = path.resolve(tmpDirectory, entrada.name)
+    const mtimeMs = fs.statSync(caminho, { throwIfNoEntry: false })?.mtimeMs
+    if (mtimeMs === undefined || agora - mtimeMs > TTL_PACOTE_TMP_MS) {
+      fs.rmSync(caminho, { recursive: true, force: true })
+    }
+  }
+}
+
+/**
+ * Persiste os projetos já extraídos por `desempacotarProjetos` (Etapa 1,
+ * em memória) num diretório de estágio (`data/tmp/<pacoteId>/`) — a etapa
+ * de "extrair pra um diretório temporário" citada na seção 5/Etapa 3 do
+ * planner, feita aqui e não em `pacoteProjetos.ts` (que se mantém sem
+ * conhecimento de onde/quando o chamador decide tocar o disco — ver notas
+ * de execução da Etapa 1). Grava `manifest.json` junto, para
+ * `handleConfirmarImportacaoPacote` não depender de nenhum estado em
+ * memória do processo entre as duas fases — só do que está no disco.
+ */
+function estagiarPacote(pacoteId: string, pacote: PacoteDesempacotado): void {
+  const diretorioPacote = path.resolve(tmpDirectory, pacoteId)
+  fs.mkdirSync(diretorioPacote, { recursive: true })
+  fs.writeFileSync(path.resolve(diretorioPacote, 'manifest.json'), JSON.stringify(pacote.manifest, null, 2), 'utf-8')
+
+  for (const projeto of pacote.projetos) {
+    const diretorioProjeto = path.resolve(diretorioPacote, 'projetos', projeto.slug)
+    fs.mkdirSync(diretorioProjeto, { recursive: true })
+    fs.writeFileSync(path.resolve(diretorioProjeto, 'emails.json'), projeto.emailsJson)
+    fs.writeFileSync(path.resolve(diretorioProjeto, projeto.sheetNomeArquivo), projeto.sheetConteudo)
+  }
+}
+
+/** Slugs de todos os projetos ativos — usado por `handlePreviewImportacaoPacote` para detectar conflitos (`detectarConflitos`, Etapa 1). */
+function listarSlugsAtivos(): string[] {
+  if (!fs.statSync(activeDirectory, { throwIfNoEntry: false })?.isDirectory()) return []
+  return fs
+    .readdirSync(activeDirectory, { withFileTypes: true })
+    .filter((entrada) => entrada.isDirectory())
+    .map((entrada) => entrada.name)
+}
+
+/**
+ * Handler de `POST /api/projetos/pacote/preview` (novo, Etapa 3 de
+ * `ExportacaoImportacaoDeProjetos.md`) — primeira fase da importação:
+ * recebe o `.zip`, desempacota em memória (`desempacotarProjetos`, Etapa
+ * 1), estagia o conteúdo em `data/tmp/<pacoteId>/` (`estagiarPacote`) e
+ * devolve a lista de projetos do manifesto + quais colidem com slugs já
+ * ativos. Não grava nada em `data/active/` ainda — só
+ * `handleConfirmarImportacaoPacote` (fase 2) faz isso, com as decisões por
+ * projeto conflitante.
+ *
+ * Corpo: `{ arquivo: { nomeArquivo, conteudoBase64 } }` — mesmo formato já
+ * usado por `POST /api/projetos` e `POST /api/emails/:slug/sheet` para
+ * upload de arquivo bruto (`arquivoBrutoValido`, reaproveitada sem
+ * alteração).
+ */
+function handlePreviewImportacaoPacote(
+  req: import('node:http').IncomingMessage,
+  res: import('node:http').ServerResponse
+) {
+  let body = ''
+  req.on('data', (chunk) => { body += chunk })
+  req.on('end', () => {
+    void (async () => {
+      try {
+        limparPacotesTemporariosExpirados()
+
+        const dados = JSON.parse(body || '{}')
+        if (
+          !dados ||
+          typeof dados !== 'object' ||
+          Array.isArray(dados) ||
+          !arquivoBrutoValido((dados as { arquivo?: unknown }).arquivo)
+        ) {
+          throw new ApiError(400, 'Corpo inválido: esperado objeto { arquivo: { nomeArquivo, conteudoBase64 } }.')
+        }
+        const { arquivo } = dados as { arquivo: { nomeArquivo: string; conteudoBase64: string } }
+
+        const bufferZip = Buffer.from(arquivo.conteudoBase64, 'base64')
+        const pacote = await desempacotarProjetos(bufferZip)
+
+        const pacoteId = crypto.randomUUID()
+        estagiarPacote(pacoteId, pacote)
+
+        const conflitos = detectarConflitos(pacote.manifest, listarSlugsAtivos())
+
+        res.statusCode = 200
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify({
+          ok: true,
+          pacoteId,
+          projetos: pacote.manifest.projetos,
+          conflitos,
+        }))
+      } catch (err) {
+        registrarErroServidor(err, 'POST /api/projetos/pacote/preview')
+        const status = err instanceof PacoteInvalidoError ? 400 : err instanceof ApiError ? err.status : 500
+        res.statusCode = status
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify({
+          ok: false,
+          error: err instanceof Error ? err.message : String(err),
+        }))
+      }
+    })()
+  })
+}
+
+/** Formato de `crypto.randomUUID()` — único jeito de `pacoteId` chegar ao servidor é o que `handlePreviewImportacaoPacote` gerou e devolveu, então um valor fora desse formato só pode ser erro de integração do client ou tentativa de path traversal. */
+const REGEX_PACOTE_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** Decisão do usuário para um projeto conflitante (seção 4 do planner, modal de conflito — Etapa 6 do lado do client). */
+interface DecisaoConflito {
+  slug: string
+  acao: 'manter' | 'substituir' | 'novoSlug'
+  novoSlug?: string
+}
+
+function decisaoValida(valor: unknown): valor is DecisaoConflito {
+  if (valor === null || typeof valor !== 'object' || Array.isArray(valor)) return false
+  const candidato = valor as Record<string, unknown>
+  return (
+    typeof candidato.slug === 'string' &&
+    (candidato.acao === 'manter' || candidato.acao === 'substituir' || candidato.acao === 'novoSlug') &&
+    (candidato.novoSlug === undefined || typeof candidato.novoSlug === 'string')
+  )
+}
+
+/**
+ * Substitui atomicamente um projeto ativo pelo conteúdo estagiado — único
+ * caminho destrutivo dos três da seção 4 do planner ("Substituir pelo do
+ * pacote"). Move o projeto atual pra um nome temporário antes de mover o
+ * estagiado pro lugar, e só então apaga o temporário — evita ficar sem
+ * nenhuma das duas versões caso o processo seja interrompido entre as duas
+ * movimentações. A extremidade final continua destrutiva (o planner já
+ * previa isso, com a segunda confirmação via `ConfirmDialog.tsx` do lado
+ * do client, Etapa 6) — esta função só evita uma janela de perda de dados
+ * *durante* a operação em si.
+ */
+function substituirProjetoAtivo(diretorioEstagiado: string, diretorioAtivo: string): void {
+  const diretorioBackupTemp = `${diretorioAtivo}.substituido-tmp`
+  if (fs.statSync(diretorioBackupTemp, { throwIfNoEntry: false })) {
+    fs.rmSync(diretorioBackupTemp, { recursive: true, force: true })
+  }
+  fs.renameSync(diretorioAtivo, diretorioBackupTemp)
+  fs.renameSync(diretorioEstagiado, diretorioAtivo)
+  fs.rmSync(diretorioBackupTemp, { recursive: true, force: true })
+}
+
+/**
+ * Handler de `POST /api/projetos/pacote/confirmar` (novo, Etapa 3) —
+ * segunda fase da importação: aplica as decisões por projeto conflitante
+ * (seção 4 do planner) e grava direto os projetos sem conflito, movendo
+ * cada um de `data/tmp/<pacoteId>/projetos/<slug>/` pra `data/active/`
+ * (`fs.renameSync` — escrita atômica por projeto, seção 5 do planner).
+ * Sempre limpa `data/tmp/<pacoteId>/` ao final, sucesso ou erro (`finally`).
+ *
+ * Cada projeto do manifesto é tratado de forma independente — mesmo
+ * critério de `handleDeletarProjetos` (`DELETE /api/projetos`): uma falha
+ * isolada (decisão faltando, `novoSlug` colidindo) não impede os demais,
+ * resposta agregada com 207 se algum item falhar.
+ *
+ * Corpo: `{ pacoteId: string, decisoes?: { slug, acao, novoSlug? }[] }` —
+ * `decisoes` só precisa cobrir os slugs que vieram em `conflitos` na
+ * resposta do preview; projetos sem conflito são sempre gravados direto,
+ * sem exigir decisão.
+ */
+function handleConfirmarImportacaoPacote(
+  req: import('node:http').IncomingMessage,
+  res: import('node:http').ServerResponse
+) {
+  let body = ''
+  req.on('data', (chunk) => { body += chunk })
+  req.on('end', () => {
+    let diretorioPacote: string | null = null
+    try {
+      const dados = JSON.parse(body || '{}')
+
+      const formatoValido =
+        dados &&
+        typeof dados === 'object' &&
+        !Array.isArray(dados) &&
+        typeof (dados as { pacoteId?: unknown }).pacoteId === 'string' &&
+        ((dados as { decisoes?: unknown }).decisoes === undefined ||
+          (Array.isArray((dados as { decisoes?: unknown }).decisoes) &&
+            (dados as { decisoes: unknown[] }).decisoes.every(decisaoValida)))
+
+      if (!formatoValido) {
+        throw new ApiError(400, 'Corpo inválido: esperado objeto { pacoteId, decisoes? }.')
+      }
+
+      const { pacoteId, decisoes = [] } = dados as { pacoteId: string; decisoes?: DecisaoConflito[] }
+
+      if (!REGEX_PACOTE_ID.test(pacoteId)) {
+        throw new ApiError(400, 'Parâmetro "pacoteId" inválido.')
+      }
+
+      diretorioPacote = path.resolve(tmpDirectory, pacoteId)
+      const manifestPath = path.resolve(diretorioPacote, 'manifest.json')
+      if (!fs.statSync(manifestPath, { throwIfNoEntry: false })?.isFile()) {
+        throw new ApiError(404, 'Pacote não encontrado ou expirado. Refaça a importação.')
+      }
+      const manifest: ManifestoPacoteProjetos = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+      const decisoesPorSlug = new Map(decisoes.map((decisao) => [decisao.slug, decisao]))
+      const diretorioPacoteResolvido = diretorioPacote
+
+      const resultados = manifest.projetos.map((projetoDoManifesto) => {
+        const { slug } = projetoDoManifesto
+        try {
+          if (!slugEhSeguro(slug)) {
+            throw new ApiError(400, `Slug inválido no manifesto: "${slug}".`)
+          }
+
+          const diretorioEstagiado = path.resolve(diretorioPacoteResolvido, 'projetos', slug)
+          const diretorioAtivo = path.resolve(activeDirectory, slug)
+          const jaExiste = !!fs.statSync(diretorioAtivo, { throwIfNoEntry: false })
+
+          if (!jaExiste) {
+            fs.renameSync(diretorioEstagiado, diretorioAtivo)
+            registrarLog('importar_projetos', { projeto: slug, resultado: 'adicionado' })
+            return { slug, ok: true as const, resultado: 'adicionado' as const }
+          }
+
+          const decisao = decisoesPorSlug.get(slug)
+          if (!decisao) {
+            throw new ApiError(400, `Decisão pendente para o projeto "${slug}" (conflito de slug).`)
+          }
+
+          if (decisao.acao === 'manter') {
+            // Ação "vazia" (seção 7 do planner): nenhuma escrita real em
+            // `data/active/`, então nenhuma linha de log — mesmo critério já
+            // usado em toda a Demanda 9 para no-ops.
+            return { slug, ok: true as const, resultado: 'mantido' as const }
+          }
+
+          if (decisao.acao === 'substituir') {
+            substituirProjetoAtivo(diretorioEstagiado, diretorioAtivo)
+            registrarLog('importar_projetos', { projeto: slug, resultado: 'substituido' })
+            return { slug, ok: true as const, resultado: 'substituido' as const }
+          }
+
+          // decisao.acao === 'novoSlug'
+          const novoSlug = decisao.novoSlug
+          if (!novoSlug || !slugEhSeguro(novoSlug)) {
+            throw new ApiError(400, `"novoSlug" inválido para o projeto "${slug}".`)
+          }
+          const diretorioNovoSlug = path.resolve(activeDirectory, novoSlug)
+          if (fs.statSync(diretorioNovoSlug, { throwIfNoEntry: false })) {
+            throw new ApiError(409, `Já existe um projeto ativo com o slug "${novoSlug}".`)
+          }
+          fs.renameSync(diretorioEstagiado, diretorioNovoSlug)
+          registrarLog('importar_projetos', { projeto: slug, resultado: 'importado_como_novo', novoSlug })
+          return { slug, ok: true as const, resultado: 'importado_como_novo' as const, novoSlug }
+        } catch (err) {
+          registrarErroServidor(err, 'POST /api/projetos/pacote/confirmar (item)')
+          return {
+            slug,
+            ok: false as const,
+            error: err instanceof Error ? err.message : String(err),
+          }
+        }
+      })
+
+      const algumaFalha = resultados.some((resultado) => !resultado.ok)
+      res.statusCode = algumaFalha ? 207 : 200
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({ ok: !algumaFalha, resultados }))
+    } catch (err) {
+      registrarErroServidor(err, 'POST /api/projetos/pacote/confirmar')
+      const status = err instanceof ApiError ? err.status : 500
+      res.statusCode = status
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify({
+        ok: false,
+        error: err instanceof Error ? err.message : String(err),
+      }))
+    } finally {
+      // Sempre limpa o estágio, sucesso ou erro — um pacote confirmado (ou
+      // que falhou de um jeito não recuperável, ex. manifest.json
+      // corrompido depois de já resolvido) não deve ficar pra trás
+      // esperando o expurgo oportunista de `limparPacotesTemporariosExpirados`.
+      if (diretorioPacote && fs.statSync(diretorioPacote, { throwIfNoEntry: false })) {
+        fs.rmSync(diretorioPacote, { recursive: true, force: true })
+      }
+    }
+  })
+}
+
+/**
  * Middleware de dev server que cria `data/active/<slug>/emails.json` do zero.
  *
  * Implementa a Etapa 5 de implementacaoImportacao.md: endpoint chamado pelo
@@ -825,6 +1226,11 @@ function handleRenomearProjeto(
  * confirmar a importação de uma planilha nova. A validação de slug único do
  * client (Etapa 4, `PROJETOS` em memória) é só conveniência de UX — aqui é a
  * garantia real, checada contra o disco no momento da escrita.
+ *
+ * Demanda 11: também roteia `GET /pacote` (Etapa 2) e `POST
+ * /pacote/preview` / `POST /pacote/confirmar` (Etapa 3) — checados antes
+ * de PATCH/DELETE/POST porque são os únicos casos deste plugin com um
+ * subcaminho fixo em vez de um slug de projeto na URL.
  */
 function projetosApiPlugin() {
   return {
@@ -832,6 +1238,21 @@ function projetosApiPlugin() {
     configureServer(server: import('vite').ViteDevServer) {
       server.middlewares.use('/api/projetos', (req, res) => {
         const caminho = (req.url ?? '/').split('?')[0]
+
+        if (req.method === 'GET' && caminho === '/pacote') {
+          void handleExportarPacoteProjetos(req, res)
+          return
+        }
+
+        if (req.method === 'POST' && caminho === '/pacote/preview') {
+          handlePreviewImportacaoPacote(req, res)
+          return
+        }
+
+        if (req.method === 'POST' && caminho === '/pacote/confirmar') {
+          handleConfirmarImportacaoPacote(req, res)
+          return
+        }
 
         if (req.method === 'PATCH') {
           const slugAtual = decodeURIComponent(caminho.replace(/^\/+/, ''))

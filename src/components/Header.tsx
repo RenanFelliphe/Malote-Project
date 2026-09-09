@@ -10,6 +10,7 @@ import { AtualizarRegistrosModal } from './atualizar/AtualizarRegistrosModal';
 import { AtualizarDadosModal } from './atualizar/AtualizarDadosModal';
 import { copiarHtml, copiarTexto } from './utils/clipboard';
 import { deletarProjetos } from '../services/projetosApi';
+import { exportarProjetos } from '../services/pacoteProjetosApi';
 import {
   IconeAtualizarPlanilha,
   IconeConfiguracoes,
@@ -91,6 +92,19 @@ interface Props {
    */
   onAtivarSelecaoExportacao?: () => void;
   /**
+   * Ativa o modo de seleção múltipla da Home para exportação de pacotes de
+   * projetos em lote (Etapa 4 de `ExportacaoImportacaoDeProjetos.md`,
+   * Demanda 11). Passado apenas por `pages/home.tsx`, espelhando
+   * `onAtivarSelecaoExportacao` e `onAtivarSelecaoDelecao`; quando
+   * presente, "Exportar Projetos" (novo item do submenu "Exportar
+   * planilha") chama este callback em vez de disparar o pacote direto para
+   * um único slug — a Home lista vários projetos ao mesmo tempo, então a
+   * exportação de pacote também precisa passar por seleção antes de
+   * disparar o download (Etapa 4 de `pages/home.tsx`,
+   * `concluirExportacaoProjetosLote`).
+   */
+  onAtivarSelecaoExportacaoProjetos?: () => void;
+  /**
    * `colunaId` persistido do projeto atualmente aberto (Demanda 7 —
    * Mapeamento de ID Personalizado). Ausente/`undefined` = "Gerar
    * Automaticamente" (mesmo fallback de `EmailsData.colunaId`). Passado
@@ -127,6 +141,16 @@ interface Props {
  * já persistida no projeto). Igual às demais ações que dependem de um
  * projeto específico aberto (Editar e-mail, Exportar, Deletar), o item
  * fica desabilitado na Home.
+ *
+ * "Exportar planilha" (Etapa 4 de ExportacaoImportacaoDeProjetos.md,
+ * Demanda 11) segue o mesmo padrão de submenu inline de "Atualizar
+ * planilha": alterna `submenuExportarAberto` com as 2 opções — "Exportar
+ * Planilha" (fluxo já existente, `ExportarModal`/seleção em lote via
+ * `onAtivarSelecaoExportacao`) e "Exportar Projetos" (novo pacote `.zip`
+ * de portabilidade, `pacoteProjetosApi.ts`; na página do projeto dispara
+ * direto para o slug atual, na Home ativa seleção múltipla via
+ * `onAtivarSelecaoExportacaoProjetos`, mesma dualidade Home/projeto aberto
+ * já usada por "Exportar Planilha"/"Deletar planilha").
  */
 export function Header({
   slug,
@@ -136,6 +160,7 @@ export function Header({
   onSalvarEmail,
   onAtivarSelecaoDelecao,
   onAtivarSelecaoExportacao,
+  onAtivarSelecaoExportacaoProjetos,
   colunaId,
 }: Props) {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -143,12 +168,24 @@ export function Header({
   const [modalEmailAberto, setModalEmailAberto] = useState(false);
   const [confirmarDeletarAberto, setConfirmarDeletarAberto] = useState(false);
   const [erroDelecao, setErroDelecao] = useState<string | null>(null);
+  // Erro do disparo direto de "Exportar Projetos" na página do projeto
+  // (Etapa 4 de ExportacaoImportacaoDeProjetos.md) — mesmo padrão de
+  // `erroDelecao`: a Home tem seu próprio estado de erro para o caminho em
+  // lote (`erroExportacaoProjetosLote`, `pages/home.tsx`), este aqui só
+  // cobre o caminho de 1 projeto disparado direto pelo Header.
+  const [erroExportarProjetos, setErroExportarProjetos] = useState<string | null>(null);
   const [campoCopiado, setCampoCopiado] = useState<'titulo' | 'conteudo' | null>(null);
   // Submenu de "Atualizar planilha" (Etapa 2 de AtualizacaoDaPlanilhaViaUI.md)
   // — estado próprio, não reaproveita `menuAberto`, porque o dropdown
   // principal e o submenu podem estar em combinações diferentes (menu
   // aberto com submenu fechado é o estado inicial de toda abertura).
   const [submenuAtualizarAberto, setSubmenuAtualizarAberto] = useState(false);
+  // Submenu de "Exportar planilha" (Etapa 4 de
+  // ExportacaoImportacaoDeProjetos.md, Demanda 11) — mesmo padrão do
+  // submenu de "Atualizar planilha" acima: estado próprio, independente de
+  // `menuAberto`, para abrir com as 2 opções ("Exportar Planilha" e o novo
+  // "Exportar Projetos") sem fechar o dropdown principal.
+  const [submenuExportarAberto, setSubmenuExportarAberto] = useState(false);
   // Arquivo escolhido no seletor do SO para "Atualizar Registros" — mesmo
   // papel de `arquivoSelecionado` em `pages/home.tsx` (ImportWizardModal).
   // O assistente que deveria abrir a partir deste arquivo
@@ -257,6 +294,7 @@ export function Header({
   function fecharMenu() {
     setMenuAberto(false);
     setSubmenuAtualizarAberto(false);
+    setSubmenuExportarAberto(false);
   }
 
   useEffect(() => {
@@ -306,6 +344,59 @@ export function Header({
       return;
     }
     abrirExportacao();
+  }
+
+  /**
+   * Clique em "Exportar planilha" — o item do menu principal agora abre um
+   * submenu inline com as 2 opções ("Exportar Planilha" e "Exportar
+   * Projetos", Etapa 4 de ExportacaoImportacaoDeProjetos.md), mesmo
+   * espírito de `handleClicarAtualizarPlanilha` (alterna sem fechar o
+   * dropdown principal).
+   */
+  function handleClicarSubmenuExportar() {
+    setSubmenuExportarAberto((atual) => !atual);
+  }
+
+  /**
+   * "Exportar Projetos" (Etapa 4): na Home, `onAtivarSelecaoExportacaoProjetos`
+   * está presente e assume o clique inteiro — entra no modo de seleção
+   * múltipla, mesmo padrão de `handleClicarExportarPlanilha`/
+   * `handleClicarDeletarPlanilha` (a Home lista vários projetos, então a
+   * exportação de pacote em lote precisa passar por seleção antes de
+   * disparar o download, `concluirExportacaoProjetosLote` em
+   * `pages/home.tsx`). Na página do projeto, a prop não é passada — dispara
+   * o pacote direto para o slug atual.
+   */
+  function handleClicarExportarProjetos() {
+    if (onAtivarSelecaoExportacaoProjetos) {
+      fecharMenu();
+      onAtivarSelecaoExportacaoProjetos();
+      return;
+    }
+    void exportarProjetoAtual();
+  }
+
+  /**
+   * Dispara `exportarProjetos` (`pacoteProjetosApi.ts`, Etapa 2) para o
+   * slug atualmente aberto — só é possível chegar aqui com `projetoAberto`
+   * (item desabilitado sem projeto), então `slug` sempre existe nesse
+   * caminho. Erro de rede fica em `erroExportarProjetos`, exibido junto do
+   * cabeçalho (mesmo padrão de `erroDelecao`), sem navegação nem reload —
+   * ao contrário da exclusão, a exportação não muda o estado do projeto
+   * aberto.
+   */
+  async function exportarProjetoAtual() {
+    if (!slug) return;
+    fecharMenu();
+    setErroExportarProjetos(null);
+
+    try {
+      await exportarProjetos([slug]);
+    } catch (erro) {
+      setErroExportarProjetos(
+        erro instanceof Error ? erro.message : 'Não foi possível exportar o pacote do projeto.'
+      );
+    }
   }
 
   function abrirEdicaoEmail() {
@@ -463,6 +554,7 @@ export function Header({
             onClick={() => {
               setMenuAberto((atual) => !atual);
               setSubmenuAtualizarAberto(false);
+              setSubmenuExportarAberto(false);
             }}
             aria-haspopup="menu"
             aria-expanded={menuAberto}
@@ -533,17 +625,60 @@ export function Header({
                 )}
               </div>
 
-              <button
-                type="button"
-                role="menuitem"
-                className="app-header-config-item app-header-config-item-botao"
-                onClick={handleClicarExportarPlanilha}
-                disabled={!onAtivarSelecaoExportacao && !projetoAberto}
-                title={onAtivarSelecaoExportacao || projetoAberto ? undefined : 'Abra um projeto para exportar'}
-              >
-                <IconeExportar />
-                Exportar planilha
-              </button>
+              <div className="app-header-config-item-grupo">
+                <button
+                  type="button"
+                  role="menuitem"
+                  aria-haspopup="menu"
+                  aria-expanded={submenuExportarAberto}
+                  className="app-header-config-item app-header-config-item-botao"
+                  onClick={handleClicarSubmenuExportar}
+                  disabled={!onAtivarSelecaoExportacao && !onAtivarSelecaoExportacaoProjetos && !projetoAberto}
+                  title={
+                    onAtivarSelecaoExportacao || onAtivarSelecaoExportacaoProjetos || projetoAberto
+                      ? undefined
+                      : 'Abra um projeto para exportar'
+                  }
+                >
+                  <IconeExportar />
+                  Exportar planilha
+                  <span className="app-header-config-item-chevron">
+                    {submenuExportarAberto ? <IconeSetaCima /> : <IconeSetaBaixo />}
+                  </span>
+                </button>
+
+                {submenuExportarAberto && (
+                  <div className="app-header-config-submenu" role="menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
+                      onClick={handleClicarExportarPlanilha}
+                      disabled={!onAtivarSelecaoExportacao && !projetoAberto}
+                      title={onAtivarSelecaoExportacao || projetoAberto ? undefined : 'Abra um projeto para exportar'}
+                    >
+                      <IconeExportar />
+                      Exportar Planilha
+                    </button>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
+                      onClick={handleClicarExportarProjetos}
+                      disabled={!onAtivarSelecaoExportacaoProjetos && !projetoAberto}
+                      title={
+                        onAtivarSelecaoExportacaoProjetos || projetoAberto
+                          ? undefined
+                          : 'Abra um projeto para exportar'
+                      }
+                    >
+                      <IconeExportar />
+                      Exportar Projetos
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <button
                 type="button"
@@ -591,6 +726,7 @@ export function Header({
           )}
         </div>
         {erroDelecao && <p className="erro-salvamento erro-salvamento-header">{erroDelecao}</p>}
+        {erroExportarProjetos && <p className="erro-salvamento erro-salvamento-header">{erroExportarProjetos}</p>}
 
         <input
           ref={inputArquivoAtualizarRegistrosRef}

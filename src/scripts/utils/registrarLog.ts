@@ -153,6 +153,24 @@ function montarMensagem(acao: TipoAcao, dados: DadosLog): string {
 
     case 'editar_email':
       return descreverDiferencas(dados) ?? 'Conteúdo de e-mail do projeto alterado.';
+
+    case 'exportar_projetos': {
+      const slugs = dados.projetos ?? [];
+      return `Pacote de projetos exportado (${slugs.length} projeto(s)): ${slugs.length > 0 ? slugs.join(', ') : '—'}.`;
+    }
+
+    case 'importar_projetos': {
+      const projeto = dados.projeto ?? '?';
+      switch (dados.resultado) {
+        case 'substituido':
+          return `Projeto "${projeto}" substituído pelo conteúdo do pacote importado.`;
+        case 'importado_como_novo':
+          return `Projeto "${projeto}" importado do pacote como novo projeto ("${dados.novoSlug ?? '?'}").`;
+        case 'adicionado':
+        default:
+          return `Projeto "${projeto}" importado do pacote.`;
+      }
+    }
   }
 }
 
@@ -171,6 +189,17 @@ function montarMensagem(acao: TipoAcao, dados: DadosLog): string {
  * menos uma chave de `backup_dados` foi de fato removida — o diff
  * genérico de `original`/`atual` (que compararia só os valores) ficaria
  * incorretamente vazio nesse caso e descartaria uma linha legítima.
+ *
+ * Ajuste de rota (Etapa 7, Demanda 11): `exportar_projetos` e
+ * `importar_projetos` entraram nesta lista pelo mesmo motivo de
+ * `restaurar_registro` — nenhum dos dois carrega um par `original`/`atual`
+ * comparável por valor (`exportar_projetos` não tem "antes"; `importar_projetos`
+ * grava o `resultado` da escrita, não um diff). `handleExportarPacoteProjetos`
+ * só chama `registrarLog` depois do `.zip` já montado com sucesso, e
+ * `handleConfirmarImportacaoPacote` só chama por projeto nos ramos que de
+ * fato escrevem em disco (nunca no ramo "manter o atual") — a própria
+ * chamada já é a confirmação de mudança real, mesmo critério das outras
+ * ações desta lista (seção 7 do planner).
  */
 const ACOES_SEMPRE_REAIS = new Set<TipoAcao>([
   'deletar_projeto',
@@ -178,6 +207,8 @@ const ACOES_SEMPRE_REAIS = new Set<TipoAcao>([
   'deletar_projeto_permanente',
   'importar_planilha',
   'restaurar_registro',
+  'exportar_projetos',
+  'importar_projetos',
 ]);
 
 /**
@@ -239,15 +270,34 @@ function montarLinha(acao: TipoAcao, dados: DadosLog, agora: Date): LinhaLog {
     };
   }
 
+  // `exportar_projetos`/`importar_projetos` (Demanda 11) não têm campos
+  // dedicados em `LinhaLogAcao` — reaproveitam `atual` (mecanismo genérico
+  // já usado pelo diff de `alterar_planilha`/`alterar_registro`) pra
+  // carregar seus dados específicos, mantendo o formato persistido estável.
+  // Ver comentário de `LinhaLogAcao`, `types/log.ts`.
+  let atual = dados.atual ?? null;
+  let quantidade = dados.quantidade ?? null;
+  if (acao === 'exportar_projetos') {
+    atual = { projetos: dados.projetos ?? [] };
+    quantidade = dados.projetos?.length ?? null;
+  } else if (acao === 'importar_projetos') {
+    atual = {
+      resultado: dados.resultado ?? null,
+      ...(dados.resultado === 'importado_como_novo' && dados.novoSlug
+        ? { novoSlug: dados.novoSlug }
+        : {}),
+    };
+  }
+
   return {
     id,
     data,
     acao,
     projeto: dados.projeto ?? null,
     registroId: dados.registroId ?? null,
-    quantidade: dados.quantidade ?? null,
+    quantidade,
     original: dados.original ?? null,
-    atual: dados.atual ?? null,
+    atual,
     mensagem,
   };
 }

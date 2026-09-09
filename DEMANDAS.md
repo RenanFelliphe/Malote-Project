@@ -68,7 +68,7 @@ Tabela viva: toda demanda já levantada tem uma linha aqui, mesmo depois de remo
 | 4 | Histórico de Alterações | ⏸️ Pausada | Horas–dias (versão simples) | — | — |
 | 9 | Logs de Alterações | ✅ Concluída | Dias | — | — |
 | 10 | Refatoração do Sistema de Duplicatas | ✅ Concluída | Dias | — | — |
-| 11 | Backup/Exportação Completa do Sistema | Registrado | Dias | — | — |
+| 11 | Exportação e Importação de Projetos (Portabilidade) | Concluída | Dias | — | — |
 | 12 | Testes Automatizados | Registrado | Dias | — | — |
 | 2 | Variáveis no Texto (merge tags) | Registrado | Dias | — | 1 (para "fechar o ciclo") |
 | 6 | Armazenamento Duplo (Banco + Local) | Registrado | Semanas | — | 1 (recomendado) |
@@ -858,65 +858,82 @@ Detalhamento completo de cada etapa, critérios de aceite e roteiro de teste man
 
 ---
 
-## Demanda 11 — Backup/Exportação Completa do Sistema
+## Demanda 11 — Exportação e Importação de Projetos (Portability)
 
-**Status:** Registrado
+**Status:** Concluída
 **Esforço estimado:** Dias
 **Depende de:** —
 **Bloqueia:** —
 
 ### Contexto
 
-Hoje existe exportação por projeto (planilha/CSV, via `ExportarModal.tsx`) e um script de migração pontual (`migrar-backup-dados`), mas nenhum jeito de exportar o sistema inteiro. Todos os dados vivem só em `data/active/`, `data/trash/` e `data/logs/`, em arquivos locais sem nenhuma cópia de segurança — se essa pasta for perdida (disco, exclusão acidental, reinstalação da máquina), não há como recuperar nada.
+> ℹ️ A demanda foi renormalizada durante a implementação: saiu do escopo original de disaster recovery do sistema inteiro e virou uma funcionalidade de portabilidade de projetos entre instâncias. Ver seção 1 de `ExportacaoImportacaoDeProjetos.md` para o histórico completo da mudança.
+
+Hoje existe exportação por projeto (planilha/CSV, via `ExportarModal.tsx`) e um script de migração pontual (`migrar-backup-dados`), mas nenhum jeito de empacotar projetos selecionados e importá-los em outra instância — sem sobrescrever projetos existentes automaticamente.
 
 ### Escopo
 
 **Cobre:**
-- Exportar um pacote único (`.zip`) contendo `data/active/`, `data/trash/` e `data/logs/` inteiros, com timestamp no nome do arquivo, baixável pela interface.
-- Restaurar o sistema a partir de um pacote gerado pelo próprio Malote — com um passo de confirmação explícito no frontend, já que é uma operação destrutiva (substitui o `data/` atual).
-- Validação básica do pacote antes de aplicar a restauração (estrutura mínima esperada, mensagem de erro clara se o arquivo não for um backup válido do sistema).
+- **Exportar Projetos:** empacota um ou mais projetos (`emails.json` + `sheet.<ext>` de cada um, mais um `manifest.json` com metadados — ver seção 3 de `ExportacaoImportacaoDeProjetos.md`) num único `.zip`, baixável pela interface, com timestamp no nome.
+  - **1 projeto**, disparado a partir do dropdown de "Exportar Planilha" (submenu) na página do próprio projeto aberto.
+  - **N projetos**, disparado a partir do mesmo submenu na Home, que ativa o modo de seleção múltipla já existente (mesmo padrão de `onAtivarSelecaoExportacao`) para escolher quais projetos entram no pacote.
+- **Importar Projetos:** novo item no dropdown "Importar" da Home (ao lado de "Importar planilha"), que abre um seletor de arquivo `.zip`, valida a estrutura mínima esperada (manifest + pastas de projeto), e mostra um preview dos projetos contidos com detecção de conflitos de slug. A confirmação só grava após o usuário resolver cada conflito (manter/atual, substituir pelo do pacote ou importar como novo — com novo slug).
 
 **Não cobre nesta fase:**
-- Backup automático/agendado — esta demanda é só sob demanda (botão "Exportar backup"), não um cron.
-- Armazenamento remoto/nuvem — só download local, o mesmo modelo do restante do sistema.
-- Merge entre um backup restaurado e os dados atuais — restaurar é substituição total do `data/`, não uma mesclagem seletiva.
+
+- Backup automático/agendado
+- Armazenamento remoto/nuvem
+- Merge entre um backup restaurado e os dados atuais
 
 ### Decisões em aberto
 
-- **Formato do pacote:** `.zip` simples (mais direto) vs. um pacote com `manifest.json` próprio (versão do schema de dados, hash de integridade) — o segundo facilita detectar backups de versões antigas/incompatíveis do sistema, se o modelo de dados mudar no futuro (ex.: depois da Demanda 10).
-- **Onde fica o botão na interface:** dentro de algum menu de "Configurações" (mesmo lugar cogitado para o histórico da Demanda 4, se ela for retomada) ou uma tela própria.
-- **Granularidade da restauração:** o pacote sempre substitui `data/` inteiro, ou o usuário pode escolher restaurar só alguns projetos específicos de dentro do pacote?
+> ℹ️ Esta demanda não tem decisões em aberto — todas foram resolvidas durante o mapeamento/implementação. Ver as notas de execução em `ExportacaoImportacaoDeProjetos.md` para o registro das decisões tomadas.
 
-### Etapas de Implementação `[Inicial]`
+### Etapas de Implementação `[Concluído]`
 
-> Quebra preliminar — revisar ao iniciar, principalmente a decisão de formato do pacote (zip simples vs. manifest com versão/hash), que muda a Etapa 4.
+Todas as etapas do planner (`ExportacaoImportacaoDeProjetos.md`) estão implementadas e marcadas como ✅ concluída:
+1. **Etapa 1 — Modelo de pacote e utilitário de empacotamento** ✅ concluída
+2. **Etapa 2 — Endpoint de exportação (`GET /api/projetos/pacote`)** ✅ concluída
+3. **Etapa 3 — Endpoint de importação (`POST /api/projetos/pacote/preview` + `/confirmar`)** ✅ concluída
+4. **Etapa 4 — Exportação na interface (submenu "Exportar Planilha")** ✅ concluída
+5. **Etapa 5 — Importação na interface (dropdown "Importar")** ✅ concluída
+6. **Etapa 6 — Modal de conflitos e confirmação** ✅ concluída
+7. **Etapa 7 — Logs de alteração (`exportar_projetos`/`importar_projetos`)** ✅ concluída
+8. **Etapa 8 — Teste manual** ✅ concluída (manual, ver notas)
 
-**Etapa 1 — Endpoint de exportação**
-- Novo endpoint (`GET /api/backup`, seguindo o padrão dos demais em `vite.config.ts`) que lê `data/active/`, `data/trash/` e `data/logs/` e monta um `.zip`, devolvido como download.
-
-**Etapa 2 — Botão de exportar na interface**
-- UI que dispara o download do backup (local a decidir — ver "Decisões em aberto").
-
-**Etapa 3 — Endpoint de importação**
-- Novo endpoint (`POST /api/backup`) que recebe o `.zip`, valida a estrutura mínima esperada, e substitui `data/` — reaproveitando o padrão de escrita segura já usado em outros pontos do projeto (gravar em local temporário e só então `fs.renameSync` para o destino final, para não deixar o sistema num estado parcialmente restaurado se a operação falhar no meio).
-
-**Etapa 4 — Confirmação e validação na interface**
-- Fluxo de confirmação explícito antes de restaurar (é destrutivo).
-- Mensagens de erro claras quando o arquivo enviado não é um backup válido do Malote.
-
-**Etapa 5 — Teste manual**
-- Gerar um backup, mover/apagar `data/`, restaurar, e confirmar que projetos, lixeira e logs voltam idênticos ao estado original.
+Ver `ExportacaoImportacaoDeProjetos.md` para o detalhamento completo de cada etapa, critérios de aceite e roteiro de teste manual.
 
 ### Arquivos Necessários
 
+**Arquivos Fonte** (sem alteração, usados como referência):
+
+- `src/components/utils/exportarPlanilha.ts` — uso client-side de `JSZip` já estabelecido.
+- `vite.config.ts` — `logsApiPlugin`/`handleExportarLogs` (padrão de endpoint que gera `.zip`) e `projetosApiPlugin` (padrão de escrita atômica).
+- `src/components/ConfirmDialog.tsx`, `src/components/Dialog.tsx` — reaproveitados sem alteração na Etapa 6.
+- `src/components/ConflitoRestauracaoModal.tsx` — referência visual e de lógica (unicidade de slug) pro novo modal de conflito.
+- `src/services/logsApi.ts` — padrão de wrapper client-side a seguir no novo service.
+- `src/components/Header.tsx` — padrão de submenu inline (`submenuAtualizarAberto`) a replicar pra "Exportar Planilha".
+- `src/pages/home.tsx` — padrão de dropdown/seleção múltipla (`acaoPendente`, `useSelecaoMultipla`) a estender.
+- `package.json` — confirma `jszip` já presente.
+
 **Arquivos Alterados:**
-- `vite.config.ts` — dois novos endpoints (exportar/importar backup).
+
+- `vite.config.ts` ✅ **`GET /api/projetos/pacote` (Etapa 2), `POST /api/projetos/pacote/preview` e `POST /api/projetos/pacote/confirmar` (Etapa 3) implementados** *(ajuste de rota: todos entraram no `projetosApiPlugin` já existente, não um plugin novo — ver notas de execução da Etapa 2/3)*; ✅ **chamadas a `registrarLog('exportar_projetos'/'importar_projetos', ...)` (Etapa 7), agora validadas pela whitelist atualizada de `TipoAcao`**.
+- `src/components/Header.tsx` ✅ **submenu "Exportar Planilha" com as 2 opções implementado (Etapa 4)**.
+- `src/pages/home.tsx` ✅ **nova variante de `acaoPendente` (`'exportar-projetos'`) e disparo em lote implementados (Etapa 4)**; ✅ **dropdown "Importar" com as 2 opções + ícone `[i]`, e `ImportarProjetosModal` agora efetivamente renderizado ao escolher um `.zip` (Etapa 5)**.
+- `src/types/log.ts` ✅ **`'exportar_projetos'`/`'importar_projetos'` adicionados a `TIPOS_ACAO`; `DadosLog` ganhou `projetos`/`resultado`/`novoSlug` (Etapa 7)**.
+- `src/scripts/utils/registrarLog.ts` ✅ **templates de `mensagem`, montagem de `atual` e `ACOES_SEMPRE_REAIS` atualizados para `exportar_projetos`/`importar_projetos` (Etapa 7)**.
+- `DEMANDAS.md` — seção da Demanda 9 (taxonomia de `acao`) ganha as 2 linhas novas (Etapa 7) — 🟡 **arquivo não recebido nesta demanda; trecho pronto para colar em `DEMANDAS-Demanda9-SecaoRevisada.md`**.
 
 **Arquivos Criados:**
-- Utilitário de empacotamento/leitura do `.zip` *(local a decidir — dentro de `vite.config.ts` ou em `src/scripts/utils/backup.ts`)*.
-- Componente de UI para exportar/restaurar *(nome sugerido: `BackupModal.tsx`)*.
 
-**Dependência nova:** nenhuma lib de `.zip` está no projeto hoje — precisa escolher uma (ex.: `archiver` para escrever, `adm-zip`/`unzipper` para ler).
+- `src/types/pacoteProjetos.ts` ✅ **implementado (Etapa 1)** — schema do manifest e type guard de validação.
+- `src/scripts/utils/pacoteProjetos.ts` ✅ **implementado (Etapa 1)** *(renomeado de `backup.ts`)* — empacotar/desempacotar.
+- `src/services/pacoteProjetosApi.ts` ✅ **`exportarProjetos` (Etapa 4), `previewImportacaoPacote` (Etapa 5) e `confirmarImportacaoPacote` (Etapa 6) implementados** *(renomeado de `backupApi.ts`)* — nada pendente neste arquivo.
+- `src/components/ImportarProjetosModal.tsx` ✅ **implementado (Etapas 5-6)** *(renomeado de `BackupModal.tsx`, removido)* — preview, cascata de resolução de conflitos e confirmação, as 3 fases completas.
+- `src/components/ConflitoImportacaoProjetoModal.tsx` ✅ **implementado (Etapa 6)** — modal de conflito por projeto, cascata + segunda confirmação para "Substituir pelo do pacote"; falta estilo CSS (ver notas de execução da Etapa 6).
+
+**Dependência nova:** nenhuma — `jszip` já está no projeto.
 
 ---
 
