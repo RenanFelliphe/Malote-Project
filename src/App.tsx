@@ -6,6 +6,7 @@ import { Logs } from './pages/logs';
 import { Login } from './pages/login';
 import { PROJETOS } from './data/projetos';
 import { Registro } from './pages/registro';
+import { Footer } from './components/Footer';
 
 /**
  * Rotas geradas dinamicamente, uma por projeto descoberto em `PROJETOS`
@@ -24,24 +25,29 @@ import { Registro } from './pages/registro';
  */
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      {/*
-       * Rota da tela de logs (Demanda 9 — LogsDeAlteracoes.md, Etapa 6):
-       * fixa, fora do `PROJETOS.map` abaixo, já que não é uma página de
-       * projeto — mesmo raciocínio de `path="/"` (Home) acima.
-       */}
-      <Route path="/logs" element={<Logs />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/registro" element={<Registro />} />
-      {PROJETOS.map((projeto) => (
-        <Route
-          key={projeto.slug}
-          path={`/${projeto.slug}`}
-          element={<Emails slug={projeto.slug} dados={projeto.dados} />}
-        />
-      ))}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      <div className="main">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          {/**
+           * Rota da tela de logs (Demanda 9 — LogsDeAlteracoes.md, Etapa 6):
+           * fixa, fora do `PROJETOS.map` abaixo, já que não é uma página de
+           * projeto — mesmo raciocínio de `path="/"` (Home) acima.
+           */}
+          <Route path="/logs" element={<Logs />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
+          {PROJETOS.map((projeto) => (
+            <Route
+              key={projeto.slug}
+              path={`/${projeto.slug}`}
+              element={<Emails slug={projeto.slug} dados={projeto.dados} />}
+            />
+          ))}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+      <Footer />
+    </>
   );
 }

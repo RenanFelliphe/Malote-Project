@@ -515,9 +515,8 @@ export function Header({
           <span>Malote</span>
         </Link>
 
-        {
-          !['/', '/login', '/registro'].includes(location.pathname) && (
-            <div className="app-header-copiar">
+        {slug && (
+            <div className="app-header-copiar app-header-copiar-projeto">
               <button
                 type="button"
                 className={`app-header-copiar-botao ${campoCopiado === 'titulo' ? 'copiado' : ''}`}
@@ -542,17 +541,18 @@ export function Header({
                 <span>{campoCopiado === 'conteudo' ? 'Copiado!' : 'Copiar corpo'}</span>
               </button>
             </div>
-          )
-        }
+        )}
 
-        <nav className="app-header-nav" aria-label="Navegação da conta">
-          <Link to="/login" className="app-header-link">
-            Entrar
-          </Link>
-          <Link to="/registro" className="app-header-link app-header-link-destaque">
-            Criar conta
-          </Link>
-        </nav>
+        {!slug && (
+          <nav className="app-header-nav" aria-label="Navegação da conta">
+            <Link to="/login" className="app-header-link">
+              Entrar
+            </Link>
+            <Link to="/registro" className="app-header-link app-header-link-destaque">
+              Criar conta
+            </Link>
+          </nav>
+        )}
 
         <div className="app-header-config" ref={containerRef}>
           <button
