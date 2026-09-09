@@ -25,6 +25,8 @@ const ROTULOS_ACAO: Record<TipoAcao, string> = {
   alterar_registro: 'Alterar registro',
   restaurar_registro: 'Restaurar registro',
   editar_email: 'Editar e-mail',
+  exportar_projetos: 'Exportar projetos',
+  importar_projetos: 'Importar projetos',
   erro_servidor: 'Erro no servidor',
   erro_cliente: 'Erro no cliente',
 };

@@ -515,10 +515,8 @@ export function Header({
           <span>Malote</span>
         </Link>
 
-        <nav className="app-header-nav" />
-
         {
-          location.pathname != '/' && (
+          !['/', '/login', '/registro'].includes(location.pathname) && (
             <div className="app-header-copiar">
               <button
                 type="button"
@@ -546,6 +544,16 @@ export function Header({
             </div>
           )
         }
+
+        <nav className="app-header-nav" aria-label="Navegação da conta">
+          <Link to="/login" className="app-header-link">
+            Entrar
+          </Link>
+          <Link to="/registro" className="app-header-link app-header-link-destaque">
+            Criar conta
+          </Link>
+        </nav>
+
         <div className="app-header-config" ref={containerRef}>
           <button
             type="button"

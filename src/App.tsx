@@ -3,7 +3,9 @@ import { Home } from './pages/home';
 import { Emails } from './pages/emails';
 import { NotFound } from './pages/notFound';
 import { Logs } from './pages/logs';
+import { Login } from './pages/login';
 import { PROJETOS } from './data/projetos';
+import { Registro } from './pages/registro';
 
 /**
  * Rotas geradas dinamicamente, uma por projeto descoberto em `PROJETOS`
@@ -30,6 +32,8 @@ export default function App() {
        * projeto — mesmo raciocínio de `path="/"` (Home) acima.
        */}
       <Route path="/logs" element={<Logs />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/registro" element={<Registro />} />
       {PROJETOS.map((projeto) => (
         <Route
           key={projeto.slug}
