@@ -76,8 +76,8 @@ interface Props {
    * exibição do ícone de alerta ao lado do status (`renderIconeDuplicado`).
    */
   emailsDuplicados: Set<string>;
-  selecionados: Set<number>;
-  onAlternarSelecao: (id: number) => void;
+  selecionados: Set<string>;
+  onAlternarSelecao: (id: string) => void;
   onAlternarSelecaoTodos: () => void;
   /**
    * Indica se um registro pode ser (des)selecionado no momento. Usada para
@@ -99,7 +99,7 @@ interface Props {
    * ver `renderStatus` abaixo). Atualiza imediatamente apenas aquele
    * registro.
    */
-  onAtualizarStatusIndividual?: (id: number, status: TStatusManual) => void;
+  onAtualizarStatusIndividual?: (id: string, status: TStatusManual) => void;
   /**
    * Chamada ao escolher uma opção no select de atualização em massa, aberto
    * pelo ícone de edição ao lado do cabeçalho da coluna Status. Aplica o
@@ -149,7 +149,7 @@ interface Props {
    */
   onEditarCampo?: (registroAtualizado: EmailRecord, campo: TCampoEditavel) => void;
   /** Registros que receberam feedback visual temporário após uma restauração. */
-  idsRestaurados?: ReadonlySet<number>;
+  idsRestaurados?: ReadonlySet<string>;
   /**
    * Chamada ao clicar no botão "Restaurar" de uma linha (Etapa 6, `td-acoes`)
    * quando `backup_dados` daquele registro tem **exatamente 1 chave** — o
@@ -242,7 +242,7 @@ export function EmailTable({
   // (só propagado para fora no blur/Enter, nunca a cada tecla); revertido
   // sem persistir no Esc, no mesmo espírito do stepper de fonte do editor
   // (`EmailEditorToolbar.tsx`).
-  const [edicaoCelula, setEdicaoCelula] = useState<{ id: number; campo: TCampoEditavel } | null>(
+  const [edicaoCelula, setEdicaoCelula] = useState<{ id: string; campo: TCampoEditavel } | null>(
     null
   );
   const [valorEdicao, setValorEdicao] = useState('');

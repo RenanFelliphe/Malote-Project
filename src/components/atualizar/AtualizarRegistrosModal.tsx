@@ -145,12 +145,12 @@ export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailA
   const [secaoAtual, setSecaoAtual] = useState<Secao>('resumo-inicial');
   const [snapshot, setSnapshot] = useState<EmailRecord[]>(registrosAtuais);
 
-  const [decisoesEnviado, setDecisoesEnviado] = useState<Record<number, DecisaoEnviado>>({});
-  const [decisoesDeletadoRevivido, setDecisoesDeletadoRevivido] = useState<Record<number, DecisaoDeletadoRevivido>>(
+  const [decisoesEnviado, setDecisoesEnviado] = useState<Record<string, DecisaoEnviado>>({});
+  const [decisoesDeletadoRevivido, setDecisoesDeletadoRevivido] = useState<Record<string, DecisaoDeletadoRevivido>>(
     {}
   );
-  const [decisoesSumido, setDecisoesSumido] = useState<Record<number, DecisaoSumido>>({});
-  const [decisoesAtributoAlterado, setDecisoesAtributoAlterado] = useState<Record<number, DecisaoAtributoAlterado>>(
+  const [decisoesSumido, setDecisoesSumido] = useState<Record<string, DecisaoSumido>>({});
+  const [decisoesAtributoAlterado, setDecisoesAtributoAlterado] = useState<Record<string, DecisaoAtributoAlterado>>(
     {}
   );
 
@@ -290,7 +290,7 @@ export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailA
 
     // 2. Registros já sem nenhum conflito pendente (em qualquer tipo) —
     //    ponto de partida do próximo snapshot.
-    const aplicados = new Map<number, EmailRecord>(
+    const aplicados = new Map<string, EmailRecord>(
       resultadoAtual.registrosSemConflito.map((registro) => [registro.id, registro])
     );
 
@@ -546,7 +546,7 @@ export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailA
                   setDecisoesEnviado((atual) => ({ ...atual, [id]: decisao as DecisaoEnviado }))
                 }
                 onDecisaoEmMassa={(decisao) => {
-                  const nova: Record<number, DecisaoEnviado> = {};
+                  const nova: Record<string, DecisaoEnviado> = {};
                   for (const c of resultadoAtual.conflitos.enviado) nova[c.id] = decisao as DecisaoEnviado;
                   setDecisoesEnviado(nova);
                 }}
@@ -571,7 +571,7 @@ export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailA
                   setDecisoesDeletadoRevivido((atual) => ({ ...atual, [id]: decisao as DecisaoDeletadoRevivido }))
                 }
                 onDecisaoEmMassa={(decisao) => {
-                  const nova: Record<number, DecisaoDeletadoRevivido> = {};
+                  const nova: Record<string, DecisaoDeletadoRevivido> = {};
                   for (const c of resultadoAtual.conflitos.deletadoRevivido) {
                     nova[c.id] = decisao as DecisaoDeletadoRevivido;
                   }
@@ -607,7 +607,7 @@ export function AtualizarRegistrosModal({ slug, arquivo, registrosAtuais, emailA
                   setDecisoesAtributoAlterado((atual) => ({ ...atual, [id]: decisao as DecisaoAtributoAlterado }))
                 }
                 onDecisaoEmMassa={(decisao) => {
-                  const nova: Record<number, DecisaoAtributoAlterado> = {};
+                  const nova: Record<string, DecisaoAtributoAlterado> = {};
                   for (const c of resultadoAtual.conflitos.atributoAlterado) {
                     nova[c.id] = decisao as DecisaoAtributoAlterado;
                   }
@@ -652,7 +652,7 @@ interface ResumoInicialProps {
   tamanhoBytes: number;
   estatisticas: { total: number; validos: number; invalidos: number; duplicados: number };
   resultado: ResultadoMerge;
-  registrosAtuaisPorId: Map<number, EmailRecord>;
+  registrosAtuaisPorId: Map<string, EmailRecord>;
 }
 
 function ResumoInicial({ nomeArquivo, formato, tamanhoBytes, estatisticas, resultado, registrosAtuaisPorId }: ResumoInicialProps) {
@@ -722,7 +722,7 @@ function ResumoInicial({ nomeArquivo, formato, tamanhoBytes, estatisticas, resul
 interface ResumoFinalProps {
   registros: EmailRecord[];
   notas: { corrigido: NotaCorrigido[]; statusAlterado: NotaStatusAlterado[] };
-  registrosAtuaisPorId: Map<number, EmailRecord>;
+  registrosAtuaisPorId: Map<string, EmailRecord>;
 }
 
 function ResumoFinal({ registros, notas, registrosAtuaisPorId }: ResumoFinalProps) {

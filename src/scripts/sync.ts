@@ -25,7 +25,7 @@ import { basename, dirname, extname, resolve } from 'node:path';
 import { readSheet } from './utils/readSheet.js';
 import { identifyColumns, pickFirstFilled, EMAIL_COLUMNS } from './utils/identifyColumns.js';
 import { isValidEmail, normalizeEmail, calcularEmailsDuplicados } from './utils/validateEmail.js';
-import type { EmailConteudo, EmailRecord, EmailsData, TStatus } from '../types/email.js';
+import { normalizarRegistroId, type EmailConteudo, type EmailRecord, type EmailsData, type TStatus } from '../types/email.js';
 import { EMAIL_CONTEUDO_VAZIO } from '../types/email.js';
 
 // ---------------------------------------------------------------------------
@@ -109,14 +109,20 @@ function loadExistingJson(jsonPath: string): Pick<EmailsData, 'email' | 'registr
 
   if (Array.isArray(parsed)) {
     // Formato antigo (array puro) — sem `email` para preservar.
-    return { email: EMAIL_CONTEUDO_VAZIO, registros: parsed as EmailRecord[], projeto: '', criado_em: '', atualizado_em: '' };
+    return {
+      email: EMAIL_CONTEUDO_VAZIO,
+      registros: (parsed as EmailRecord[]).map((registro) => ({ ...registro, id: normalizarRegistroId(registro.id) })),
+      projeto: '',
+      criado_em: '',
+      atualizado_em: '',
+    };
   }
 
   if (parsed && typeof parsed === 'object' && Array.isArray((parsed as EmailsData).registros)) {
     const dados = parsed as EmailsData;
     return {
       email: dados.email ?? EMAIL_CONTEUDO_VAZIO,
-      registros: dados.registros,
+      registros: dados.registros.map((registro) => ({ ...registro, id: normalizarRegistroId(registro.id) })),
       projeto: dados.projeto ?? '',
       criado_em: dados.criado_em ?? '',
       atualizado_em: dados.atualizado_em ?? '',
@@ -133,7 +139,7 @@ function loadExistingJson(jsonPath: string): Pick<EmailsData, 'email' | 'registr
 // ---------------------------------------------------------------------------
 
 export interface ConflitoSincronizacao {
-  id: number;
+  id: string;
   campos: Array<'nome' | 'email'>;
 }
 
@@ -145,7 +151,7 @@ function syncRecords(
   const headers = sheetRows.length > 0 ? Object.keys(sheetRows[0]) : [];
   const { idColumn, nomeColumn } = identifyColumns(headers);
 
-  const byId = new Map<number, EmailRecord>(existing.map((r) => [r.id, r]));
+  const byId = new Map<string, EmailRecord>(existing.map((r) => [normalizarRegistroId(r.id), r]));
   const now = new Date().toISOString();
 
   let added = 0;
@@ -153,13 +159,13 @@ function syncRecords(
   const conflitos: ConflitoSincronizacao[] = [];
 
   sheetRows.forEach((row, index) => {
-    // id: usa a coluna de ID se existir e for numérica; caso contrário,
+    // id: usa a coluna de ID se existir e não estiver vazia; caso contrário,
     // usa a ordem original da linha na planilha (1-based) — seção 2.3.
-    let id: number;
-    if (idColumn && row[idColumn] && !Number.isNaN(Number(row[idColumn]))) {
-      id = Number(row[idColumn]);
+    let id: string;
+    if (idColumn && row[idColumn] && row[idColumn].trim() !== '') {
+      id = normalizarRegistroId(row[idColumn]);
     } else {
-      id = index + 1;
+      id = String(index + 1);
     }
 
     const nome = nomeColumn ? pickFirstFilled(row, [nomeColumn]) : '';
@@ -250,7 +256,9 @@ function applyStatusRules(records: EmailRecord[]): EmailRecord[] {
   }
 
   // Ordena por id para manter o JSON legível e estável entre sincronizações.
-  return records.slice().sort((a, b) => a.id - b.id);
+  return records
+    .slice()
+    .sort((a, b) => new Intl.Collator('pt-BR', { numeric: true, sensitivity: 'base' }).compare(a.id, b.id));
 }
 
 // ---------------------------------------------------------------------------

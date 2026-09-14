@@ -51,6 +51,14 @@ export type TStatusManual = 'válido' | 'inválido' | 'enviado';
  */
 export type TStatusSelecionavel = 'válido' | 'inválido';
 
+/** Identificador externo de um registro, sempre tratado como texto. */
+export type TRegistroId = string;
+
+/** Normaliza IDs para que espaços externos e diferenças de caixa não criem chaves distintas. */
+export function normalizarRegistroId(valor: string | number): TRegistroId {
+  return String(valor).trim().toLowerCase();
+}
+
 /** Lista dos status manuais aceitos pela lógica de atualização (individual e em massa). */
 export const STATUS_MANUAIS: TStatusManual[] = ['válido', 'inválido', 'enviado'];
 
@@ -63,7 +71,7 @@ export const STATUS_SELECIONAVEIS: TStatusSelecionavel[] = ['válido', 'inválid
  * o campo usado para identificar/casar registros durante a sincronização.
  */
 export interface EmailRecord {
-  id: number;
+  id: TRegistroId;
   nome: string;
   email: string;
   status: TStatus;

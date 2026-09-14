@@ -52,20 +52,12 @@ export function validarColunaId(
     }
   }
 
-  const valoresNumericos = new Map<number, number>(); // valor => primeira linha (1-based) em que apareceu
+  const valores = new Map<string, number>(); // valor canônico => primeira linha (1-based) em que apareceu
 
   for (let indice = 0; indice < linhas.length; indice++) {
     const valor = linhas[indice][colunaId].trim();
-    const numero = Number(valor);
-
-    if (Number.isNaN(numero)) {
-      return {
-        valido: false,
-        erro: `A coluna "${colunaId}" tem um valor não numérico ("${valor}", linha ${indice + 1}). Só colunas com valores numéricos podem ser usadas como ID.`,
-      };
-    }
-
-    const primeiraOcorrencia = valoresNumericos.get(numero);
+    const valorCanonico = valor.toLowerCase();
+    const primeiraOcorrencia = valores.get(valorCanonico);
     if (primeiraOcorrencia !== undefined) {
       return {
         valido: false,
@@ -73,7 +65,7 @@ export function validarColunaId(
       };
     }
 
-    valoresNumericos.set(numero, indice + 1);
+    valores.set(valorCanonico, indice + 1);
   }
 
   return { valido: true };

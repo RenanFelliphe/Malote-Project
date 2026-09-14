@@ -47,7 +47,7 @@
  * para eu alinhar com exatidão antes da Etapa 5 depender disso na prática.
  */
 
-import type { EmailRecord, TStatus } from '../../types/email';
+import { normalizarRegistroId, type EmailRecord, type TStatus } from '../../types/email';
 import type { LinhaPlanilha } from '../../components/import/utils/parseSheetBrowser';
 
 /* ------------------------------------------------------------------ */
@@ -92,40 +92,40 @@ interface ValoresRegistro {
 
 export interface ConflitoEnviado {
   tipo: 'enviado';
-  id: number;
+  id: string;
   ours: ValoresRegistro;
   theirs: ValoresRegistro;
 }
 
 export interface ConflitoDeletadoRevivido {
   tipo: 'deletado_revivido';
-  id: number;
+  id: string;
   ours: ValoresRegistro;
   theirs: ValoresRegistro;
 }
 
 export interface ConflitoAtributoAlterado {
   tipo: 'atributo_alterado';
-  id: number;
+  id: string;
   ours: ValoresRegistro;
   theirs: ValoresRegistro;
   camposConflitantes: Array<'nome' | 'email'>;
 }
 
 export interface RegistroSumido {
-  id: number;
+  id: string;
   nome: string;
   email: string;
   status: TStatus;
 }
 
 export interface NotaCorrigido {
-  id: number;
+  id: string;
   campos: Array<'nome' | 'email'>;
 }
 
 export interface NotaStatusAlterado {
-  id: number;
+  id: string;
   statusAnterior: TStatus;
   statusNovo: TStatus;
 }
@@ -216,13 +216,12 @@ function pickFirstFilled(linha: LinhaPlanilha, colunas: string[]): string {
   return '';
 }
 
-function resolverIdDaLinha(linha: LinhaPlanilha, colunaId: string | null, indice: number): number {
+function resolverIdDaLinha(linha: LinhaPlanilha, colunaId: string | null, indice: number): string {
   if (colunaId) {
     const valor = linha[colunaId];
-    const numero = Number(valor);
-    if (valor !== '' && !Number.isNaN(numero)) return numero;
+    if (valor !== undefined && valor.trim() !== '') return normalizarRegistroId(valor);
   }
-  return indice + 1;
+  return String(indice + 1);
 }
 
 /**
@@ -299,7 +298,7 @@ export function calcularMerge(
   const habilitado = (tipo: TipoConflito) => tiposHabilitados.includes(tipo);
   const agora = new Date().toISOString();
 
-  const linhasPorId = new Map<number, ValoresRegistro>();
+  const linhasPorId = new Map<string, ValoresRegistro>();
   linhasNovas.forEach((linha, indice) => {
     const id = resolverIdDaLinha(linha, colunaId, indice);
     linhasPorId.set(id, {

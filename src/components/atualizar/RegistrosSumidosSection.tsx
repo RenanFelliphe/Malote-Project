@@ -4,8 +4,8 @@ export type DecisaoSumido = 'ignorar' | 'marcar-deletado';
 
 interface Props {
   registros: RegistroSumido[];
-  decisoes: Record<number, DecisaoSumido>;
-  onDecisaoChange: (id: number, decisao: DecisaoSumido) => void;
+  decisoes: Record<string, DecisaoSumido>;
+  onDecisaoChange: (id: string, decisao: DecisaoSumido) => void;
 }
 
 /**

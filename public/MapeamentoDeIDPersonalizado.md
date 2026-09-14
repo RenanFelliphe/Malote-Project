@@ -25,13 +25,13 @@ Um seletor de UI sozinho, sem persistir a escolha em `EmailsData` e sem essas du
 - `AtualizarRegistrosModal.tsx` (fluxo "Atualizar Registros", Demanda 3) passa a ler o `colunaId` persistido do projeto e repassá-lo ao motor de merge — **sem** seletor próprio de coluna nesse fluxo; trocar a estratégia de ID continua sendo uma ação exclusiva de "Atualizar Dados > Colunas".
 - Seletor de coluna de ID (`<select>` simples) tanto no `EtapaMapeamento.tsx` (wizard de importação) quanto na seção "Colunas" do `AtualizarDadosModal.tsx` (Demanda 3); ao confirmar em qualquer um dos dois, a escolha é (re)gravada em `colunaId`.
 - **Exclusividade entre atributos:** ao selecionar uma coluna para representar um dos 3 atributos (id, nome, email), ela deixa de estar disponível para os outros dois — vale nos dois pontos de entrada. Implica subir o estado de "colunas em uso" para o componente pai e propagar como lista de exclusão para os 3 seletores.
-- Validação bloqueante ao escolher uma coluna de ID: valores vazios, duplicados **ou não numéricos** impedem a confirmação, com feedback visível. Mesma validação reaproveitada na construção dos registros.
+- Validação bloqueante ao escolher uma coluna de ID: valores vazios ou duplicados impedem a confirmação, com feedback visível. A comparação ignora maiúsculas/minúsculas e espaços externos. Mesma validação reaproveitada na construção dos registros.
 - Aviso ao usuário, no fluxo "Atualizar Registros", se a planilha reimportada não tiver a coluna indicada por `colunaId` (ex.: coluna renomeada) — o merge cai no fallback de ordem de linha, e isso precisa ficar visível, não silencioso.
 
 **Não cobre nesta fase:**
 - Múltiplas colunas com prioridade para ID (decisão tomada: fica fixo em 1 coluna — ver seção 4).
 - Migração de `id` para projetos já existentes que mudarem de estratégia de identificação (ex.: projeto criado sem coluna de ID explícita passa a ter uma) — o risco de desalinhamento entre reimportações ao trocar de estratégia de ID no meio do caminho de um projeto já existente é uma nota de atenção a levantar na implementação, não uma migração automática coberta aqui.
-- Suporte a colunas de ID com valores não numéricos (strings livres, UUIDs, códigos alfanuméricos) — decisão tomada de manter `EmailRecord.id: number` nesta fase (ver seção 4); tratado como validação bloqueante, não como funcionalidade suportada.
+- Suporte a colunas de ID com valores textuais, UUIDs e códigos alfanuméricos. Todo `EmailRecord.id` é persistido como string canônica.
 
 ## 3. Modelo de dados e assinaturas alteradas
 
@@ -111,7 +111,7 @@ Reaproveitada tanto pelo seletor de UI (Etapa 5) quanto por `construirRegistros.
 - ~~ID com 1 coluna fixa ou múltiplas com prioridade (como nome/email)?~~ → **1 coluna fixa.** ID não tem a propriedade de "variantes intercambiáveis" que nome/email têm; permitir fallback entre colunas de ID reintroduziria divergência silenciosa entre importações — o próprio problema que a demanda existe para evitar. Componente: `<select>` simples, mais leve que `ColunaSeletora.tsx`.
 - ~~O escopo cobre só criação e remapeamento, ou também a reimportação ("Atualizar Registros")?~~ → **Também a reimportação.** Sem isso, o problema que a demanda resolve na criação reapareceria de forma silenciosa no fluxo de reimportação, que hoje cairia de volta na heurística frágil de `calcularMerge.ts`. Não ganha UI própria de seleção — só passa a *ler* a escolha já persistida.
 - ~~Onde persistir a escolha?~~ → **Novo campo `colunaId?: string` em `EmailsData`.** Ausência do campo já é o fallback correto ("Gerar Automaticamente"), então não há necessidade de migração para projetos existentes.
-- ~~IDs numéricos ou também string/alfanumérico (UUID, código com letras)?~~ → **Só numéricos nesta fase.** Ampliar `EmailRecord.id` para `string | number` afeta comparações, `Map`/índices por id, ordenação e outras partes do sistema fora do escopo desta demanda — desproporcional ao esforço estimado. Fica registrado como possível demanda futura; a validação bloqueante (vazio/duplicado/não numérico) cobre o caso enquanto isso.
+- ~~IDs numéricos ou também string/alfanumérico (UUID, código com letras)?~~ → **Strings canônicas.** IDs são normalizados com `trim().toLowerCase()`, comparados por igualdade textual e ordenados com comparação natural. Números antigos são convertidos para string ao carregar.
 
 ## 5. Divisão em etapas
 

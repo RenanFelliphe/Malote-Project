@@ -47,7 +47,7 @@ export function Emails({ slug, dados }: EmailsProps) {
    */
   const [duplicadosFiltroAtivo, setDuplicadosFiltroAtivo] = useState(true);
   const [ordenacao, setOrdenacao] = useState<TOrdenacao>(ORDENACAO_PADRAO);
-  const [selecionados, setSelecionados] = useState<Set<number>>(new Set());
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
   // Quantidade de registros renderizados por página, usada como tamanho da
   // seção exibida na tabela.
   const [quantidade, setQuantidade] = useState<number>(() => Math.max(1, Math.min(100, dados.registros.length)));
@@ -80,7 +80,7 @@ export function Emails({ slug, dados }: EmailsProps) {
   } | null>(null);
   const [erroSalvamento, setErroSalvamento] = useState<string | null>(null);
   const [statusSalvamento, setStatusSalvamento] = useState<'salvando' | 'salvo' | 'erro' | null>(null);
-  const [idsRestaurados, setIdsRestaurados] = useState<Set<number>>(new Set());
+  const [idsRestaurados, setIdsRestaurados] = useState<Set<string>>(new Set());
   const feedbackRestauracaoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Título/corpo do e-mail (REFATORACAO-EMAIL-TITULO-CONTEUDO.md). Editado
   // via o modal aberto pelo dropdown do Header (Etapa 3); os botões de
@@ -181,7 +181,7 @@ export function Emails({ slug, dados }: EmailsProps) {
   // inclusão respeita a regra abaixo, a seleção é sempre homogênea.
   const grupoSelecaoAtual = useMemo<'deletado' | 'ativo' | null>(() => {
     if (selecionados.size === 0) return null;
-    const primeiroId = selecionados.values().next().value as number;
+    const primeiroId = selecionados.values().next().value as string;
     const status = statusPorId.get(primeiroId);
     return status ? grupoDoStatus(status) : null;
   }, [selecionados, statusPorId]);
@@ -194,7 +194,7 @@ export function Emails({ slug, dados }: EmailsProps) {
     return grupoDoStatus(registro.status) === grupoSelecaoAtual;
   }
 
-  function alternarSelecao(id: number) {
+  function alternarSelecao(id: string) {
     setSelecionados((atual) => {
       const novo = new Set(atual);
       if (novo.has(id)) {
@@ -205,7 +205,7 @@ export function Emails({ slug, dados }: EmailsProps) {
       // Regra de seleção (seção 7): não mistura deletados e não deletados.
       const status = statusPorId.get(id);
       if (status && atual.size > 0) {
-        const primeiroId = atual.values().next().value as number;
+        const primeiroId = atual.values().next().value as string;
         const statusExistente = statusPorId.get(primeiroId);
         if (statusExistente && grupoDoStatus(status) !== grupoDoStatus(statusExistente)) {
           return atual;
@@ -223,7 +223,7 @@ export function Emails({ slug, dados }: EmailsProps) {
       // se vazia, prioriza os registros não deletados dentre os exibidos.
       let grupoAlvo: 'deletado' | 'ativo';
       if (atual.size > 0) {
-        const primeiroId = atual.values().next().value as number;
+        const primeiroId = atual.values().next().value as string;
         const statusExistente = statusPorId.get(primeiroId);
         grupoAlvo = statusExistente ? grupoDoStatus(statusExistente) : 'ativo';
       } else {
@@ -385,7 +385,7 @@ export function Emails({ slug, dados }: EmailsProps) {
    * salvaguarda, caso este handler venha a ser chamado de outro lugar no
    * futuro.
    */
-  async function handleAtualizarStatusIndividual(id: number, novoStatus: TStatusManual) {
+  async function handleAtualizarStatusIndividual(id: string, novoStatus: TStatusManual) {
     const registroAlvo = registros.find((r) => r.id === id);
     if (!registroAlvo || registroAlvo.status === 'deletado') {
       return;
@@ -557,7 +557,7 @@ export function Emails({ slug, dados }: EmailsProps) {
    * automaticamente, sem exigir nenhuma ação adicional de quem chamou esta
    * função.
    */
-  async function deletarRegistros(ids: number[]) {
+  async function deletarRegistros(ids: string[]) {
     const idsSet = new Set(ids);
     const agora = new Date().toISOString();
     const comStatusDeletado = registros.map((registro) =>
@@ -621,7 +621,7 @@ export function Emails({ slug, dados }: EmailsProps) {
     setConflitoExclusao(null);
   }
 
-  async function handleConfirmarConflito(idsParaDeletar: Set<number>) {
+  async function handleConfirmarConflito(idsParaDeletar: Set<string>) {
     setConflitoExclusao(null);
     await deletarRegistros([...idsParaDeletar]);
   }
@@ -638,7 +638,7 @@ export function Emails({ slug, dados }: EmailsProps) {
    * disparar a exclusão — `deletarRegistros` cuida de recalcular o status
    * automático do grupo (ver comentário da função).
    */
-  async function handleConfirmarDuplicados(idsParaDeletar: Set<number>) {
+  async function handleConfirmarDuplicados(idsParaDeletar: Set<string>) {
     setGrupoDuplicadoAberto(null);
     await deletarRegistros([...idsParaDeletar]);
   }

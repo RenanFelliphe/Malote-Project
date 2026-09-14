@@ -7,11 +7,11 @@ interface Props {
   /** Registros elegíveis para exclusão (todos os selecionados que não são "enviado"). */
   aDeletar: EmailRecord[];
   /** IDs atualmente marcados para exclusão, controlado por quem usa este componente. */
-  selecionados: Set<number>;
+  selecionados: Set<string>;
   /** Indica se todos os itens de `aDeletar` estão marcados (estado do "Selecionar Todos"). */
   todosSelecionados: boolean;
   /** Alterna a seleção de um único registro. */
-  onToggle: (id: number) => void;
+  onToggle: (id: string) => void;
   /** Alterna a seleção de todos os registros de `aDeletar` de uma vez. */
   onToggleAll: () => void;
 }

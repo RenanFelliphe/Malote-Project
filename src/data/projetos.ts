@@ -15,7 +15,7 @@
  * como estrutura de diretório, não recalculado a partir de `projeto`.
  */
 
-import type { EmailsData } from '../types/email';
+import { normalizarRegistroId, type EmailsData } from '../types/email';
 
 /** Um projeto descoberto: seu slug (nome da pasta) e os dados já resolvidos do `emails.json`. */
 export interface Projeto {
@@ -51,5 +51,11 @@ function extrairSlug(caminho: string): string {
 /** Lista de todos os projetos descobertos, um por pasta em `data/`. */
 export const PROJETOS: Projeto[] = Object.entries(modulos).map(([caminho, dados]) => ({
   slug: extrairSlug(caminho),
-  dados,
+  dados: {
+    ...dados,
+    registros: dados.registros.map((registro) => ({
+      ...registro,
+      id: normalizarRegistroId(registro.id),
+    })),
+  },
 }));

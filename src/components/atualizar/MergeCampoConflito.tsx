@@ -1,5 +1,5 @@
 export interface ItemMergeConflito {
-  id: number;
+  id: string;
   ours: { nome: string; email: string };
   theirs: { nome: string; email: string };
   camposConflitantes?: Array<'nome' | 'email'>;
@@ -21,8 +21,8 @@ interface Props {
    */
   valorOurs: string;
   valorTheirs: string;
-  decisoes: Record<number, string>;
-  onDecisaoChange: (id: number, decisao: string) => void;
+  decisoes: Record<string, string>;
+  onDecisaoChange: (id: string, decisao: string) => void;
   /** Atalho de resolução em massa — aplica `decisao` a todos os `itens` de uma vez. */
   onDecisaoEmMassa: (decisao: string) => void;
 }

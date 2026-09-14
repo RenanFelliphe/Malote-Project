@@ -34,7 +34,7 @@
  * (`throw new Error(...)`), único precedente de erro síncrono no projeto.
  */
 import { recalcularStatusAutomatico } from '../../EmailStatus';
-import type { EmailRecord } from '../../../types/email';
+import { normalizarRegistroId, type EmailRecord } from '../../../types/email';
 import type { LinhaPlanilha } from './parseSheetBrowser';
 import { validarColunaId } from './validarColunaId';
 
@@ -63,13 +63,12 @@ function pickFirstFilled(linha: LinhaPlanilha, colunas: string[]): string {
  * fallback para a ordem da linha — mesma lógica de `resolverIdDaLinha` em
  * `calcularMerge.ts` (ver nota de execução no topo do arquivo).
  */
-function resolverIdDaLinha(linha: LinhaPlanilha, colunaId: string | null, indice: number): number {
+function resolverIdDaLinha(linha: LinhaPlanilha, colunaId: string | null, indice: number): string {
   if (colunaId) {
     const valor = linha[colunaId];
-    const numero = Number(valor);
-    if (valor !== '' && !Number.isNaN(numero)) return numero;
+    if (valor !== undefined && valor.trim() !== '') return normalizarRegistroId(valor);
   }
-  return indice + 1;
+  return String(indice + 1);
 }
 
 /**

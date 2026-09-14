@@ -10,7 +10,7 @@ interface Props {
   /** Registros elegíveis para exclusão (todos os selecionados que não são "enviado"). */
   aDeletar: EmailRecord[];
   onCancelar: () => void;
-  onConfirmar: (idsParaDeletar: Set<number>) => void;
+  onConfirmar: (idsParaDeletar: Set<string>) => void;
 }
 
 /**
@@ -34,13 +34,13 @@ interface Props {
  */
 export function ConflitoExclusaoModal({ enviados, aDeletar, onCancelar, onConfirmar }: Props) {
   // Todos os elegíveis vêm previamente selecionados, conforme a especificação.
-  const [selecionados, setSelecionados] = useState<Set<number>>(
+  const [selecionados, setSelecionados] = useState<Set<string>>(
     () => new Set(aDeletar.map((r) => r.id))
   );
 
   const todosSelecionados = aDeletar.length > 0 && aDeletar.every((r) => selecionados.has(r.id));
 
-  function alternarSelecionado(id: number) {
+  function alternarSelecionado(id: string) {
     setSelecionados((atual) => {
       const novo = new Set(atual);
       if (novo.has(id)) {

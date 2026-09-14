@@ -157,8 +157,8 @@ export function AtualizarDadosModal({
 
   // --- Cascata de conflitos + resultado ---
   const [snapshot, setSnapshot] = useState<EmailRecord[]>(registrosAtuais);
-  const [decisoesEnviado, setDecisoesEnviado] = useState<Record<number, DecisaoEnviado>>({});
-  const [decisoesAtributoAlterado, setDecisoesAtributoAlterado] = useState<Record<number, DecisaoAtributoAlterado>>(
+  const [decisoesEnviado, setDecisoesEnviado] = useState<Record<string, DecisaoEnviado>>({});
+  const [decisoesAtributoAlterado, setDecisoesAtributoAlterado] = useState<Record<string, DecisaoAtributoAlterado>>(
     {}
   );
   const [notasAcumuladas, setNotasAcumuladas] = useState<{
@@ -304,7 +304,7 @@ export function AtualizarDadosModal({
       statusAlterado: [...atual.statusAlterado, ...resultadoAtual.notas.statusAlterado],
     }));
 
-    const aplicados = new Map<number, EmailRecord>(
+    const aplicados = new Map<string, EmailRecord>(
       resultadoAtual.registrosSemConflito.map((registro) => [registro.id, registro])
     );
 
@@ -608,7 +608,7 @@ export function AtualizarDadosModal({
               setDecisoesEnviado((atual) => ({ ...atual, [id]: decisao as DecisaoEnviado }))
             }
             onDecisaoEmMassa={(decisao) => {
-              const nova: Record<number, DecisaoEnviado> = {};
+              const nova: Record<string, DecisaoEnviado> = {};
               for (const c of resultadoAtual.conflitos.enviado) nova[c.id] = decisao as DecisaoEnviado;
               setDecisoesEnviado(nova);
             }}
@@ -634,7 +634,7 @@ export function AtualizarDadosModal({
               setDecisoesAtributoAlterado((atual) => ({ ...atual, [id]: decisao as DecisaoAtributoAlterado }))
             }
             onDecisaoEmMassa={(decisao) => {
-              const nova: Record<number, DecisaoAtributoAlterado> = {};
+              const nova: Record<string, DecisaoAtributoAlterado> = {};
               for (const c of resultadoAtual.conflitos.atributoAlterado) {
                 nova[c.id] = decisao as DecisaoAtributoAlterado;
               }
@@ -690,7 +690,7 @@ interface ResumoFinalProps {
   colunasEmail: string[];
   registros: EmailRecord[];
   notas: { corrigido: NotaCorrigido[]; statusAlterado: NotaStatusAlterado[] };
-  registrosAtuaisPorId: Map<number, EmailRecord>;
+  registrosAtuaisPorId: Map<string, EmailRecord>;
 }
 
 function ResumoFinal({

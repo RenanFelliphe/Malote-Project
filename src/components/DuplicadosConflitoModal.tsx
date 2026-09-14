@@ -9,7 +9,7 @@ interface Props {
   registros: EmailRecord[];
   onCancelar: () => void;
   /** IDs marcados para exclusão — o chamador é quem efetivamente deleta. */
-  onConfirmar: (idsParaDeletar: Set<number>) => void;
+  onConfirmar: (idsParaDeletar: Set<string>) => void;
 }
 
 /**
@@ -58,7 +58,7 @@ function particionarGrupoDuplicados(registros: EmailRecord[]) {
 export function DuplicadosConflitoModal({ registros, onCancelar, onConfirmar }: Props) {
   const { enviados, elegiveis } = particionarGrupoDuplicados(registros);
 
-  const [selecionados, setSelecionados] = useState<Set<number>>(() => new Set());
+  const [selecionados, setSelecionados] = useState<Set<string>>(() => new Set());
 
   const todosSelecionados = elegiveis.length > 0 && elegiveis.every((r) => selecionados.has(r.id));
 
@@ -68,7 +68,7 @@ export function DuplicadosConflitoModal({ registros, onCancelar, onConfirmar }: 
   // selecionar 0, e sim selecionar demais a ponto de zerar o grupo.
   const confirmDisabled = elegiveis.length - selecionados.size < 1;
 
-  function alternarSelecionado(id: number) {
+  function alternarSelecionado(id: string) {
     setSelecionados((atual) => {
       const novo = new Set(atual);
       if (novo.has(id)) {

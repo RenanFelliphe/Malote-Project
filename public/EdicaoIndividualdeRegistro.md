@@ -30,7 +30,7 @@ Substitui inteiramente o campo `status_alterado` (booleano) de `EmailRecord`:
 
 ```ts
 interface EmailRecord {
-  id: number;
+  id: string;
   nome: string;
   email: string;
   status: TStatus;

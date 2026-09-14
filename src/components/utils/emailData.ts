@@ -228,7 +228,7 @@ export function buscar(registros: EmailRecord[], termo: string): EmailRecord[] {
  */
 function compararPorCriterio(a: EmailRecord, b: EmailRecord, criterio: TCriterioOrdenacao): number {
   if (criterio === 'id') {
-    return a.id - b.id;
+    return new Intl.Collator('pt-BR', { numeric: true, sensitivity: 'base' }).compare(a.id, b.id);
   }
   if (criterio === 'alfabetica') {
     return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
