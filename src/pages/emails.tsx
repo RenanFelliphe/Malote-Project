@@ -6,7 +6,8 @@ import { calcularContadores, processarRegistros, buscar, CONTADOR_LABELS, ORDENA
 import { recalcularStatusAutomatico, normalizeEmail, calcularEmailsDuplicados } from '../components/EmailStatus';
 import { EmailCounters } from '../components/EmailCounters';
 import { EmailToolbar } from '../components/EmailToolbar';
-import { EmailTable, type TCampoEditavel } from '../components/EmailTable';
+import { EmailTable, type TCampoEditavel, type TColunaCopiavel } from '../components/EmailTable';
+import { copiarTexto } from '../components/utils/clipboard';
 import { restaurarCampos, type TCampoRestauravel } from '../components/utils/restaurarCampos';
 import { RestaurarCamposModal } from '../components/RestaurarCamposModal';
 import { Paginacao } from '../components/Paginacao';
@@ -281,6 +282,25 @@ export function Emails({ slug, dados }: EmailsProps) {
       }
       return novo;
     });
+  }
+
+  /**
+   * Copia a coluna indicada (nome ou e-mail) de **todos** os registros
+   * selecionados, independentemente da página/filtro/busca/ordenação em
+   * vigor no momento — correção do bug em que a cópia só considerava os
+   * registros selecionados que estivessem no slice atualmente exibido pela
+   * tabela (`registrosExibidos`). Filtra sobre `registros`, o state
+   * completo desta página, que é a única fonte que conhece toda a seleção
+   * feita ao longo de várias páginas.
+   *
+   * Sem deduplicação: valores repetidos são copiados uma vez para cada
+   * registro, na ordem em que aparecem em `registros`.
+   */
+  async function handleCopiarColuna(coluna: TColunaCopiavel) {
+    const valores = registros
+      .filter((registro) => selecionados.has(registro.id))
+      .map((registro) => registro[coluna]);
+    await copiarTexto(valores);
   }
 
   /**
@@ -731,6 +751,7 @@ export function Emails({ slug, dados }: EmailsProps) {
               selecionados={selecionados}
               onAlternarSelecao={alternarSelecao}
               onAlternarSelecaoTodos={alternarSelecaoTodos}
+              onCopiarColuna={(coluna) => void handleCopiarColuna(coluna)}
               selecionavel={selecionavel}
               onClicarDuplicado={handleClicarDuplicado}
               onAtualizarStatusIndividual={(id, status) => void handleAtualizarStatusIndividual(id, status)}

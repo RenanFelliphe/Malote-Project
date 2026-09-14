@@ -31,7 +31,7 @@ export function readSheet(filePath: string): SheetRow[] {
 }
 
 function readCsv(filePath: string): SheetRow[] {
-  const content = readFileSync(filePath, 'utf-8');
+  const content = decodificarCsv(readFileSync(filePath));
   const records = parse(content, {
     columns: true,
     skip_empty_lines: true,
@@ -40,6 +40,14 @@ function readCsv(filePath: string): SheetRow[] {
     delimiter: detectDelimiter(content),
   });
   return records as SheetRow[];
+}
+
+function decodificarCsv(buffer: Buffer): string {
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+  } catch {
+    return new TextDecoder('windows-1252').decode(buffer);
+  }
 }
 
 function detectDelimiter(content: string): string {

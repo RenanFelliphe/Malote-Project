@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { EmailRecord, TStatusManual } from '../types/email';
 import { STATUS_SELECIONAVEIS } from '../types/email';
-import { copiarTexto } from './utils/clipboard';
 import { restaurarCampos, type TCampoRestauravel } from './utils/restaurarCampos';
 import { isValidEmail, normalizeEmail } from './EmailStatus';
 import {
@@ -16,7 +15,7 @@ import {
 } from './Icons';
 
 /** Colunas copiáveis via botão no cabeçalho (seção 7). */
-type TColunaCopiavel = 'nome' | 'email';
+export type TColunaCopiavel = 'nome' | 'email';
 
 /** Por quanto tempo o botão de copiar mostra o feedback "Copiado!" antes de voltar ao normal. */
 const DURACAO_FEEDBACK_COPIA_MS = 1500;
@@ -79,6 +78,22 @@ interface Props {
   selecionados: Set<string>;
   onAlternarSelecao: (id: string) => void;
   onAlternarSelecaoTodos: () => void;
+  /**
+   * Chamada ao clicar no botão de copiar do cabeçalho de "Nome" ou "E-mail"
+   * (seção 7). Corrige o bug em que a cópia só enxergava os registros
+   * selecionados que estivessem na página/filtro/busca atualmente exibidos
+   * (`registros` aqui é só o slice renderizado — `registrosExibidos` em
+   * `emails.tsx`): a montagem dos valores a copiar passa a acontecer do
+   * lado de fora, sobre o array completo de registros (`registros`, o
+   * state em `emails.tsx`, não o slice), que é a única fonte que conhece
+   * todos os registros selecionados independentemente de paginação. Esta
+   * tabela permanece responsável só pelo feedback visual ("Copiado!") —
+   * mesmo padrão já usado por `onDeletar`/`onConfirmarEnvio` para ações que
+   * dependem da seleção global. Sem esta prop, os botões de copiar do
+   * cabeçalho continuam ocultos (mesmo padrão condicional das demais ações
+   * do cabeçalho).
+   */
+  onCopiarColuna?: (coluna: TColunaCopiavel) => Promise<void> | void;
   /**
    * Indica se um registro pode ser (des)selecionado no momento. Usada para
    * desabilitar visualmente os registros do "outro grupo" quando já há uma
@@ -219,6 +234,7 @@ export function EmailTable({
   selecionados,
   onAlternarSelecao,
   onAlternarSelecaoTodos,
+  onCopiarColuna,
   selecionavel,
   onClicarDuplicado,
   onAtualizarStatusIndividual,
@@ -341,18 +357,21 @@ export function EmailTable({
   }, [menuAcoesVisivel]);
 
   /**
-   * Copia a coluna indicada (nome ou e-mail) dos registros atualmente
-   * renderizados que também estão selecionados — ou seja, a interseção entre
-   * `registros` (que já reflete busca, filtros, ordenação e a quantidade
-   * definida no input ao lado da searchbar, seção 7) e `selecionados`. Sem
-   * deduplicação: valores repetidos são copiados uma vez para cada registro,
-   * na ordem exibida.
+   * Dispara a cópia da coluna indicada (nome ou e-mail) para quem escuta
+   * (`onCopiarColuna`, `emails.tsx`) e só então exibe o feedback visual
+   * "Copiado!". A montagem dos valores e a chamada a `copiarTexto` não
+   * acontecem mais aqui — só o array completo de registros em `emails.tsx`
+   * (o state `registros`, não o slice `registrosExibidos` recebido por
+   * esta tabela) sabe resolver a seleção corretamente, independentemente de
+   * paginação/filtro/busca/ordenação em vigor (correção do bug semântico da
+   * cópia). Sem `onCopiarColuna`, os botões de copiar continuam ocultos
+   * (ver `temSelecao` nos `th` abaixo) — mesmo padrão de degradação
+   * graciosa das demais ações condicionais desta tabela.
    */
   async function copiarColuna(coluna: TColunaCopiavel) {
-    const valores = registros
-      .filter((registro) => selecionados.has(registro.id))
-      .map((registro) => registro[coluna]);
-    await copiarTexto(valores);
+    if (selecionados.size === 0 || !onCopiarColuna) return;
+
+    await onCopiarColuna(coluna);
 
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setColunaCopiada(coluna);

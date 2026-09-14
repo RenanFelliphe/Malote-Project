@@ -26,9 +26,20 @@ function detectarFormato(nomeArquivo: string): 'csv' | 'xlsx' {
   return nomeArquivo.toLowerCase().endsWith('.csv') ? 'csv' : 'xlsx';
 }
 
+function decodificarCsv(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    return new TextDecoder('windows-1252').decode(bytes);
+  }
+}
+
 export async function parsearPlanilha(arquivo: File): Promise<PlanilhaParseada> {
   const buffer = await arquivo.arrayBuffer();
-  const workbook = XLSX.read(buffer, { type: 'array' });
+  const workbook = detectarFormato(arquivo.name) === 'csv'
+    ? XLSX.read(decodificarCsv(buffer), { type: 'string', codepage: 65001 })
+    : XLSX.read(buffer, { type: 'array' });
 
   const nomeAba = workbook.SheetNames[0];
   if (!nomeAba) {
