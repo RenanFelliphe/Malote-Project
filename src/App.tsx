@@ -6,6 +6,7 @@ import { Logs } from './pages/logs';
 import { Login } from './pages/login';
 import { PROJETOS } from './data/projetos';
 import { Registro } from './pages/registro';
+import { Sobre } from './pages/sobre';
 import { Footer } from './components/Footer';
 
 /**
@@ -37,6 +38,13 @@ export default function App() {
           <Route path="/logs" element={<Logs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
+          {/**
+           * Landing page pública do projeto (src/pages/sobre.tsx) — fixa,
+           * fora do `PROJETOS.map` abaixo, mesmo raciocínio de "/logs",
+           * "/login" e "/registro" acima. Link para ela fica no rodapé
+           * (`Footer.tsx`).
+           */}
+          <Route path="/sobre" element={<Sobre />} />
           {PROJETOS.map((projeto) => (
             <Route
               key={projeto.slug}

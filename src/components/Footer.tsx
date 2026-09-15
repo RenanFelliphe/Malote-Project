@@ -14,6 +14,7 @@ export function Footer() {
 
                     <nav className="app-footer-links" aria-label="Navegação do rodapé">
                         <Link to="/">Início</Link>
+                        <Link to="/sobre">Sobre o Malote</Link>
                         <Link to="/logs">Logs</Link>
                         <Link to="/login">Entrar</Link>
                         <Link to="/registro">Criar conta</Link>

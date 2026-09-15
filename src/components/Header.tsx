@@ -516,31 +516,31 @@ export function Header({
         </Link>
 
         {slug && (
-            <div className="app-header-copiar app-header-copiar-projeto">
-              <button
-                type="button"
-                className={`app-header-copiar-botao ${campoCopiado === 'titulo' ? 'copiado' : ''}`}
-                onClick={() => void copiarCampo('titulo')}
-                disabled={!emailAtual.titulo}
-                title="Copiar título do e-mail"
-                aria-label="Copiar título do e-mail"
-              >
-                <IconeCopiar />
-                <span>{campoCopiado === 'titulo' ? 'Copiado!' : 'Copiar título'}</span>
-              </button>
+          <div className="app-header-copiar app-header-copiar-projeto">
+            <button
+              type="button"
+              className={`app-header-copiar-botao ${campoCopiado === 'titulo' ? 'copiado' : ''}`}
+              onClick={() => void copiarCampo('titulo')}
+              disabled={!emailAtual.titulo}
+              title="Copiar título do e-mail"
+              aria-label="Copiar título do e-mail"
+            >
+              <IconeCopiar />
+              <span>{campoCopiado === 'titulo' ? 'Copiado!' : 'Copiar título'}</span>
+            </button>
 
-              <button
-                type="button"
-                className={`app-header-copiar-botao ${campoCopiado === 'conteudo' ? 'copiado' : ''}`}
-                onClick={() => void copiarCampo('conteudo')}
-                disabled={!emailAtual.conteudo}
-                title="Copiar corpo do e-mail"
-                aria-label="Copiar corpo do e-mail"
-              >
-                <IconeCopiar />
-                <span>{campoCopiado === 'conteudo' ? 'Copiado!' : 'Copiar corpo'}</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              className={`app-header-copiar-botao ${campoCopiado === 'conteudo' ? 'copiado' : ''}`}
+              onClick={() => void copiarCampo('conteudo')}
+              disabled={!emailAtual.conteudo}
+              title="Copiar corpo do e-mail"
+              aria-label="Copiar corpo do e-mail"
+            >
+              <IconeCopiar />
+              <span>{campoCopiado === 'conteudo' ? 'Copiado!' : 'Copiar corpo'}</span>
+            </button>
+          </div>
         )}
 
         {!slug && (
@@ -554,185 +554,188 @@ export function Header({
           </nav>
         )}
 
-        <div className="app-header-config" ref={containerRef}>
-          <button
-            type="button"
-            ref={botaoRef}
-            className="app-header-config-botao"
-            onClick={() => {
-              setMenuAberto((atual) => !atual);
-              setSubmenuAtualizarAberto(false);
-              setSubmenuExportarAberto(false);
-            }}
-            aria-haspopup="menu"
-            aria-expanded={menuAberto}
-            aria-label="Configurações"
-            title="Configurações"
-          >
-            <IconeConfiguracoes />
-          </button>
+        {location.pathname != '/sobre' && (
+          <div className="app-header-config" ref={containerRef}>
+            <button
+              type="button"
+              ref={botaoRef}
+              className="app-header-config-botao"
+              onClick={() => {
+                setMenuAberto((atual) => !atual);
+                setSubmenuAtualizarAberto(false);
+                setSubmenuExportarAberto(false);
+              }}
+              aria-haspopup="menu"
+              aria-expanded={menuAberto}
+              aria-label="Configurações"
+              title="Configurações"
+            >
+              <IconeConfiguracoes />
+            </button>
 
-          {menuAberto && (
-            <div className="app-header-config-dropdown" role="menu">
-              {
-                location.pathname != '/' && (
+            {menuAberto && (
+              <div className="app-header-config-dropdown" role="menu">
+                {
+                  location.pathname != '/' && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="app-header-config-item app-header-config-item-botao"
+                      onClick={abrirEdicaoEmail}
+                      disabled={!projetoAberto}
+                      title={projetoAberto ? undefined : 'Abra um projeto para editar o e-mail'}
+                    >
+                      <IconeEditarEmail />
+                      Editar e-mail
+                    </button>
+                  )
+                }
+
+                <div className="app-header-config-item-grupo">
                   <button
                     type="button"
                     role="menuitem"
+                    aria-haspopup="menu"
+                    aria-expanded={submenuAtualizarAberto}
                     className="app-header-config-item app-header-config-item-botao"
-                    onClick={abrirEdicaoEmail}
+                    onClick={handleClicarAtualizarPlanilha}
                     disabled={!projetoAberto}
-                    title={projetoAberto ? undefined : 'Abra um projeto para editar o e-mail'}
+                    title={projetoAberto ? undefined : 'Abra um projeto para atualizar a planilha'}
                   >
-                    <IconeEditarEmail />
-                    Editar e-mail
+                    <IconeAtualizarPlanilha />
+                    Atualizar planilha
+                    <span className="app-header-config-item-chevron">
+                      {submenuAtualizarAberto ? <IconeSetaCima /> : <IconeSetaBaixo />}
+                    </span>
                   </button>
-                )
-              }
-              
-              <div className="app-header-config-item-grupo">
+
+                  {submenuAtualizarAberto && (
+                    <div className="app-header-config-submenu" role="menu">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
+                        onClick={handleClicarAtualizarRegistros}
+                      >
+                        <IconeImportar />
+                        Atualizar registros
+                      </button>
+
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
+                        onClick={handleClicarAtualizarDados}
+                      >
+                        <IconeEditarStatus />
+                        Atualizar dados
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="app-header-config-item-grupo">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    aria-haspopup="menu"
+                    aria-expanded={submenuExportarAberto}
+                    className="app-header-config-item app-header-config-item-botao"
+                    onClick={handleClicarSubmenuExportar}
+                    disabled={!onAtivarSelecaoExportacao && !onAtivarSelecaoExportacaoProjetos && !projetoAberto}
+                    title={
+                      onAtivarSelecaoExportacao || onAtivarSelecaoExportacaoProjetos || projetoAberto
+                        ? undefined
+                        : 'Abra um projeto para exportar'
+                    }
+                  >
+                    <IconeExportar />
+                    Exportar planilha
+                    <span className="app-header-config-item-chevron">
+                      {submenuExportarAberto ? <IconeSetaCima /> : <IconeSetaBaixo />}
+                    </span>
+                  </button>
+
+                  {submenuExportarAberto && (
+                    <div className="app-header-config-submenu" role="menu">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
+                        onClick={handleClicarExportarPlanilha}
+                        disabled={!onAtivarSelecaoExportacao && !projetoAberto}
+                        title={onAtivarSelecaoExportacao || projetoAberto ? undefined : 'Abra um projeto para exportar'}
+                      >
+                        <IconeExportar />
+                        Exportar Planilha
+                      </button>
+
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
+                        onClick={handleClicarExportarProjetos}
+                        disabled={!onAtivarSelecaoExportacaoProjetos && !projetoAberto}
+                        title={
+                          onAtivarSelecaoExportacaoProjetos || projetoAberto
+                            ? undefined
+                            : 'Abra um projeto para exportar'
+                        }
+                      >
+                        <IconeExportar />
+                        Exportar Projetos
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <button
                   type="button"
                   role="menuitem"
-                  aria-haspopup="menu"
-                  aria-expanded={submenuAtualizarAberto}
-                  className="app-header-config-item app-header-config-item-botao"
-                  onClick={handleClicarAtualizarPlanilha}
-                  disabled={!projetoAberto}
-                  title={projetoAberto ? undefined : 'Abra um projeto para atualizar a planilha'}
+                  className="app-header-config-item app-header-config-item-botao app-header-config-item-perigo"
+                  onClick={handleClicarDeletarPlanilha}
+                  disabled={!onAtivarSelecaoDelecao && (!slug || !projetoAberto)}
+                  title={onAtivarSelecaoDelecao || (slug && projetoAberto) ? undefined : 'Abra um projeto para deletar a planilha'}
                 >
-                  <IconeAtualizarPlanilha />
-                  Atualizar planilha
-                  <span className="app-header-config-item-chevron">
-                    {submenuAtualizarAberto ? <IconeSetaCima /> : <IconeSetaBaixo />}
-                  </span>
+                  <IconeLixeira />
+                  Deletar planilha
                 </button>
 
-                {submenuAtualizarAberto && (
-                  <div className="app-header-config-submenu" role="menu">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
-                      onClick={handleClicarAtualizarRegistros}
-                    >
-                      <IconeImportar />
-                      Atualizar registros
-                    </button>
+                {/*
+                * "Visualizar Logs" (Demanda 9 — LogsDeAlteracoes.md, Etapa 6):
+                * navegação simples para a rota `/logs`, sem depender de um
+                * projeto aberto (funciona tanto na Home quanto dentro de uma
+                * planilha) — por isso fica ao lado de "Escolher Tema", o
+                * outro item sempre habilitado do dropdown, em vez de perto
+                * das ações que dependem de `projetoAberto`. `Link` em vez de
+                * `button`: é navegação de rota, não uma ação/modal como o
+                * resto do menu.
+                */}
+                <Link
+                  to="/logs"
+                  role="menuitem"
+                  className="app-header-config-item app-header-config-item-botao"
+                  onClick={fecharMenu}
+                >
+                  <IconeLogs />
+                  Visualizar Logs
+                </Link>
 
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
-                      onClick={handleClicarAtualizarDados}
-                    >
-                      <IconeEditarStatus />
-                      Atualizar dados
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="app-header-config-item-grupo">
                 <button
                   type="button"
+                  ref={botaoEscolherTemaRef}
                   role="menuitem"
-                  aria-haspopup="menu"
-                  aria-expanded={submenuExportarAberto}
                   className="app-header-config-item app-header-config-item-botao"
-                  onClick={handleClicarSubmenuExportar}
-                  disabled={!onAtivarSelecaoExportacao && !onAtivarSelecaoExportacaoProjetos && !projetoAberto}
-                  title={
-                    onAtivarSelecaoExportacao || onAtivarSelecaoExportacaoProjetos || projetoAberto
-                      ? undefined
-                      : 'Abra um projeto para exportar'
-                  }
+                  onClick={abrirSeletorDeTema}
                 >
-                  <IconeExportar />
-                  Exportar planilha
-                  <span className="app-header-config-item-chevron">
-                    {submenuExportarAberto ? <IconeSetaCima /> : <IconeSetaBaixo />}
-                  </span>
+                  <IconeEscolherTema />
+                  Escolher Tema
                 </button>
-
-                {submenuExportarAberto && (
-                  <div className="app-header-config-submenu" role="menu">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
-                      onClick={handleClicarExportarPlanilha}
-                      disabled={!onAtivarSelecaoExportacao && !projetoAberto}
-                      title={onAtivarSelecaoExportacao || projetoAberto ? undefined : 'Abra um projeto para exportar'}
-                    >
-                      <IconeExportar />
-                      Exportar Planilha
-                    </button>
-
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className="app-header-config-item app-header-config-item-botao app-header-config-item-submenu"
-                      onClick={handleClicarExportarProjetos}
-                      disabled={!onAtivarSelecaoExportacaoProjetos && !projetoAberto}
-                      title={
-                        onAtivarSelecaoExportacaoProjetos || projetoAberto
-                          ? undefined
-                          : 'Abra um projeto para exportar'
-                      }
-                    >
-                      <IconeExportar />
-                      Exportar Projetos
-                    </button>
-                  </div>
-                )}
               </div>
+            )}
+          </div>
+        )}
 
-              <button
-                type="button"
-                role="menuitem"
-                className="app-header-config-item app-header-config-item-botao app-header-config-item-perigo"
-                onClick={handleClicarDeletarPlanilha}
-                disabled={!onAtivarSelecaoDelecao && (!slug || !projetoAberto)}
-                title={onAtivarSelecaoDelecao || (slug && projetoAberto) ? undefined : 'Abra um projeto para deletar a planilha'}
-              >
-                <IconeLixeira />
-                Deletar planilha
-              </button>
-
-              {/*
-               * "Visualizar Logs" (Demanda 9 — LogsDeAlteracoes.md, Etapa 6):
-               * navegação simples para a rota `/logs`, sem depender de um
-               * projeto aberto (funciona tanto na Home quanto dentro de uma
-               * planilha) — por isso fica ao lado de "Escolher Tema", o
-               * outro item sempre habilitado do dropdown, em vez de perto
-               * das ações que dependem de `projetoAberto`. `Link` em vez de
-               * `button`: é navegação de rota, não uma ação/modal como o
-               * resto do menu.
-               */}
-              <Link
-                to="/logs"
-                role="menuitem"
-                className="app-header-config-item app-header-config-item-botao"
-                onClick={fecharMenu}
-              >
-                <IconeLogs />
-                Visualizar Logs
-              </Link>
-
-              <button
-                type="button"
-                ref={botaoEscolherTemaRef}
-                role="menuitem"
-                className="app-header-config-item app-header-config-item-botao"
-                onClick={abrirSeletorDeTema}
-              >
-                <IconeEscolherTema />
-                Escolher Tema
-              </button>
-            </div>
-          )}
-        </div>
         {erroDelecao && <p className="erro-salvamento erro-salvamento-header">{erroDelecao}</p>}
         {erroExportarProjetos && <p className="erro-salvamento erro-salvamento-header">{erroExportarProjetos}</p>}
 
